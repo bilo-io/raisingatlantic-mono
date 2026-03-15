@@ -1,0 +1,10 @@
+# .moon/workspace.yml
+$schema: 'https://moonrepo.dev/schemas/workspace.json'
+
+projects:
+  - 'src/apps/*'
+  - 'src/pkgs/*'
+
+vcs:
+  defaultBranch: 'master'
+  provider: 'github'

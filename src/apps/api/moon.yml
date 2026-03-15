@@ -1,0 +1,34 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+project:
+  name: 'api'
+  description: 'Raising Atlantic API'
+
+tasks:
+  # --- Shared Tasks ---
+  install:
+    command: 'npm install'
+    options:
+      runInCI: false
+
+  # --- API Tasks (NestJS) ---
+  # Only runs if the project is in src/apps/api
+  build:
+    command: 'moon run build'
+
+  build-api:
+    command: 'nest build'
+    inputs:
+      - 'src/**/*'
+      - 'tsconfig.json'
+    outputs:
+      - 'dist'
+    options:
+      cache: true
+
+  dev:
+    command: 'moon run :dev-api'
+
+  dev-api:
+    command: 'nest start --watch'
+

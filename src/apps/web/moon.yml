@@ -1,0 +1,29 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+project:
+  name: 'api'
+  description: 'Raising Atlantic API'
+
+tasks:
+  # --- Web Tasks (Simple HTML) ---
+  # Since it's just index.html, "building" might just be linting or minifying
+  # If you use a simple tool like 'serve' or 'live-server'
+  dev:
+    command: 'moon run :dev-web'
+    
+  dev-web:
+    command: 'npx serve .'
+    options:
+      runInCI: false
+
+  # --- Global Quality Control ---
+  lint:
+    command: 'eslint .'
+    inputs:
+      - '**/*.{js,ts,html}'
+    
+  test:
+    command: 'jest'
+    inputs:
+      - 'src/**/*'
+      - 'test/**/*'
