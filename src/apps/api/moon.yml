@@ -12,9 +12,14 @@ tasks:
       runInCI: false
 
   # --- API Tasks (NestJS) ---
-  # Only runs if the project is in src/apps/api
   build:
-    command: 'moon run build'
+    command: 'npm run build'
+    inputs:
+      - 'src/**/*'
+      - 'tsconfig.json'
+      - 'tsconfig.build.json'
+    outputs:
+      - 'dist'
 
   build-api:
     command: 'nest build'
@@ -27,8 +32,11 @@ tasks:
       cache: true
 
   dev:
-    command: 'moon run :dev-api'
+    command: 'npm run dev'
 
   dev-api:
     command: 'nest start --watch'
+    
+  clean:
+    command: 'rm -rf dist node_modules'
 

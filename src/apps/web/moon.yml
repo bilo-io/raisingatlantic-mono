@@ -6,11 +6,24 @@ project:
 
 tasks:
   install:
-    command: 'npm install'
+    command: 'npm install --legacy-peer-deps'
+
+  build:
+    command: 'npm run build'
+    inputs:
+      - 'src/**/*'
+      - 'public/**/*'
+      - 'next.config.*'
+      - 'tsconfig.json'
+    outputs:
+      - '.next'
 
   dev:
     command: 'npm run dev'
     
+  clean:
+    command: 'rm -rf .next node_modules'
+
   lint:
     command: 'eslint .'
     inputs:
