@@ -35,11 +35,7 @@ function HeroSection() {
   const { resolvedTheme } = useTheme();
 
   return (
-    <AnimatedGradientBackground
-      variant="ocean"
-      colors={["#605BFF", "#FF00AA", "#8B5CF6", "#00C2FF"]}
-      speed={10}
-      className="relative py-20 md:py-32 min-h-[600px] flex items-center"
+    <section className="relative py-20 md:py-32 min-h-[600px] flex items-center"
     >
       {/* Video Background blended under gradient orbs */}
       <div className="absolute inset-0 z-0">
@@ -88,7 +84,7 @@ function HeroSection() {
           </Button>
         </div>
       </div>
-    </AnimatedGradientBackground>
+    </section>
   );
 }
 
@@ -198,7 +194,7 @@ function FeaturesSection() {
           <h2 className="text-white font-headline text-3xl md:text-4xl font-bold mb-4">
             {t('featuresSectionTitle')}
           </h2>
-          <p className="text-primary-foreground/90 max-w-xl mx-auto">
+          <p className="text-white max-w-xl mx-auto">
             {t('featuresSectionSubtitle')}
           </p>
         </div>
