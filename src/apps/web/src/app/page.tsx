@@ -185,20 +185,14 @@ function FeaturesSection() {
   }, [resolvedTheme]);
 
   return (
-    <AnimatedGradientBackground
-      id="features"
-      colors={["#605BFF", "#FF00AA", "#8B5CF6"]}
-      speed={12}
-      intensity={130}
-      className="py-16 md:py-24 text-white"
-    >
+    <section id="features" className="py-16 md:py-24 bg-primary text-primary-foreground">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <Sparkles className="h-12 w-12 text-white mx-auto mb-4" />
-          <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-white font-headline text-3xl md:text-4xl font-bold mb-4">
             {t('featuresSectionTitle')}
           </h2>
-          <p className="max-w-xl mx-auto">
+          <p className="text-primary-foreground/90 max-w-xl mx-auto">
             {t('featuresSectionSubtitle')}
           </p>
         </div>
@@ -226,7 +220,7 @@ function FeaturesSection() {
             />
         </div>
       </div>
-    </AnimatedGradientBackground>
+    </section>
   );
 }
 
