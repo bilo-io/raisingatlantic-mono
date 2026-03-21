@@ -153,7 +153,28 @@
     stroke: url(#primary-gradient-svg-dark);
   }
 
-  /* Hover gradient utility for landing nav/footer */
+  /* ── text-accent → primary gradient ────────────────────────────── */
+  .text-accent {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  svg.text-accent,
+  .lucide.text-accent {
+    -webkit-text-fill-color: initial;
+    background: none;
+    fill: none;
+    stroke: url(#primary-gradient-svg);
+  }
+
+  .dark svg.text-accent,
+  .dark .lucide.text-accent {
+    stroke: url(#primary-gradient-svg-dark);
+  }
+
+  /* ── hover gradient text (nav/footer links & icons) ─────────────── */
   .hover-gradient-text:hover {
     background: var(--primary-gradient);
     -webkit-background-clip: text;
@@ -168,14 +189,46 @@
     stroke: url(#primary-gradient-svg-dark);
   }
 
-  /* Specific fix for sidebar items to maintain contrast */
+  /* ── hover gradient border / text for outline buttons ────────────
+     Usage: add class "hover-gradient-border" to an outline <Button>.
+     On hover the border becomes a gradient via a pseudo-element trick
+     and the text/icon colour becomes the gradient.                   */
+  .hover-gradient-border {
+    position: relative;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .hover-gradient-border:hover {
+    border-color: transparent !important;
+    background-clip: padding-box;
+  }
+
+  .hover-gradient-border:hover::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: var(--primary-gradient);
+    z-index: -1;
+  }
+
+  .hover-gradient-border:hover span,
+  .hover-gradient-border:hover svg {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    stroke: url(#primary-gradient-svg);
+  }
+
+  /* ── sidebar & bg-primary contrast fixes ────────────────────────── */
   .bg-primary .text-primary-foreground {
     -webkit-text-fill-color: initial !important;
     background: none !important;
     background-clip: border-box !important;
   }
 
-  /* Progress Bar specific adjustment */
+  /* ── progress bar ────────────────────────────────────────────────── */
   [data-radix-progress-indicator] {
     background: var(--primary-gradient) !important;
   }

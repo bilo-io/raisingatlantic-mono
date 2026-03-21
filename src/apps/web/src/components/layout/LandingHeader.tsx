@@ -55,10 +55,10 @@ export function LandingHeader() {
 
           {/* Right Aligned Controls (Lang, Theme, Auth) */}
           <div className="flex items-center space-x-2">
-            <LanguageSwitcher />
-            <ThemeToggleButton />
+            <span className="hover-gradient-text"><LanguageSwitcher /></span>
+            <span className="hover-gradient-text"><ThemeToggleButton /></span>
             {LANDING_NAV_LINKS.filter(link => link.isAuthLink).map((link: NavLinkItem) => (
-               <Button key={link.label} asChild variant={link.href === '/signup' ? 'default' : 'outline'} className={link.href === '/signup' ? '' : 'hover:border-primary hover:text-primary transition-all'}>
+               <Button key={link.label} asChild variant={link.href === '/signup' ? 'default' : 'outline'} className={link.href === '/signup' ? '' : 'hover-gradient-border transition-all'}>
                   <Link href={link.href}>
                       <link.icon className="mr-2 h-4 w-4" />
                       {t(link.label)}
@@ -70,8 +70,8 @@ export function LandingHeader() {
 
         {/* Mobile: Controls (Lang, Theme, Menu) - this group is pushed to the far right on mobile */}
         <div className="flex items-center space-x-2 md:hidden ml-auto"> 
-          <LanguageSwitcher />
-          <ThemeToggleButton />
+          <span className="hover-gradient-text"><LanguageSwitcher /></span>
+          <span className="hover-gradient-text"><ThemeToggleButton /></span>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon">

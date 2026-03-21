@@ -7,19 +7,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { CheckCircle, Users, BarChart, Smile, MessageCircleQuestion, Lightbulb, ShieldCheck, Sparkles, Construction } from 'lucide-react';
 import { PublicLayout } from '@/components/layout/PublicLayout';
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { useTranslation } from 'react-i18next';
 import { LeadCaptureForm } from '@/components/landing/LeadCaptureForm';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { AnimatedGradientBackground } from '@/components/ui/animated-gradient-bg';
+
+
 
 // Helper function to generate theme-aware placeholder URLs
 const getPlaceholderUrl = (width: number, height: number, currentTheme: string | undefined): string => {
@@ -36,26 +31,25 @@ const getPlaceholderUrl = (width: number, height: number, currentTheme: string |
 
 
 function HeroSection() {
-  const { t } = useTranslation(); // Initialize useTranslation hook
+  const { t } = useTranslation();
   const { resolvedTheme } = useTheme();
 
   return (
-    <section className="relative py-20 md:py-32 bg-gradient-to-br from-primary/10 via-background to-background overflow-hidden min-h-[600px] flex items-center">
-      {/* Video Background */}
+    <section className="relative py-20 md:py-32 min-h-[600px] flex items-center"
+    >
+      {/* Video Background blended under gradient orbs */}
       <div className="absolute inset-0 z-0">
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="w-full h-full object-cover"
-          // Ensure you have this video file in public/assets/videos/ or update path
-          src="/assets/videos/vid-gradient-background.mp4" 
+          className="w-full h-full object-cover opacity-30"
+          src="/assets/videos/vid-gradient-background.mp4"
         >
           Your browser does not support the video tag.
         </video>
-        {/* Overlay for better text readability */}
-        <div className="absolute inset-0 bg-black opacity-40"></div>
+        <div className="absolute inset-0 bg-black opacity-30" />
       </div>
 
       {/* Hero Content */}
@@ -70,9 +64,6 @@ function HeroSection() {
               priority
            />
         </div>
-        {/* <h1 className="font-headline text-4xl md:text-6xl font-extrabold mb-6 tracking-tight text-white drop-shadow-md">
-          {t('heroTitle')}
-        </h1> */}
         <p className="text-lg md:text-xl text-gray-200 mb-10 max-w-2xl mx-auto">
           {t('heroSubtitle')}
         </p>
@@ -85,7 +76,7 @@ function HeroSection() {
             size="lg" 
             variant="outline" 
             asChild 
-            className="bg-transparent border-white text-white shadow-lg hover:shadow-accent/50 transition-shadow hover:bg-accent hover:border-accent hover:text-accent-foreground"
+            className="hover-gradient-border bg-transparent border-white text-white shadow-lg transition-all"
           >
             <a href="#features">{t('heroButtonLearnMore')}</a>
           </Button>
@@ -156,7 +147,7 @@ function ServicesSection() {
     <section id="services" className="py-16 md:py-24 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <ShieldCheck className="h-12 w-12 text-accent mx-auto mb-4" />
+          <ShieldCheck className="h-12 w-12 text-primary mx-auto mb-4" />
           <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">{t('servicesSectionTitle')}</h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
             {t('servicesSectionSubtitle')}
@@ -194,18 +185,26 @@ function FeaturesSection() {
   }, [resolvedTheme]);
 
   return (
-    <section id="features" className="py-16 md:py-24 bg-primary text-primary-foreground">
+    <AnimatedGradientBackground
+      id="features"
+      colors={["#605BFF", "#FF00AA", "#8B5CF6"]}
+      speed={12}
+      intensity={130}
+      className="py-16 md:py-24 text-white"
+    >
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <Sparkles className="h-12 w-12 text-primary-foreground mx-auto mb-4" />
-          <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">{t('featuresSectionTitle')}</h2>
-          <p className="text-primary-foreground/90 max-w-xl mx-auto">
+          <Sparkles className="h-12 w-12 text-white mx-auto mb-4" />
+          <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">
+            {t('featuresSectionTitle')}
+          </h2>
+          <p className="max-w-xl mx-auto">
             {t('featuresSectionSubtitle')}
           </p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature) => {
-            const FeatureIcon = feature.icon; // Assign to a capitalized variable for JSX
+            const FeatureIcon = feature.icon;
             return (
               <div key={feature.nameKey} className="flex items-start space-x-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white p-6 rounded-xl hover:bg-white/20 transition-all group shadow-lg">
                 <div className="bg-white/20 p-2 rounded-lg group-hover:bg-white/30 transition-colors">
@@ -227,7 +226,7 @@ function FeaturesSection() {
             />
         </div>
       </div>
-    </section>
+    </AnimatedGradientBackground>
   );
 }
 
@@ -257,7 +256,7 @@ function FaqSection() {
     <section id="faq" className="py-16 md:py-24 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <MessageCircleQuestion className="h-12 w-12 text-accent mx-auto mb-4" />
+          <MessageCircleQuestion className="h-12 w-12 text-primary mx-auto mb-4" />
           <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">{t('faqSectionTitle')}</h2>
         </div>
         <Accordion type="single" collapsible className="w-full max-w-2xl mx-auto">
@@ -384,7 +383,7 @@ function TestimonialsSection() {
     <section id="testimonials" className="py-16 md:py-24 bg-secondary/30">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <Users className="h-12 w-12 text-accent mx-auto mb-4" />
+          <Users className="h-12 w-12 text-primary mx-auto mb-4" />
           <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">{t('testimonialsSectionTitle')}</h2>
         </div>
         
@@ -424,7 +423,12 @@ function TestimonialsSection() {
 function LeadCaptureSection() {
   const { t } = useTranslation();
   return (
-    <section id="contact" className="py-16 md:py-24 bg-primary text-primary-foreground">
+    <AnimatedGradientBackground
+      colors={["#605BFF", "#FF00AA", "#8B5CF6", "#0EA5E9"]}
+      speed={14}
+      intensity={150}
+      className="py-16 md:py-24"
+    >
       <div className="container mx-auto px-4 text-center">
         <div className="bg-white/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-md border border-white/30">
           <Lightbulb className="h-10 w-10 text-white" />
@@ -437,7 +441,7 @@ function LeadCaptureSection() {
           <LeadCaptureForm />
         </div>
       </div>
-    </section>
+    </AnimatedGradientBackground>
   );
 }
 
