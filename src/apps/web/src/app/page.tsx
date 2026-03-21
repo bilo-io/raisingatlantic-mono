@@ -419,9 +419,9 @@ function LeadCaptureSection() {
   const { t } = useTranslation();
   return (
     <AnimatedGradientBackground
+      variant="ocean"
       colors={["#605BFF", "#FF00AA", "#8B5CF6", "#0EA5E9"]}
       speed={14}
-      intensity={150}
       className="py-16 md:py-24"
     >
       <div className="container mx-auto px-4 text-center">
