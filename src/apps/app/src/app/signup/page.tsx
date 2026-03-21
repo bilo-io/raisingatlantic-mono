@@ -11,6 +11,7 @@ import { UserPlus } from "lucide-react";
 import { SITE_NAME } from "@/lib/constants";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import Image from 'next/image';
+import { SiteLogo } from "@/components/layout/SiteLogo";
 
 
 export default function SignupPage() {
@@ -20,13 +21,7 @@ export default function SignupPage() {
         <Card className="w-full max-w-lg shadow-2xl">
           <CardHeader className="space-y-1 text-center">
             <Link href="/" className="inline-block mb-4">
-              <Image 
-                src="/assets/images/app-logo.svg" 
-                alt={SITE_NAME}
-                width={175} 
-                height={40}
-                className="mx-auto"
-              />
+              <SiteLogo className="mx-auto" />
             </Link>
             <CardTitle className="font-headline text-3xl">Join {SITE_NAME}</CardTitle>
             <CardDescription>Create your account to start supporting child development</CardDescription>

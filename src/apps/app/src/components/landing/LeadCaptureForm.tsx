@@ -44,7 +44,7 @@ export function LeadCaptureForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-4 bg-background/10 p-6 rounded-lg shadow-md">
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-4 bg-black/5 dark:bg-white/5 p-6 rounded-2xl border border-white/10 shadow-lg backdrop-blur-sm">
       <div>
         <label htmlFor="lead-email" className="sr-only">{t('leadFormEmailLabel')}</label>
         <Input
@@ -54,7 +54,7 @@ export function LeadCaptureForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="bg-background text-foreground placeholder:text-muted-foreground/80"
+          className="bg-background/80 border-white/20 h-12"
         />
       </div>
       <div>
@@ -64,10 +64,14 @@ export function LeadCaptureForm() {
           placeholder={t('leadFormMessagePlaceholder')}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="bg-background text-foreground placeholder:text-muted-foreground/80"
+          className="bg-background/80 border-white/20 min-h-[100px]"
         />
       </div>
-      <Button type="submit" size="lg" variant="default" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+      <Button 
+        type="submit" 
+        size="lg" 
+        className="w-full bg-[#181D22] text-[#E5E0D8] dark:bg-white dark:text-[#181D22] hover:opacity-90 transition-all font-bold rounded-xl h-14 shadow-md"
+      >
         {t('leadFormSubmitButton')}
       </Button>
     </form>

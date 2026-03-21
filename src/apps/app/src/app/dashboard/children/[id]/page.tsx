@@ -146,7 +146,10 @@ export default function ChildProfilePage() {
                 format: 'a4',
             });
             try {
-                await pdf.html(profileCardRef.current, {
+                const element = profileCardRef.current;
+                if (!element || !child) return;
+                
+                await pdf.html(element, {
                     autoPaging: 'text',
                     margin: [40, 30, 40, 30],
                     width: 535,
@@ -283,6 +286,12 @@ export default function ChildProfilePage() {
             data={combinedChartData}
             margin={{ top: 20, right: 20, left: 0, bottom: 10 }}
             >
+            <defs>
+              <linearGradient id="growthGradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="var(--primary)" />
+                <stop offset="100%" stopColor="var(--accent)" />
+              </linearGradient>
+            </defs>
             <CartesianGrid vertical={false} />
             <XAxis dataKey="age" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}m`} name="Age in Months" />
             <YAxis 
@@ -300,7 +309,7 @@ export default function ChildProfilePage() {
             <Line dataKey="line_0" type="linear" stroke="var(--color-line_0)" strokeWidth={3} dot={false} name="0-line (median)" />
             <Line dataKey="line_plus_2" type="linear" stroke="var(--color-line_plus_2)" strokeWidth={2} dot={false} name="+2 line" />
             <Line dataKey="line_plus_3" type="linear" stroke="var(--color-line_plus_3)" strokeWidth={2} dot={false} name="+3 line" />
-            <Line dataKey="childData" type="monotone" stroke="var(--color-childData)" strokeWidth={2.5} dot={{ r: 5 }} activeDot={{ r: 7 }} name={child.name} connectNulls />
+            <Line dataKey="childData" type="monotone" stroke="url(#growthGradient)" strokeWidth={3} dot={{ r: 5, fill: "var(--card)", stroke: "url(#growthGradient)", strokeWidth: 2 }} activeDot={{ r: 7, fill: "var(--card)", stroke: "url(#growthGradient)", strokeWidth: 2 }} name={child.name} connectNulls />
             </LineChart>
         </ChartContainer>
     );

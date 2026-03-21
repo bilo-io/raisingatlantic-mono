@@ -20,6 +20,7 @@ import { BreadcrumbNav } from './BreadcrumbNav';
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from '../ui/skeleton';
 import { RoleAvatar } from '@/components/ui/RoleAvatar';
+import { SiteLogo } from './SiteLogo';
 
 interface NavItemProps {
   link: NavLinkItem;
@@ -49,8 +50,10 @@ const NavItem: React.FC<NavItemProps> = ({ link, pathname, isMobile, onNavigate 
       <Accordion type="single" collapsible className="w-full" defaultValue={defaultAccordionValue}>
         <AccordionItem value={link.label} className="border-none">
           <div className={cn(
-            "flex items-center justify-between rounded-lg px-3 text-muted-foreground transition-all hover:text-primary hover:bg-sidebar-accent",
-            active && "bg-sidebar-accent text-primary font-semibold"
+            "flex items-center justify-between rounded-lg px-3 transition-all",
+            active 
+              ? "bg-primary text-primary-foreground font-semibold shadow-sm" 
+              : "text-muted-foreground hover:text-primary hover:bg-sidebar-accent"
           )}>
             <div
               className="flex items-center gap-3 py-2 flex-1 cursor-pointer"
@@ -90,8 +93,10 @@ const NavItem: React.FC<NavItemProps> = ({ link, pathname, isMobile, onNavigate 
         if (onNavigate) onNavigate();
       }}
       className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-sidebar-accent",
-        active && "bg-sidebar-accent text-primary font-semibold"
+        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+        active 
+          ? "bg-primary text-primary-foreground font-semibold shadow-sm" 
+          : "text-muted-foreground hover:text-primary hover:bg-sidebar-accent"
       )}
     >
       <link.icon className="h-4 w-4" />
@@ -192,12 +197,7 @@ export function PrivateLayout({ children }: { children: React.ReactNode }) {
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center justify-between border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/dashboard" className="flex items-center gap-2">
-              <Image 
-                src="/assets/images/app-logo.svg" 
-                alt={SITE_NAME + " logo"}
-                width={175} 
-                height={40} 
-              />
+              <SiteLogo />
             </Link>
             <Badge variant="outline" className="text-xs">
               {currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}
@@ -231,12 +231,7 @@ export function PrivateLayout({ children }: { children: React.ReactNode }) {
                       </Button>
                     </SheetClose>
                     <Link href="/dashboard" className="flex items-center" onClick={() => setIsSheetOpen(false)}>
-                      <Image 
-                        src="/assets/images/app-logo.svg" 
-                        alt={SITE_NAME + " logo"}
-                        width={175} 
-                        height={40}
-                      />
+                      <SiteLogo />
                     </Link>
                  </div>
                  <Badge variant="outline" className="text-xs">

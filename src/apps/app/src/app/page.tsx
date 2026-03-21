@@ -23,10 +23,10 @@ import {
 
 // Helper function to generate theme-aware placeholder URLs
 const getPlaceholderUrl = (width: number, height: number, currentTheme: string | undefined): string => {
-  const lightBg = "D9E2F0"; // hsl(210 40% 90%)
-  const lightText = "6B7A8F"; // hsl(210 30% 50%)
-  const darkBg = "333944";   // hsl(220 20% 25%)
-  const darkText = "AAB4C3";  // hsl(210 30% 70%)
+  const lightBg = "E5E0D8"; // Sand Background
+  const lightText = "6A6154"; // Muted Foreground
+  const darkBg = "181D22";   // Obsidian (Sidebar/Card)
+  const darkText = "C6BAA8";  // Sand Foreground
 
   const bg = currentTheme === 'dark' ? darkBg : lightBg;
   const text = currentTheme === 'dark' ? darkText : lightText;
@@ -35,12 +35,12 @@ const getPlaceholderUrl = (width: number, height: number, currentTheme: string |
 };
 
 
-// Section: Hero
 function HeroSection() {
   const { t } = useTranslation(); // Initialize useTranslation hook
+  const { resolvedTheme } = useTheme();
 
   return (
-    <section className="relative py-20 md:py-32 bg-gradient-to-br from-primary/10 via-background to-background overflow-hidden">
+    <section className="relative py-20 md:py-32 bg-gradient-to-br from-primary/10 via-background to-background overflow-hidden min-h-[600px] flex items-center">
       {/* Video Background */}
       <div className="absolute inset-0 z-0">
         <video
@@ -55,12 +55,22 @@ function HeroSection() {
           Your browser does not support the video tag.
         </video>
         {/* Overlay for better text readability */}
-        <div className="absolute inset-0 bg-black opacity-50"></div>
+        <div className="absolute inset-0 bg-black opacity-40"></div>
       </div>
 
       {/* Hero Content */}
-      <div className="container mx-auto px-4 text-center relative z-10">
-        <h1 className="font-headline text-4xl md:text-6xl font-bold mb-6 tracking-tight text-white">
+      <div className="container mx-auto px-4 text-center relative z-10 flex flex-col items-center">
+        <div className="mb-10 w-[350px] md:w-[600px] animate-in fade-in zoom-in duration-1000">
+           <Image 
+              src={resolvedTheme === 'dark' ? '/assets/images/app-branding-dark.svg' : '/assets/images/app-branding-light.svg'} 
+              alt="Raising Atlantic Branding"
+              width={600} 
+              height={150}
+              className="w-full h-auto drop-shadow-2xl"
+              priority
+           />
+        </div>
+        <h1 className="font-headline text-4xl md:text-6xl font-extrabold mb-6 tracking-tight text-white drop-shadow-md">
           {t('heroTitle')}
         </h1>
         <p className="text-lg md:text-xl text-gray-200 mb-10 max-w-2xl mx-auto">
@@ -197,9 +207,11 @@ function FeaturesSection() {
           {features.map((feature) => {
             const FeatureIcon = feature.icon; // Assign to a capitalized variable for JSX
             return (
-              <div key={feature.nameKey} className="flex items-start space-x-3 bg-primary-foreground text-primary p-6 rounded-lg shadow-md">
-                <FeatureIcon className="h-6 w-6 flex-shrink-0" />
-                <span className="font-medium">{t(feature.nameKey)}</span>
+              <div key={feature.nameKey} className="flex items-start space-x-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white p-6 rounded-xl hover:bg-white/20 transition-all group shadow-lg">
+                <div className="bg-white/20 p-2 rounded-lg group-hover:bg-white/30 transition-colors">
+                  <FeatureIcon className="h-5 w-5 flex-shrink-0" />
+                </div>
+                <span className="font-semibold text-lg">{t(feature.nameKey)}</span>
               </div>
             );
           })}
@@ -414,12 +426,16 @@ function LeadCaptureSection() {
   return (
     <section id="contact" className="py-16 md:py-24 bg-primary text-primary-foreground">
       <div className="container mx-auto px-4 text-center">
-        <Lightbulb className="h-12 w-12 text-primary-foreground mx-auto mb-4" /> {/* Ensure icon is visible */}
-        <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">{t('leadCaptureTitle')}</h2>
-        <p className="text-lg text-primary-foreground/80 mb-8 max-w-xl mx-auto">
+        <div className="bg-white/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-md border border-white/30">
+          <Lightbulb className="h-10 w-10 text-white" />
+        </div>
+        <h2 className="font-headline text-3xl md:text-5xl font-bold mb-6 text-white">{t('leadCaptureTitle')}</h2>
+        <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
           {t('leadCaptureSubtitle')}
         </p>
-        <LeadCaptureForm />
+        <div className="max-w-md mx-auto bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20 shadow-2xl">
+          <LeadCaptureForm />
+        </div>
       </div>
     </section>
   );

@@ -4,26 +4,28 @@
 
 @layer base {
   :root {
-    --background: #E8F4F8; 
-    --foreground: #2C313B;
+    --background: #E5E0D8; 
+    --foreground: #181D22;
 
-    --muted: #D9E4EF;
-    --muted-foreground: #59738C;
+    --muted: #D6CFC3;
+    --muted-foreground: #6A6154;
 
-    --popover: #FFFFFF;
-    --popover-foreground: #2C313B;
+    --popover: #FDFBF7;
+    --popover-foreground: #181D22;
 
-    --card: #FFFFFF;
-    --card-foreground: #2C313B;
+    --card: #FDFBF7;
+    --card-foreground: #181D22;
 
-    --border: #CCD7E2;
-    --input: #D8E1EA;
+    --border: #C9C1B3;
+    --input: #C9C1B3;
 
     --primary: #605BFF;
     --primary-foreground: #FFFFFF;
 
-    --secondary: #F1F5F9;
-    --secondary-foreground: #2C313B;
+    --secondary: #DED6CA;
+    --secondary-foreground: #181D22;
+
+    --primary-gradient: linear-gradient(135deg, #605BFF 0%, #FF00AA 100%);
 
     --accent: #FF00AA;
     --accent-foreground: #FFFFFF;
@@ -42,13 +44,13 @@
     --chart-5: #F4A261;
 
     /* Sidebar specific */
-    --sidebar-background: #FFFFFF;
-    --sidebar-foreground: #424959;
+    --sidebar-background: #C6BAA8;
+    --sidebar-foreground: #181D22;
     --sidebar-primary: #605BFF;
     --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #E6E6FF;
-    --sidebar-accent-foreground: #332DFF;
-    --sidebar-border: #D9E1E9;
+    --sidebar-accent: #DED6CA;
+    --sidebar-accent-foreground: #181D22;
+    --sidebar-border: #C9C1B3;
     --sidebar-ring: #605BFF;
     
     /* Avatar Colors */
@@ -59,26 +61,28 @@
   }
 
   .dark {
-    --background: #14171C;
-    --foreground: #F1F5F9;
+    --background: #0F1215;
+    --foreground: #C6BAA8;
 
-    --muted: #333B47;
-    --muted-foreground: #9EAFC1;
+    --muted: #1E242B;
+    --muted-foreground: #91877A;
 
-    --popover: #1F242D;
-    --popover-foreground: #F1F5F9;
+    --popover: #181D22;
+    --popover-foreground: #C6BAA8;
 
-    --card: #1F242D;
-    --card-foreground: #F1F5F9;
+    --card: #181D22;
+    --card-foreground: #C6BAA8;
 
-    --border: #3D4756;
-    --input: #3D4756;
+    --border: #2A323B;
+    --input: #2A323B;
 
     --primary: #807DFF;
     --primary-foreground: #1F242D;
 
-    --secondary: #292E38;
-    --secondary-foreground: #F1F5F9;
+    --secondary: #1F252C;
+    --secondary-foreground: #C6BAA8;
+
+    --primary-gradient: linear-gradient(135deg, #807DFF 0%, #FF4DBC 100%);
 
     --accent: #FF4DBC;
     --accent-foreground: #000000;
@@ -89,20 +93,20 @@
     --ring: #807DFF;
 
     /* Chart colors - dark theme */
-    --chart-1: #2563EB;
-    --chart-2: #2EB88A;
-    --chart-3: #E88C30;
-    --chart-4: #AF57DB;
-    --chart-5: #E2366F;
+    --chart-1: #3B82F6;
+    --chart-2: #34D399;
+    --chart-3: #F97316;
+    --chart-4: #A855F7;
+    --chart-5: #F43F5E;
     
     /* Sidebar specific dark */
-    --sidebar-background: #181B21;
-    --sidebar-foreground: #D9E4EF;
+    --sidebar-background: #181D22;
+    --sidebar-foreground: #C6BAA8;
     --sidebar-primary: #807DFF;
     --sidebar-primary-foreground: #1F242D;
-    --sidebar-accent: #000080;
-    --sidebar-accent-foreground: #9996FF;
-    --sidebar-border: #333B47;
+    --sidebar-accent: #2A323B;
+    --sidebar-accent-foreground: #C6BAA8;
+    --sidebar-border: #2A323B;
     --sidebar-ring: #807DFF;
     
     /* Avatar Colors */
@@ -120,5 +124,59 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Global Primary Gradient Overrides */
+  .bg-primary {
+    background: var(--primary-gradient) !important;
+    border: none !important;
+  }
+
+  .text-primary {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Fix for icons and other elements that shouldn't have transparent fill */
+  svg.text-primary, 
+  .lucide.text-primary {
+    -webkit-text-fill-color: initial;
+    background: none;
+    fill: none;
+    stroke: url(#primary-gradient-svg); 
+  }
+
+  .dark svg.text-primary,
+  .dark .lucide.text-primary {
+    stroke: url(#primary-gradient-svg-dark);
+  }
+
+  /* Hover gradient utility for landing nav/footer */
+  .hover-gradient-text:hover {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    stroke: url(#primary-gradient-svg);
+  }
+
+  .dark .hover-gradient-text:hover {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    stroke: url(#primary-gradient-svg-dark);
+  }
+
+  /* Specific fix for sidebar items to maintain contrast */
+  .bg-primary .text-primary-foreground {
+    -webkit-text-fill-color: initial !important;
+    background: none !important;
+    background-clip: border-box !important;
+  }
+
+  /* Progress Bar specific adjustment */
+  [data-radix-progress-indicator] {
+    background: var(--primary-gradient) !important;
   }
 }

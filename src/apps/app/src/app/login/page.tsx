@@ -14,6 +14,7 @@ import { PublicLayout } from "@/components/layout/PublicLayout";
 import Image from 'next/image';
 import { useState, useMemo } from 'react';
 import { dummyUsers } from "@/data/users";
+import { SiteLogo } from "@/components/layout/SiteLogo";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" {...props}>
@@ -57,13 +58,7 @@ export default function LoginPage() {
         <Card className="w-full max-w-md shadow-2xl">
           <CardHeader className="space-y-1 text-center">
             <Link href="/" className="mb-4 inline-block">
-              <Image 
-                src="/assets/images/app-logo.svg" 
-                alt={SITE_NAME}
-                width={175} 
-                height={40}
-                className="mx-auto"
-              />
+              <SiteLogo className="mx-auto" />
             </Link>
             <CardTitle className="font-headline text-3xl">Login</CardTitle>
             <CardDescription>Enter your credentials to access your account</CardDescription>

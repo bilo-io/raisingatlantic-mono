@@ -11,6 +11,7 @@ import { ThemeToggleButton } from '@/components/theme-toggle-button';
 import type { NavLinkItem } from '@/lib/constants';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
+import { SiteLogo } from './SiteLogo';
 
 function AuthButton({ link }: { link: NavLinkItem }) {
     const { t } = useTranslation();
@@ -34,12 +35,7 @@ export function LandingHeader() {
       <div className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          <Image 
-            src="/assets/images/app-logo.svg" 
-            alt={SITE_NAME + " logo"}
-            width={175} 
-            height={40}
-          />
+          <SiteLogo />
         </Link>
         
         {/* Desktop: Centered Nav and Right Controls */}
@@ -62,7 +58,12 @@ export function LandingHeader() {
             <LanguageSwitcher />
             <ThemeToggleButton />
             {LANDING_NAV_LINKS.filter(link => link.isAuthLink).map((link: NavLinkItem) => (
-               <AuthButton key={link.label} link={link} />
+               <Button key={link.label} asChild variant={link.href === '/signup' ? 'default' : 'outline'} className={link.href === '/signup' ? '' : 'hover:border-primary hover:text-primary transition-all'}>
+                  <Link href={link.href}>
+                      <link.icon className="mr-2 h-4 w-4" />
+                      {t(link.label)}
+                  </Link>
+               </Button>
             ))}
           </div>
         </div>

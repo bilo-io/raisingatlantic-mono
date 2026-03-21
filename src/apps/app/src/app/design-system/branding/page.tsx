@@ -40,23 +40,29 @@ export default function BrandingPage() {
             </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-8 rounded-lg bg-background border flex items-center justify-center">
-                    <Image 
-                        src="/assets/images/app-logo.svg" 
-                        alt="Raising Atlantic Logo"
-                        width={250} 
-                        height={60}
-                        className="w-[250px] h-auto"
-                    />
+                <div className="flex flex-col gap-2">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase">Logo for Light Background</p>
+                    <div className="p-8 rounded-lg bg-[#E5E0D8] border flex items-center justify-center h-48 shadow-inner">
+                        <Image 
+                            src="/assets/images/app-logo-light.svg" 
+                            alt="Raising Atlantic Logo (Light)"
+                            width={250} 
+                            height={60}
+                            className="w-[250px] h-auto"
+                        />
+                    </div>
                 </div>
-                <div className="p-8 rounded-lg bg-foreground border flex items-center justify-center">
-                    <Image 
-                        src="/assets/images/app-logo.svg" 
-                        alt="Raising Atlantic Logo for Dark Background"
-                        width={250} 
-                        height={60}
-                        className="w-[250px] h-auto"
-                    />
+                <div className="flex flex-col gap-2">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase">Logo for Dark Background</p>
+                    <div className="p-8 rounded-lg bg-[#181D22] border flex items-center justify-center h-48 shadow-inner">
+                        <Image 
+                            src="/assets/images/app-logo-dark.svg" 
+                            alt="Raising Atlantic Logo (Dark)"
+                            width={250} 
+                            height={60}
+                            className="w-[250px] h-auto"
+                        />
+                    </div>
                 </div>
             </CardContent>
         </Card>
@@ -70,8 +76,8 @@ export default function BrandingPage() {
                 <ColorSwatch color="bg-primary" name="Primary" hex="#605BFF" />
                 <ColorSwatch color="bg-accent" name="Accent" hex="#FF00AA" />
                 <ColorSwatch color="bg-destructive" name="Destructive" hex="#F43F5E" />
-                <ColorSwatch color="bg-background" name="Background" hex="#E8F4F8" />
-                <ColorSwatch color="bg-foreground" name="Foreground" hex="#333D47" />
+                <ColorSwatch color="bg-background" name="Sand Background" hex="#E5E0D8" />
+                <ColorSwatch color="bg-foreground" name="Obsidian Foreground" hex="#181D22" />
             </CardContent>
         </Card>
         

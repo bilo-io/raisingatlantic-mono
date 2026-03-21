@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { SITE_NAME } from '@/lib/constants';
 import { useTranslation } from 'react-i18next';
+import { SiteLogo } from './SiteLogo';
 
 export function LandingFooter() {
   const { t } = useTranslation();
@@ -42,18 +43,12 @@ export function LandingFooter() {
           {/* Left Column: Logo and Social */}
           <div className="space-y-4">
             <Link href="/" className="inline-block">
-              <Image 
-                src="/assets/images/app-logo.svg" 
-                alt={SITE_NAME + " logo"}
-                width={175} 
-                height={40}
-                data-ai-hint="company logo"
-              />
+              <SiteLogo />
             </Link>
             <div className="flex space-x-4">
               {socialLinks.map((social) => (
                 <Link key={social.label} href={social.href} target="_blank" rel="noopener noreferrer" 
-                      className="text-muted-foreground hover:text-primary transition-colors"
+                      className="text-muted-foreground hover-gradient-text transition-all"
                       aria-label={social.label}>
                   <social.icon className="h-6 w-6" />
                 </Link>
@@ -67,7 +62,7 @@ export function LandingFooter() {
             <ul className="space-y-3">
               {companyLinks.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="text-base text-muted-foreground hover:text-primary transition-colors">
+                  <Link href={link.href} className="text-base text-muted-foreground hover-gradient-text transition-all">
                     {link.label}
                   </Link>
                 </li>
@@ -81,7 +76,7 @@ export function LandingFooter() {
             <ul className="space-y-3">
               {resourceLinks.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="text-base text-muted-foreground hover:text-primary transition-colors">
+                  <Link href={link.href} className="text-base text-muted-foreground hover-gradient-text transition-all">
                     {link.label}
                   </Link>
                 </li>
@@ -95,7 +90,7 @@ export function LandingFooter() {
             <ul className="space-y-3">
               {legalLinks.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="text-base text-muted-foreground hover:text-primary transition-colors">
+                  <Link href={link.href} className="text-base text-muted-foreground hover-gradient-text transition-all">
                     {link.label}
                   </Link>
                 </li>
