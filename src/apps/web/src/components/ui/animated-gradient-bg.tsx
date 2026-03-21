@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 export interface AnimatedGradientBackgroundProps {
   /** HTML id for anchor linking */
   id?: string;
+  /** Background variant to use. 'ocean' uses much larger, blended orbs. Default: 'default' */
+  variant?: 'default' | 'ocean';
   /** Array of CSS color strings to cycle through. Defaults to the brand primary-to-accent gradient. */
   colors?: string[];
   /** Animation speed in seconds for one full cycle. Default: 8 */
@@ -33,6 +35,7 @@ export interface AnimatedGradientBackgroundProps {
  */
 export function AnimatedGradientBackground({
   id,
+  variant = 'default',
   colors = ["#605BFF", "#FF00AA", "#8B5CF6"],
   speed = 8,
   intensity = 120,
@@ -49,6 +52,9 @@ export function AnimatedGradientBackground({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Ocean variant needs larger movement paths
+    const moveScale = variant === 'ocean' ? 0.3 : 0.15;
+
     // Derive N orb configs from the color array
     const orbs = colors.map((color, i) => {
       const angle = (i / colors.length) * Math.PI * 2;
@@ -57,8 +63,8 @@ export function AnimatedGradientBackground({
         // Each orb has a slightly different phase & radius so they don't all move in sync
         phaseX: angle,
         phaseY: angle + Math.PI / 3,
-        radiusX: 0.25 + 0.15 * ((i % 3) / 2),   // 25–40% of canvas width
-        radiusY: 0.20 + 0.15 * ((i % 3) / 2),   // 20–35% of canvas height
+        radiusX: 0.2 + moveScale * ((i % 3) / 2),
+        radiusY: 0.15 + moveScale * ((i % 3) / 2),
         speedMultiplier: 0.7 + (i % colors.length) * 0.13,
       };
     });
@@ -78,6 +84,15 @@ export function AnimatedGradientBackground({
       const { width, height } = canvas;
       ctx.clearRect(0, 0, width, height);
 
+      // In ocean variant, we use a larger baseline size
+      const baseBlur = variant === 'ocean' 
+        ? Math.max(width, height) * 0.7 
+        : Math.min(width, height) * (intensity / 1000);
+
+      // Adjust opacity based on variant to avoid saturation
+      const centerAlpha = variant === 'ocean' ? '22' : 'CC';
+      const midAlpha = variant === 'ocean' ? '11' : '55';
+
       for (const orb of orbs) {
         const cycleSecs = speed * orb.speedMultiplier;
         const t = (elapsed % cycleSecs) / cycleSecs;
@@ -85,12 +100,12 @@ export function AnimatedGradientBackground({
 
         const cx = width * (0.5 + orb.radiusX * Math.cos(tRad + orb.phaseX));
         const cy = height * (0.5 + orb.radiusY * Math.sin(tRad + orb.phaseY));
-        const blurRadius = Math.min(width, height) * (intensity / 1000);
+        const blurRadius = baseBlur + (variant === 'ocean' ? width * 0.1 * Math.sin(tRad) : 0);
 
         const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, blurRadius);
-        grad.addColorStop(0, orb.color + "CC"); // ~80% opacity centre
-        grad.addColorStop(0.5, orb.color + "55");
-        grad.addColorStop(1, orb.color + "00"); // fully transparent edge
+        grad.addColorStop(0, orb.color + centerAlpha);
+        grad.addColorStop(0.5, orb.color + midAlpha);
+        grad.addColorStop(1, orb.color + "00");
 
         ctx.globalCompositeOperation = "lighter";
         ctx.fillStyle = grad;
@@ -108,7 +123,7 @@ export function AnimatedGradientBackground({
       cancelAnimationFrame(frameRef.current);
       ro.disconnect();
     };
-  }, [colors, speed, intensity]);
+  }, [colors, speed, intensity, variant]);
 
   return (
     <div id={id} className={cn("relative overflow-hidden", className)}>

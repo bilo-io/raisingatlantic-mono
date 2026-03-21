@@ -55,14 +55,16 @@ function HeroSection() {
       {/* Hero Content */}
       <div className="container mx-auto px-4 text-center relative z-10 flex flex-col items-center">
         <div className="mb-10 w-[350px] md:w-[600px] animate-in fade-in zoom-in duration-1000">
-           <Image 
-              src={resolvedTheme === 'dark' ? '/assets/images/app-branding-dark.svg' : '/assets/images/app-branding-light.svg'} 
-              alt="Raising Atlantic Branding"
-              width={600} 
-              height={150}
-              className="w-full h-auto drop-shadow-2xl"
-              priority
-           />
+          <Image
+            src={resolvedTheme === 'dark'
+              ? '/assets/images/app-branding-gradient.svg'
+              : '/assets/images/app-branding-gradient.svg'}
+            alt="Raising Atlantic Branding"
+            width={600}
+            height={150}
+            className="w-full h-auto drop-shadow-2xl"
+            priority
+          />
         </div>
         <p className="text-lg md:text-xl text-gray-200 mb-10 max-w-2xl mx-auto">
           {t('heroSubtitle')}
@@ -380,7 +382,6 @@ function TestimonialsSection() {
           <Users className="h-12 w-12 text-primary mx-auto mb-4" />
           <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">{t('testimonialsSectionTitle')}</h2>
         </div>
-        
         <div className="relative w-full max-w-2xl mx-auto">
           <div className="overflow-hidden rounded-lg">
             <div
