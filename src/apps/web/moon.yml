@@ -1,22 +1,16 @@
 $schema: 'https://moonrepo.dev/schemas/project.json'
 
 project:
-  name: 'api'
-  description: 'Raising Atlantic API'
+  name: 'raising-atlantic'
+  description: 'Raising Atlantic Web App'
 
 tasks:
   install:
     command: 'npm install'
 
   dev:
-    command: 'moon run :dev-web'
+    command: 'npm run dev'
     
-  dev-web:
-    command: 'npx serve . -p 8000'
-    options:
-      runInCI: false
-
-  # --- Global Quality Control ---
   lint:
     command: 'eslint .'
     inputs:

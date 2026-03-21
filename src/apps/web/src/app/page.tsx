@@ -70,9 +70,9 @@ function HeroSection() {
               priority
            />
         </div>
-        <h1 className="font-headline text-4xl md:text-6xl font-extrabold mb-6 tracking-tight text-white drop-shadow-md">
+        {/* <h1 className="font-headline text-4xl md:text-6xl font-extrabold mb-6 tracking-tight text-white drop-shadow-md">
           {t('heroTitle')}
-        </h1>
+        </h1> */}
         <p className="text-lg md:text-xl text-gray-200 mb-10 max-w-2xl mx-auto">
           {t('heroSubtitle')}
         </p>
