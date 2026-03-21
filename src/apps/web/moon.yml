@@ -5,14 +5,14 @@ project:
   description: 'Raising Atlantic API'
 
 tasks:
-  # --- Web Tasks (Simple HTML) ---
-  # Since it's just index.html, "building" might just be linting or minifying
-  # If you use a simple tool like 'serve' or 'live-server'
+  install:
+    command: 'npm install'
+
   dev:
     command: 'moon run :dev-web'
     
   dev-web:
-    command: 'npx serve .'
+    command: 'npx serve . -p 8000'
     options:
       runInCI: false
 

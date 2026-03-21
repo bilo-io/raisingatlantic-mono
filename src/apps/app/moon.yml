@@ -1,0 +1,23 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+project:
+  name: 'raising-atlantic'
+  description: 'Raising Atlantic Web App'
+
+tasks:
+  install:
+    command: 'npm install'
+
+  dev:
+    command: 'npm run dev'
+    
+  lint:
+    command: 'eslint .'
+    inputs:
+      - '**/*.{js,ts,html}'
+    
+  test:
+    command: 'jest'
+    inputs:
+      - 'src/**/*'
+      - 'test/**/*'
