@@ -4,52 +4,52 @@
 
 @layer base {
   :root {
-    --background: 197 60% 94.1%; /* Very light blue (#E8F4F8) */
-    --foreground: 220 15% 20%; /* Darker, slightly desaturated blue/grey */
+    --background: #E8F4F8; 
+    --foreground: #2C313B;
 
-    --muted: 210 40% 90%;
-    --muted-foreground: 210 30% 50%;
+    --muted: #D9E4EF;
+    --muted-foreground: #59738C;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 20%;
+    --popover: #FFFFFF;
+    --popover-foreground: #2C313B;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 15% 20%;
+    --card: #FFFFFF;
+    --card-foreground: #2C313B;
 
-    --border: 210 30% 85%;
-    --input: 210 30% 88%;
+    --border: #CCD7E2;
+    --input: #D8E1EA;
 
-    --primary: 242 100% 68.4%; /* Soft blue (#605BFF) */
-    --primary-foreground: 0 0% 100%; /* White */
+    --primary: #605BFF;
+    --primary-foreground: #FFFFFF;
 
-    --secondary: 210 40% 96.1%; /* Lighter grey-blue */
-    --secondary-foreground: 220 15% 20%;
+    --secondary: #F1F5F9;
+    --secondary-foreground: #2C313B;
 
-    --accent: 328 100% 50%; /* Magenta (#FF00AA) */
-    --accent-foreground: 0 0% 100%; /* White */
+    --accent: #FF00AA;
+    --accent-foreground: #FFFFFF;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: #EF4444;
+    --destructive-foreground: #FAFAFA;
 
-    --ring: 242 100% 68.4%; /* Primary color for rings */
+    --ring: #605BFF;
     --radius: 0.5rem;
 
     /* Chart colors - kept generic but can be themed */
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --chart-1: #E76E50;
+    --chart-2: #2A9D8F;
+    --chart-3: #264653;
+    --chart-4: #E9C46A;
+    --chart-5: #F4A261;
 
     /* Sidebar specific */
-    --sidebar-background: 0 0% 100%; /* White for clean sidebar */
-    --sidebar-foreground: 220 15% 30%;
-    --sidebar-primary: 242 100% 68.4%; /* App Primary */
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 242 100% 95%; /* Lighter version of primary for hover */
-    --sidebar-accent-foreground: 242 100% 60%; /* Darker primary for text on hover */
-    --sidebar-border: 210 30% 90%;
-    --sidebar-ring: 242 100% 68.4%;
+    --sidebar-background: #FFFFFF;
+    --sidebar-foreground: #424959;
+    --sidebar-primary: #605BFF;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #E6E6FF;
+    --sidebar-accent-foreground: #332DFF;
+    --sidebar-border: #D9E1E9;
+    --sidebar-ring: #605BFF;
     
     /* Avatar Colors */
     --avatar-bg-saturation: 80%;
@@ -59,51 +59,51 @@
   }
 
   .dark {
-    --background: 220 20% 10%; /* Dark cool grey/blue */
-    --foreground: 210 40% 95%; /* Light grey-blue text */
+    --background: #14171C;
+    --foreground: #F1F5F9;
 
-    --muted: 220 20% 25%;
-    --muted-foreground: 210 30% 70%;
+    --muted: #333B47;
+    --muted-foreground: #9EAFC1;
 
-    --popover: 220 20% 15%;
-    --popover-foreground: 210 40% 95%;
+    --popover: #1F242D;
+    --popover-foreground: #F1F5F9;
 
-    --card: 220 20% 15%;
-    --card-foreground: 210 40% 95%;
+    --card: #1F242D;
+    --card-foreground: #F1F5F9;
 
-    --border: 220 20% 30%;
-    --input: 220 20% 30%;
+    --border: #3D4756;
+    --input: #3D4756;
 
-    --primary: 242 100% 75%; /* Lighter soft blue */
-    --primary-foreground: 220 20% 15%; /* Dark text on primary */
+    --primary: #807DFF;
+    --primary-foreground: #1F242D;
 
-    --secondary: 220 20% 20%;
-    --secondary-foreground: 210 40% 95%;
+    --secondary: #292E38;
+    --secondary-foreground: #F1F5F9;
 
-    --accent: 328 100% 65%; /* Lighter magenta */
-    --accent-foreground: 0 0% 0%; /* Black text on accent */
+    --accent: #FF4DBC;
+    --accent-foreground: #000000;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: #7F1D1D;
+    --destructive-foreground: #FAFAFA;
 
-    --ring: 242 100% 75%;
+    --ring: #807DFF;
 
     /* Chart colors - dark theme */
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --chart-1: #2563EB;
+    --chart-2: #2EB88A;
+    --chart-3: #E88C30;
+    --chart-4: #AF57DB;
+    --chart-5: #E2366F;
     
     /* Sidebar specific dark */
-    --sidebar-background: 220 20% 12%; /* Slightly different dark for sidebar */
-    --sidebar-foreground: 210 40% 90%;
-    --sidebar-primary: 242 100% 75%;
-    --sidebar-primary-foreground: 220 20% 15%;
-    --sidebar-accent: 242 100% 25%; /* Darker primary shade for hover background */
-    --sidebar-accent-foreground: 242 100% 80%; /* Lighter primary text on hover */
-    --sidebar-border: 220 20% 25%;
-    --sidebar-ring: 242 100% 75%;
+    --sidebar-background: #181B21;
+    --sidebar-foreground: #D9E4EF;
+    --sidebar-primary: #807DFF;
+    --sidebar-primary-foreground: #1F242D;
+    --sidebar-accent: #000080;
+    --sidebar-accent-foreground: #9996FF;
+    --sidebar-border: #333B47;
+    --sidebar-ring: #807DFF;
     
     /* Avatar Colors */
     --avatar-bg-saturation: 60%;

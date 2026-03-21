@@ -43,8 +43,8 @@ const AvatarFallback = React.forwardRef<
         color: 'hsl(var(--avatar-hue), var(--avatar-fg-saturation), var(--avatar-fg-lightness))',
       } as React.CSSProperties
     : {
-        backgroundColor: 'hsl(var(--muted))',
-        color: 'hsl(var(--muted-foreground))',
+        backgroundColor: 'var(--muted)',
+        color: 'var(--muted-foreground)',
     };
 
   return (

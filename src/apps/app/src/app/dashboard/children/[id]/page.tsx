@@ -243,12 +243,12 @@ export default function ChildProfilePage() {
 
   const GrowthChart = ({ metric, child }: { metric: 'weight' | 'height', child: typeof childrenDetails[0] }) => {
     const chartConfig = React.useMemo(() => ({
-      line_plus_3:  { label: "+3 line",  color: "hsl(var(--destructive))" },
-      line_plus_2: { label: "+2 line", color: "hsl(35 80% 50%)" },
-      line_0: { label: "0-line (median)", color: "hsl(142 71% 45%)" },
-      line_minus_2: { label: "-2 line", color: "hsl(35 80% 50%)" },
-      line_minus_3: { label: "-3 line", color: "hsl(var(--destructive))" },
-      childData: { label: child.name, color: "hsl(var(--primary))" },
+      line_plus_3:  { label: "+3 line",  color: "var(--destructive)" },
+      line_plus_2: { label: "+2 line", color: "#E68A19" },
+      line_0: { label: "0-line (median)", color: "#21C45D" },
+      line_minus_2: { label: "-2 line", color: "#E68A19" },
+      line_minus_3: { label: "-3 line", color: "var(--destructive)" },
+      childData: { label: child.name, color: "var(--primary)" },
     }), [child.name]) satisfies ChartConfig;
 
     const combinedChartData = React.useMemo(() => {
