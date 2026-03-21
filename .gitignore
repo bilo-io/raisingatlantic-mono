@@ -4,3 +4,6 @@
 .moon/docker
 
 **/node_modules
+**/.next
+**/.next.old
+**/out
