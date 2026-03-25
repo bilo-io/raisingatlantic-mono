@@ -8,8 +8,6 @@ tasks:
   # --- Shared Tasks ---
   install:
     command: 'npm install'
-    options:
-      runInCI: false
 
   # --- API Tasks (NestJS) ---
   build:
@@ -22,7 +20,7 @@ tasks:
       - 'dist'
 
   build-api:
-    command: 'nest build'
+    command: 'npm run build'
     inputs:
       - 'src/**/*'
       - 'tsconfig.json'
@@ -35,7 +33,7 @@ tasks:
     command: 'npm run dev'
 
   dev-api:
-    command: 'nest start --watch'
+    command: 'npm run dev'
     
   clean:
     command: 'rm -rf dist node_modules'

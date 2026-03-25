@@ -1,0 +1,21 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+project:
+  name: 'ui'
+  description: 'Shared UI component library'
+
+tasks:
+  install:
+    command: 'npm install --cache /tmp/npm-cache'
+
+  build:
+    command: 'npm run build'
+    deps:
+      - 'install'
+    inputs:
+      - 'src/**/*'
+      - 'package.json'
+      - 'tsconfig.json'
+
+  clean:
+    command: 'rm -rf node_modules'

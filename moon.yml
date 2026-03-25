@@ -1,0 +1,38 @@
+project:
+  name: raising-atlantic-mono
+  
+tasks:
+  install:
+    deps:
+      - 'api:install'
+      - 'web:install'
+      - 'ui:install'
+
+  build:
+    deps:
+      - 'api:build'
+      - 'web:build'
+      - 'ui:build'
+
+  dev:
+    deps:
+      - 'api:dev'
+      - 'web:dev'
+    options:
+      runInCI: false
+
+  lint:
+    deps:
+      - 'api:lint'
+      - 'web:lint'
+
+  test:
+    deps:
+      - 'api:test'
+      - 'web:test'
+
+  clean:
+    deps:
+      - 'api:clean'
+      - 'web:clean'
+      - 'ui:clean'

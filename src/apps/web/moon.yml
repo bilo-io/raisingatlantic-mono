@@ -4,12 +4,17 @@ project:
   name: 'raising-atlantic'
   description: 'Raising Atlantic Web App'
 
+dependsOn:
+  - 'ui'
+
 tasks:
   install:
     command: 'npm install --legacy-peer-deps'
 
   build:
     command: 'npm run build'
+    deps:
+      - 'ui:build'
     inputs:
       - 'src/**/*'
       - 'public/**/*'
