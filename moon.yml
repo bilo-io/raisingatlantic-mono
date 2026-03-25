@@ -30,6 +30,7 @@ tasks:
     deps:
       - 'api:test'
       - 'web:test'
+      - 'tests:test'
 
   clean:
     deps:

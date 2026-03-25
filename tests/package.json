@@ -1,0 +1,13 @@
+{
+  "name": "api-tests",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "npm run test:postman:local",
+    "test:postman:local": "newman run postman/api_collection.json -e postman/local.env.json",
+    "test:postman:dev": "newman run postman/api_collection.json -e postman/dev.env.json",
+    "test:postman:prod": "newman run postman/api_collection.json -e postman/production.env.json"
+  },
+  "devDependencies": {
+    "newman": "^6.1.3"
+  }
+}

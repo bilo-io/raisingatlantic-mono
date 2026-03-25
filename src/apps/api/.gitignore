@@ -14,6 +14,7 @@ lerna-debug.log*
 
 # OS
 .DS_Store
+Thumbs.db
 
 # Tests
 /coverage
@@ -41,6 +42,15 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 .env.local
+.env.*
+
+# Secrets
+*.pem
+*.key
+*.p12
+*.pfx
+service-account.json
+credentials.json
 
 # temp directory
 .temp
@@ -54,3 +64,6 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# TypeScript
+*.tsbuildinfo

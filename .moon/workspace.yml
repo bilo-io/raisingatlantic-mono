@@ -4,6 +4,7 @@ $schema: 'https://moonrepo.dev/schemas/workspace.json'
 projects:
   - 'src/apps/*'
   - 'src/pkgs/*'
+  - 'tests'
 
 vcs:
   defaultBranch: 'master'

@@ -1,0 +1,106 @@
+{
+	"info": {
+		"name": "Raising Atlantic API Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Examples",
+			"item": [
+				{
+					"name": "Create Example",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Sample Example\",\n    \"description\": \"A test description\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/examples",
+							"host": ["{{baseUrl}}"],
+							"path": ["examples"]
+						}
+					}
+				},
+				{
+					"name": "Get All Examples",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/examples",
+							"host": ["{{baseUrl}}"],
+							"path": ["examples"]
+						}
+					}
+				},
+				{
+					"name": "Get Example By ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/examples/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["examples", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Example",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Example Name\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/examples/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["examples", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Example",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/examples/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["examples", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}

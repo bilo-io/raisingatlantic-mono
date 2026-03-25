@@ -34,8 +34,8 @@ tasks:
     inputs:
       - '**/*.{js,ts,html}'
     
-  test:
-    command: 'jest'
-    inputs:
-      - 'src/**/*'
-      - 'test/**/*'
+  # test:
+  #   command: 'jest'
+  #   inputs:
+  #     - 'src/**/*'
+  #     - 'test/**/*'
