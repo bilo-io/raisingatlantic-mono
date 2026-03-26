@@ -67,53 +67,54 @@
   }
 
   .dark {
-    --background: #0F1215;
-    --foreground: #C6BAA8;
+    /* Warm Dark Theme (resembling Claude Dark) */
+    --background: #1F1D1B;
+    --foreground: #F3F1E9;
 
-    --muted: #1E242B;
-    --muted-foreground: #91877A;
+    --muted: #2A2825;
+    --muted-foreground: #9A958A;
 
-    --popover: #181D22;
-    --popover-foreground: #C6BAA8;
+    --popover: #262421;
+    --popover-foreground: #F3F1E9;
 
-    --card: #181D22;
-    --card-foreground: #C6BAA8;
+    --card: #262421;
+    --card-foreground: #F3F1E9;
 
-    --border: #2A323B;
-    --input: #2A323B;
+    --border: #383530;
+    --input: #383530;
 
-    --primary: #807DFF;
-    --primary-foreground: #1F242D;
+    --primary: #E2896D;
+    --primary-foreground: #1F1D1B;
 
-    --secondary: #1F252C;
-    --secondary-foreground: #C6BAA8;
+    --secondary: #33302B;
+    --secondary-foreground: #F3F1E9;
 
-    --primary-gradient: linear-gradient(135deg, #807DFF 0%, #FF4DBC 100%);
+    --primary-gradient: linear-gradient(135deg, #E2896D 0%, #D97757 100%);
 
-    --accent: #FF4DBC;
-    --accent-foreground: #000000;
+    --accent: #2A2825;
+    --accent-foreground: #F3F1E9;
 
-    --destructive: #7F1D1D;
+    --destructive: #EF4444;
     --destructive-foreground: #FAFAFA;
 
-    --ring: #807DFF;
+    --ring: #E2896D;
 
     /* Chart colors - dark theme */
-    --chart-1: #3B82F6;
+    --chart-1: #E2896D;
     --chart-2: #34D399;
     --chart-3: #F97316;
-    --chart-4: #A855F7;
-    --chart-5: #F43F5E;
+    --chart-4: #E9C46A;
+    --chart-5: #F4A261;
     
     /* Sidebar specific dark */
-    --sidebar-background: #181D22;
-    --sidebar-foreground: #C6BAA8;
-    --sidebar-primary: #807DFF;
-    --sidebar-primary-foreground: #1F242D;
-    --sidebar-accent: #2A323B;
-    --sidebar-accent-foreground: #C6BAA8;
-    --sidebar-border: #2A323B;
-    --sidebar-ring: #807DFF;
+    --sidebar-background: #2A2825;
+    --sidebar-foreground: #F3F1E9;
+    --sidebar-primary: #E2896D;
+    --sidebar-primary-foreground: #1F1D1B;
+    --sidebar-accent: #383530;
+    --sidebar-accent-foreground: #F3F1E9;
+    --sidebar-border: #383530;
+    --sidebar-ring: #E2896D;
     
     /* Avatar Colors */
     --avatar-bg-saturation: 60%;
