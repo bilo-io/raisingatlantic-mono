@@ -55,12 +55,12 @@ export default function RootLayout({
             <svg width="0" height="0" className="absolute pointer-events-none opacity-0" aria-hidden="true">
               <defs>
                 <linearGradient id="primary-gradient-svg" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#605BFF" />
-                  <stop offset="100%" stopColor="#FF00AA" />
+                  <stop offset="0%" stopColor="#D97757" />
+                  <stop offset="100%" stopColor="#B85F41" />
                 </linearGradient>
                 <linearGradient id="primary-gradient-svg-dark" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#807DFF" />
-                  <stop offset="100%" stopColor="#FF4DBC" />
+                  <stop offset="0%" stopColor="#E2896D" />
+                  <stop offset="100%" stopColor="#D97757" />
                 </linearGradient>
               </defs>
             </svg>

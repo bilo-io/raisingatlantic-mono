@@ -36,7 +36,7 @@ export interface AnimatedGradientBackgroundProps {
 export function AnimatedGradientBackground({
   id,
   variant = 'default',
-  colors = ["#605BFF", "#FF00AA", "#8B5CF6"],
+  colors = ["#D97757", "#B85F41", "#DCD9D1"],
   speed = 8,
   intensity = 120,
   className,

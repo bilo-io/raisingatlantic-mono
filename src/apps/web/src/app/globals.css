@@ -4,54 +4,55 @@
 
 @layer base {
   :root {
-    --background: #E5E0D8; 
-    --foreground: #181D22;
+    /* Claude Light Theme */
+    --background: #F3F1E9;
+    --foreground: #1A1915;
 
-    --muted: #D6CFC3;
-    --muted-foreground: #6A6154;
+    --muted: #E5E2DA;
+    --muted-foreground: #73716A;
 
-    --popover: #FDFBF7;
-    --popover-foreground: #181D22;
+    --popover: #FCFAF6;
+    --popover-foreground: #1A1915;
 
-    --card: #FDFBF7;
-    --card-foreground: #181D22;
+    --card: #FCFAF6;
+    --card-foreground: #1A1915;
 
-    --border: #C9C1B3;
-    --input: #C9C1B3;
+    --border: #DCD9D1;
+    --input: #DCD9D1;
 
-    --primary: #605BFF;
+    --primary: #D97757;
     --primary-foreground: #FFFFFF;
 
-    --secondary: #DED6CA;
-    --secondary-foreground: #181D22;
+    --secondary: #EAE7DF;
+    --secondary-foreground: #1A1915;
 
-    --primary-gradient: linear-gradient(135deg, #605BFF 0%, #FF00AA 100%);
+    --primary-gradient: linear-gradient(135deg, #D97757 0%, #B85F41 100%);
 
-    --accent: #FF00AA;
-    --accent-foreground: #FFFFFF;
+    --accent: #E5E2DA;
+    --accent-foreground: #1A1915;
 
     --destructive: #EF4444;
     --destructive-foreground: #FAFAFA;
 
-    --ring: #605BFF;
+    --ring: #D97757;
     --radius: 0.5rem;
 
     /* Chart colors - kept generic but can be themed */
-    --chart-1: #E76E50;
+    --chart-1: #D97757;
     --chart-2: #2A9D8F;
     --chart-3: #264653;
     --chart-4: #E9C46A;
     --chart-5: #F4A261;
 
     /* Sidebar specific */
-    --sidebar-background: #C6BAA8;
-    --sidebar-foreground: #181D22;
-    --sidebar-primary: #605BFF;
+    --sidebar-background: #EAE7DF;
+    --sidebar-foreground: #1A1915;
+    --sidebar-primary: #D97757;
     --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #DED6CA;
-    --sidebar-accent-foreground: #181D22;
-    --sidebar-border: #C9C1B3;
-    --sidebar-ring: #605BFF;
+    --sidebar-accent: #DCD9D1;
+    --sidebar-accent-foreground: #1A1915;
+    --sidebar-border: #DCD9D1;
+    --sidebar-ring: #D97757;
     
     /* Avatar Colors */
     --avatar-bg-saturation: 80%;

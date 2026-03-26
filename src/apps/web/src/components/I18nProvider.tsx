@@ -7,6 +7,7 @@ import i18nInstance from '@/lib/i18n';
 
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
+import HttpBackend from 'i18next-http-backend';
 
 interface I18nProviderProps {
   children: ReactNode;
@@ -26,6 +27,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
     }
 
     i18nInstance
+      .use(HttpBackend)
       .use(LanguageDetector)
       .use(initReactI18next)
       .init({
@@ -35,6 +37,9 @@ export function I18nProvider({ children }: I18nProviderProps) {
         supportedLngs: ['en', 'af', 'de'],
         ns: ['translation'],
         defaultNS: 'translation',
+        // partialBundledLanguages: true prevents the HTTP backend from dropping 
+        // the `en` translations we already bundled statically on the server!
+        partialBundledLanguages: true,
         backend: { loadPath: '/locales/{{lng}}/{{ns}}.json' },
         preload: ['en'],
         detection: {
@@ -45,6 +50,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
       .then(() => { clientPluginsAdded = true; })
       .catch((err: unknown) => console.error('i18next client-side init error:', err));
   }, []);
+
 
   // Render children immediately — i18next will update translations reactively
   // once it finishes loading. This eliminates the blank-screen flash.
