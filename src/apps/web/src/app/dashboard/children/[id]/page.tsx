@@ -18,8 +18,8 @@ import { childrenDetails, type ChildDetail } from '@/data/children';
 import { formatDateStandard, formatDatePretty } from '@/utils/date';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import jsPDF from 'jspdf';
 import { UserRole } from '@/lib/constants';
+
 import { DUMMY_DEFAULT_USER_ID, dummyUsers, type User as UserType } from '@/data/users';
 import {
   LineChart,
@@ -140,6 +140,8 @@ export default function ChildProfilePage() {
   useEffect(() => {
     if (isExporting && profileCardRef.current) {
         const timer = setTimeout(async () => {
+            // Dynamic import: jsPDF (~250 kB gzipped) is only loaded on export click
+            const { default: jsPDF } = await import('jspdf');
             const pdf = new jsPDF({
                 orientation: 'p',
                 unit: 'pt',

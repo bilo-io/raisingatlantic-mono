@@ -6,15 +6,18 @@ export default {
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-    '../../pkgs/ui/src/**/*.{js,ts,jsx,tsx,mdx}',
+    // Note: pkgs/ui components are imported into this app's src files above,
+    // so Tailwind picks up their class names automatically. A separate cross-
+    // boundary glob is not needed and crashes Turbopack.
   ],
   theme: {
     extend: {
       fontFamily: {
-        body: ['PT Sans', 'sans-serif'],
-        headline: ['PT Sans', 'sans-serif'],
+        body: ['var(--font-pt-sans)', 'sans-serif'],
+        headline: ['var(--font-pt-sans)', 'sans-serif'],
         code: ['monospace'],
       },
+
       colors: {
         background: 'var(--background)',
         foreground: 'var(--foreground)',
