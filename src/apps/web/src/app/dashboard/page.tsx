@@ -8,17 +8,39 @@ export const metadata: Metadata = {
   description: 'Manage your activity and records.',
 };
 
+import { cookies, headers } from 'next/headers';
+
 /**
  * Server Component entry point for the Dashboard.
- * 
- * Phase 2 Refactor: Wraps the monolithic client component in a Suspense boundary.
- * In Phase 3, the heavy data logic will be hoisted out to this Server Component
- * fetching from NestJS API and passing the data down as props.
+ * Performs a server-side fetch to the NestJS API forwarding cookies for auth.
  */
 export default async function DashboardPage() {
+  const cookieStore = await cookies();
+  const allHeaders = await headers();
+  const cookieHeader = allHeaders.get('cookie') || '';
+
+  let initialData = null;
+  try {
+    // In dev, the API runs on :3000. 
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const response = await fetch(`${apiUrl}/api/dashboard`, {
+      headers: {
+        'Cookie': cookieHeader,
+      },
+      // Using cache: 'no-store' for private dashboard data
+      cache: 'no-store',
+    });
+
+    if (response.ok) {
+      initialData = await response.json();
+    }
+  } catch (error) {
+    console.error('Dashboard server-side fetch failed:', error);
+  }
+
   return (
     <Suspense fallback={<DashboardLoading />}>
-      <DashboardClient />
+      <DashboardClient initialServerData={initialData} />
     </Suspense>
   );
 }

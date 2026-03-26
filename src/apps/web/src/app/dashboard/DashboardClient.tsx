@@ -26,12 +26,27 @@ const parseAgeString = (ageString: string): number | null => {
     return match ? parseInt(match[1], 10) : null;
 };
 
-export default function DashboardClient() {
+interface DashboardClientProps {
+  initialServerData?: any;
+}
+
+export default function DashboardClient({ initialServerData }: DashboardClientProps) {
   const [currentUser, setCurrentUser] = useState<UserType | undefined>();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    
+    // Check if we already have a user from the server fetch
+    if (initialServerData?.userId) {
+       const user = dummyUsers.find(u => u.id === initialServerData.userId);
+       if (user) {
+          setCurrentUser(user);
+          return;
+       }
+    }
+    
+    // Fallback to localStorage for client-only legacy identification
     if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.getItem === 'function') {
         const storedUserId = localStorage.getItem('currentUserId') || DUMMY_DEFAULT_USER_ID;
         const user = dummyUsers.find(u => u.id === storedUserId);

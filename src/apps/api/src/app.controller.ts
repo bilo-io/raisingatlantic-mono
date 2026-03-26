@@ -1,5 +1,5 @@
-import { Controller, Get, Res } from '@nestjs/common';
-import { Response } from 'express';
+import { Controller, Get, Res, Req } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { join } from 'path';
 import { AppService } from './app.service';
 
@@ -21,5 +21,17 @@ export class AppController {
       ? join(process.cwd(), 'dist', 'public', 'favicon.ico')
       : join(process.cwd(), 'public', 'favicon.ico');
     res.sendFile(filePath);
+  }
+
+  @Get('api/dashboard')
+  getDashboard(@Req() req: Request) {
+    const userId = req.cookies['currentUserId'] || 'user-1'; // Default to parent-1 or similar
+    // Mock user identification. This would eventually be a DB call based on session/JWT.
+    return {
+      userId,
+      isLoadedFromApi: true,
+      timestamp: new Date().toISOString(),
+      // In a real scenario, this would dynamically determine role and return correct stats.
+    };
   }
 }
