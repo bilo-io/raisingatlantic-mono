@@ -1,17 +1,5 @@
-
 import { UserRole } from '@/lib/constants';
-
-export interface User {
-  id: string;
-  title?: string;
-  name: string;
-  email: string;
-  phone: string;
-  avatarUrl: string;
-  role: UserRole;
-  joinedDate: string;
-  aiHint: string;
-}
+import { User } from '../types/models';
 
 export const dummyUsers: User[] = [
   {
@@ -19,30 +7,30 @@ export const dummyUsers: User[] = [
     name: "Jane Doe",
     email: "jane.doe@example.com",
     phone: "(021) 123-4567",
-    avatarUrl: "",
+    imageUrl: "",
     role: UserRole.PARENT,
-    joinedDate: "2023-05-15",
-    aiHint: "professional woman"
+    createdAt: "2023-05-15T00:00:00Z",
+    updatedAt: "2023-05-15T00:00:00Z"
   },
   {
     id: "parent-mila-dasilva",
     name: "Mila Da Silva",
     email: "mila.dasilva@example.com",
     phone: "(021) 123-8899",
-    avatarUrl: "",
+    imageUrl: "",
     role: UserRole.PARENT,
-    joinedDate: "2024-01-10",
-    aiHint: "woman smiling"
+    createdAt: "2024-01-10T00:00:00Z",
+    updatedAt: "2024-01-10T00:00:00Z"
   },
   {
     id: "parent-chloe-roux",
     name: "Chloé Roux",
     email: "chloe.roux@example.com",
     phone: "(021) 246-8135",
-    avatarUrl: "",
+    imageUrl: "",
     role: UserRole.PARENT,
-    joinedDate: "2023-09-01",
-    aiHint: "woman stylish"
+    createdAt: "2023-09-01T00:00:00Z",
+    updatedAt: "2023-09-01T00:00:00Z"
   },
   {
     id: "clinician-dr-smith",
@@ -50,10 +38,10 @@ export const dummyUsers: User[] = [
     name: "John Smith",
     email: "dr.smith@clinician.com",
     phone: "(021) 987-6543",
-    avatarUrl: "",
+    imageUrl: "",
     role: UserRole.CLINICIAN,
-    joinedDate: "2022-11-20",
-    aiHint: "doctor smiling"
+    createdAt: "2022-11-20T00:00:00Z",
+    updatedAt: "2022-11-20T00:00:00Z"
   },
   {
     id: "clinician-alice-williams",
@@ -61,10 +49,10 @@ export const dummyUsers: User[] = [
     name: "Alice Williams",
     email: "dr.williams@clinician.com",
     phone: "(021) 111-2222",
-    avatarUrl: "",
+    imageUrl: "",
     role: UserRole.CLINICIAN,
-    joinedDate: "2023-08-10",
-    aiHint: "female doctor professional"
+    createdAt: "2023-08-10T00:00:00Z",
+    updatedAt: "2023-08-10T00:00:00Z"
   },
   {
     id: "clinician-olivia-chen",
@@ -72,31 +60,32 @@ export const dummyUsers: User[] = [
     name: "Olivia Chen",
     email: "dr.chen@clinician.com",
     phone: "(021) 333-4444",
-    avatarUrl: "",
+    imageUrl: "",
     role: UserRole.CLINICIAN,
-    joinedDate: "2023-10-01",
-    aiHint: "friendly female doctor"
+    createdAt: "2023-10-01T00:00:00Z",
+    updatedAt: "2023-10-01T00:00:00Z"
   },
   {
     id: "admin-user",
     name: "Admin User",
     email: "admin@raisingatlantic.com",
     phone: "(021) 555-5555",
-    avatarUrl: "",
+    imageUrl: "",
     role: UserRole.ADMIN,
-    joinedDate: "2021-01-01",
-    aiHint: "person business suit"
+    createdAt: "2021-01-01T00:00:00Z",
+    updatedAt: "2021-01-01T00:00:00Z"
   },
   {
     id: "super-admin-user",
     name: "Super Admin",
     email: "super@raisingatlantic.com",
     phone: "(021) 000-0000",
-    avatarUrl: "",
+    imageUrl: "",
     role: UserRole.SUPER_ADMIN,
-    joinedDate: "2020-01-01",
-    aiHint: "ceo portrait"
+    createdAt: "2020-01-01T00:00:00Z",
+    updatedAt: "2020-01-01T00:00:00Z"
   }
 ];
 
 export const DUMMY_DEFAULT_USER_ID = "parent-jane-doe";
+export type { User };

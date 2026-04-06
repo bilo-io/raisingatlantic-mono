@@ -8,15 +8,13 @@ const accountSections = [
     title: "Manage Profile",
     description: "View and update your personal information, contact details, and avatar.",
     href: "/dashboard/account/profile",
-    icon: UserCircleIcon,
-    aiHint: "user profile avatar"
+    icon: UserCircleIcon
   },
   {
     title: "Application Settings",
     description: "Customize notification preferences, appearance, language, and manage account security.",
     href: "/dashboard/account/settings",
-    icon: Settings,
-    aiHint: "settings gears"
+    icon: Settings
   },
 ];
 

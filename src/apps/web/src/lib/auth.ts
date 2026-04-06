@@ -65,9 +65,9 @@ export const signup = async (data: SignupData): Promise<User> => {
     role: data.role,
     title: data.title,
     phone: data.phone || '',
-    avatarUrl: '',
-    joinedDate: new Date().toISOString().split('T')[0],
-    aiHint: data.role === UserRole.CLINICIAN ? 'doctor professional' : 'parent friendly'
+    imageUrl: '',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   const updatedUsers = [...users, newUser];

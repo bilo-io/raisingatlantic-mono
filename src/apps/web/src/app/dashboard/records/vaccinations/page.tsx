@@ -30,8 +30,7 @@ type FormattedVaccinationRecord = {
     id: string;
     childId: string;
     childName: string;
-    childAvatar: string;
-    childAiHint: string;
+    childImageUrl: string;
     date: string;
     vaccineName: string;
     doseInfo: string;
@@ -85,8 +84,7 @@ export default function VaccinationRecordsPage() {
                 id: `${child.id}-vaccine-${completed.vaccineId}`,
                 childId: child.id,
                 childName: child.name,
-                childAvatar: child.avatar,
-                childAiHint: child.aiHint,
+                childImageUrl: (child.imageUrl as string) || '',
                 date: completed.dateAdministered,
                 vaccineName: vaccineDetails.name,
                 doseInfo: vaccineDetails.doseInfo,
@@ -190,7 +188,7 @@ export default function VaccinationRecordsPage() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={record.childAvatar} alt={record.childName} data-ai-hint={record.childAiHint} />
+                              <AvatarImage src={record.childImageUrl} alt={record.childName} />
                               <AvatarFallback name={record.childName}>{record.childName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                             </Avatar>
                             <Link href={`/dashboard/children/${record.childId}`} className="font-medium hover:underline">{record.childName}</Link>

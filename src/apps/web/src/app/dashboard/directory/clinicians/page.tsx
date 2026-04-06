@@ -91,10 +91,9 @@ export default function CliniciansDirectoryPage() {
         <Card key={clinician.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
           <CardHeader className="items-center text-center pb-4">
             <RoleAvatar
-              src={clinician.avatarUrl}
+              src={clinician.imageUrl}
               name={clinician.name}
               role={clinician.role}
-              aiHint={clinician.aiHint}
               avatarClassName="h-24 w-24 mb-4"
               fallbackClassName="text-3xl"
               iconContainerClassName="h-7 w-7 border-2"
@@ -140,10 +139,9 @@ export default function CliniciansDirectoryPage() {
               <TableCell>
                 <div className="flex items-center gap-3">
                   <RoleAvatar
-                    src={clinician.avatarUrl}
+                    src={clinician.imageUrl}
                     name={clinician.name}
                     role={clinician.role}
-                    aiHint={clinician.aiHint}
                     avatarClassName="h-10 w-10"
                     iconContainerClassName="h-5 w-5 border-2"
                     iconClassName="h-3 w-3"

@@ -8,22 +8,19 @@ const recordSections = [
     title: "Growth",
     description: "Track physical development, including height, weight, and other growth metrics over time.",
     href: "/dashboard/records/growth",
-    icon: TrendingUp,
-    aiHint: "child growth chart"
+    icon: TrendingUp
   },
   {
     title: "Milestones",
     description: "Log developmental milestones such as first steps, words, and cognitive achievements.",
     href: "/dashboard/records/milestones",
-    icon: Award,
-    aiHint: "child achievement celebration"
+    icon: Award
   },
   {
     title: "Vaccinations",
     description: "Keep a detailed record of all vaccinations, dates administered, and upcoming immunizations.",
     href: "/dashboard/records/vaccinations",
-    icon: Syringe,
-    aiHint: "medical vaccination"
+    icon: Syringe
   },
 ];
 

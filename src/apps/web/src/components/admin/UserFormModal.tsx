@@ -20,8 +20,7 @@ const userFormSchema = z.object({
   phone: z.string().min(10, "Phone number seems too short.").optional(),
   title: z.string().optional(),
   role: z.nativeEnum(UserRole, { required_error: "A role must be selected." }),
-  avatarUrl: z.string().url().optional(),
-  aiHint: z.string().optional(),
+  imageUrl: z.string().url().optional(),
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
@@ -46,8 +45,7 @@ export function UserFormModal({ user, onSubmit, open, onOpenChange }: UserFormMo
         phone: user.phone || '',
         role: user.role,
         title: user.title || '',
-        avatarUrl: user.avatarUrl || '',
-        aiHint: user.aiHint || '',
+        imageUrl: user.imageUrl || '',
       });
     } else {
       form.reset({
@@ -56,8 +54,7 @@ export function UserFormModal({ user, onSubmit, open, onOpenChange }: UserFormMo
         phone: '',
         role: undefined,
         title: '',
-        avatarUrl: '',
-        aiHint: '',
+        imageUrl: '',
       });
     }
   }, [user, form, open]); // Re-run effect when `open` changes to reset the form

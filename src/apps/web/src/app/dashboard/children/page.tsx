@@ -18,22 +18,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
+import { ResourceStatus } from '@/types/enums';
 import { childrenDetails } from '@/data/children';
 import { UserRole } from '@/lib/constants';
 import { DUMMY_DEFAULT_USER_ID, dummyUsers } from '@/data/users';
 import { formatDateStandard } from '@/utils/date';
+import { getAgeFromDate } from '@/lib/utils/date';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 type Child = {
   id: string;
   name: string;
-  age: string;
-  avatar: string;
-  lastUpdate: string;
-  status: 'Active' | 'Inactive' | 'Archived';
+  dateOfBirth: string | Date;
+  imageUrl?: string;
+  updatedAt: string | Date;
+  status: ResourceStatus;
   clinician?: string;
-  aiHint: string;
 };
 
 const VIEW_MODE_STORAGE_KEY = 'viewMode_children';
@@ -82,12 +83,11 @@ export default function ChildrenListPage() {
       return {
         id: child.id,
         name: child.name,
-        age: child.age,
-        avatar: child.avatar,
-        lastUpdate: new Date(child.lastUpdate).toISOString().split('T')[0],
+        dateOfBirth: child.dateOfBirth,
+        imageUrl: child.imageUrl,
+        updatedAt: child.updatedAt,
         status: child.status,
         clinician: clinicianName,
-        aiHint: child.aiHint,
       };
     });
     
@@ -102,11 +102,11 @@ export default function ChildrenListPage() {
     );
   }, [searchTerm, displayedChildren]);
 
-  const getStatusBadgeVariant = (status: Child['status']) => {
+  const getStatusBadgeVariant = (status: ResourceStatus) => {
     switch (status) {
-      case 'Active': return 'default';
-      case 'Inactive': return 'secondary';
-      case 'Archived': return 'outline';
+      case ResourceStatus.ACTIVE: return 'default';
+      case ResourceStatus.INACTIVE: return 'secondary';
+      case ResourceStatus.ARCHIVED: return 'outline';
       default: return 'default';
     }
   };
@@ -187,14 +187,14 @@ export default function ChildrenListPage() {
                 <CardHeader className="flex flex-row items-start justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={child.avatar} alt={child.name} data-ai-hint={child.aiHint} />
+                      <AvatarImage src={child.imageUrl} alt={child.name} />
                       <AvatarFallback name={child.name}>{child.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
                     <div>
                       <CardTitle className="font-headline text-lg">
                         <Link href={`/dashboard/children/${child.id}`} className="hover:underline">{child.name}</Link>
                       </CardTitle>
-                      <CardDescription>{child.age}</CardDescription>
+                      <CardDescription>{getAgeFromDate(child.dateOfBirth)}</CardDescription>
                     </div>
                   </div>
                   <DropdownMenu>
@@ -213,7 +213,7 @@ export default function ChildrenListPage() {
                   </DropdownMenu>
                 </CardHeader>
                 <CardContent className="flex-grow">
-                  <p className="text-sm text-muted-foreground">Last Update: {formatDateStandard(child.lastUpdate)}</p>
+                  <p className="text-sm text-muted-foreground">Last Update: {formatDateStandard(child.updatedAt.toString())}</p>
                   {child.clinician && <p className="text-sm text-muted-foreground">Clinician: {child.clinician}</p>}
                   <Badge variant={getStatusBadgeVariant(child.status)} className="mt-2">{child.status}</Badge>
                 </CardContent>
@@ -244,18 +244,18 @@ export default function ChildrenListPage() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={child.avatar} alt={child.name} data-ai-hint={child.aiHint}/>
+                          <AvatarImage src={child.imageUrl} alt={child.name} />
                           <AvatarFallback name={child.name}>{child.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                         </Avatar>
                         <Link href={`/dashboard/children/${child.id}`} className="font-medium hover:underline">{child.name}</Link>
                       </div>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">{child.age}</TableCell>
+                    <TableCell className="hidden md:table-cell">{getAgeFromDate(child.dateOfBirth)}</TableCell>
                     <TableCell className="hidden lg:table-cell">{child.clinician || 'N/A'}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusBadgeVariant(child.status)}>{child.status}</Badge>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">{formatDateStandard(child.lastUpdate)}</TableCell>
+                    <TableCell className="hidden md:table-cell">{formatDateStandard(child.updatedAt.toString())}</TableCell>
                     <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

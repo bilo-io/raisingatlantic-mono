@@ -1,14 +1,14 @@
+import { BaseEntity } from '../types/models';
+import { ResourceStatus } from '../types/enums';
 
-export type Tenant = {
-  id: string;
+export interface Tenant extends BaseEntity {
   name: string;
   website?: string;
   email: string;
   phone: string;
   logoUrl?: string;
-  aiHint?: string;
-  status: 'Active' | 'Inactive';
-};
+  status: ResourceStatus;
+}
 
 export const dummyTenants: Tenant[] = [
   {
@@ -18,8 +18,9 @@ export const dummyTenants: Tenant[] = [
     email: 'contact@raisingatlantic.com',
     phone: '(021) 555-0100',
     logoUrl: '',
-    aiHint: 'medical cross logo',
-    status: 'Active',
+    status: ResourceStatus.ACTIVE,
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z'
   },
   {
     id: 'tenant-2',
@@ -28,8 +29,9 @@ export const dummyTenants: Tenant[] = [
     email: 'info@acme-health.com',
     phone: '(021) 555-0200',
     logoUrl: '',
-    aiHint: 'wave child logo',
-    status: 'Active',
+    status: ResourceStatus.ACTIVE,
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z'
   },
   {
     id: 'tenant-3',
@@ -38,8 +40,9 @@ export const dummyTenants: Tenant[] = [
     email: 'admin@mediclinic.co.za',
     phone: '(021) 555-0300',
     logoUrl: '',
-    aiHint: 'grape leaf logo',
-    status: 'Active',
+    status: ResourceStatus.ACTIVE,
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z'
   },
   {
     id: 'tenant-4',
@@ -48,8 +51,9 @@ export const dummyTenants: Tenant[] = [
     email: 'careline@dischem.co.za',
     phone: '(021) 555-0400',
     logoUrl: '',
-    aiHint: 'skyline hands logo',
-    status: 'Inactive',
+    status: ResourceStatus.INACTIVE,
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z'
   },
   {
     id: 'tenant-5',
@@ -58,7 +62,8 @@ export const dummyTenants: Tenant[] = [
     email: 'support@netcare.co.za',
     phone: '(021) 555-0500',
     logoUrl: '',
-    aiHint: 'mountain sunrise logo',
-    status: 'Active',
+    status: ResourceStatus.ACTIVE,
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z'
   },
 ];

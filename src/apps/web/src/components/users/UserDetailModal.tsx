@@ -19,10 +19,9 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="items-center text-center pt-4">
           <RoleAvatar
-            src={user.avatarUrl}
+            src={user.imageUrl}
             name={user.name}
             role={user.role}
-            aiHint={user.aiHint}
             avatarClassName="h-24 w-24 mb-4"
             fallbackClassName="text-3xl"
             iconContainerClassName="h-7 w-7 border-2"

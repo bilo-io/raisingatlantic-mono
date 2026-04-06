@@ -112,7 +112,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const DUMMY_USER = {
     name: "Current User",
     email: "user@example.com",
-    avatarUrl: "https://placehold.co/100x100.png",
+    imageUrl: "https://placehold.co/100x100.png",
     role: currentUserRole, 
   };
   
@@ -190,7 +190,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src={DUMMY_USER.avatarUrl} alt={DUMMY_USER.name} data-ai-hint="person face" />
+                  <AvatarImage src={DUMMY_USER.imageUrl} alt={DUMMY_USER.name} />
                   <AvatarFallback>{DUMMY_USER.name.substring(0,1).toUpperCase()}</AvatarFallback>
                 </Avatar>
               </Button>

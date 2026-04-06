@@ -23,10 +23,9 @@ export function ClinicianDetailModal({ clinician, onClose }: ClinicianDetailModa
       <DialogContent className="sm:max-w-lg">
         <DialogHeader className="items-center text-center pt-4">
           <RoleAvatar
-            src={clinician.avatarUrl}
+            src={clinician.imageUrl}
             name={clinician.name}
             role={clinician.role}
-            aiHint={clinician.aiHint}
             avatarClassName="h-24 w-24 mb-4"
             fallbackClassName="text-3xl"
             iconContainerClassName="h-7 w-7 border-2"

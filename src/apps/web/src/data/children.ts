@@ -1,41 +1,13 @@
-
-export type GrowthRecord = {
-  date: string;
-  notes: string;
-  data: {
-    height?: string;
-    weight?: string;
-    headCircumference?: string;
-  }
-};
-
-export type ChildDetail = { 
-  id: string;
-  parentId: string;
-  name: string;
-  firstName: string;
-  lastName: string;
-  gender: 'male' | 'female';
-  age: string;
-  dateOfBirth: Date; 
-  avatar: string;
-  status: 'Active' | 'Inactive' | 'Archived';
-  clinicianId?: string; 
-  notes: string;
-  progress: number;
-  aiHint: string;
-  lastUpdate: string;
-  growthRecords: GrowthRecord[];
-  completedMilestones: { milestoneId: string; dateAchieved: string; notes?: string; }[];
-  completedVaccinations: { vaccineId: string; dateAdministered: string; }[];
-};
+export type { ChildDetail };
+import { ChildDetail } from '../types/models';
+import { ResourceStatus } from '../types/enums';
 
 export const childrenDetails: ChildDetail[] = [
     { 
-      id: '1', parentId: 'parent-jane-doe', name: 'Alex Doe', firstName: 'Alex', lastName: 'Doe', gender: 'male', age: '6 Months', dateOfBirth: new Date('2024-02-15'), 
-      avatar: '', status: 'Active', clinicianId: 'clinician-dr-smith', 
+      id: '1', parentId: 'parent-jane-doe', name: 'Alex Doe', firstName: 'Alex', lastName: 'Doe', gender: 'male', dateOfBirth: '2024-02-15', 
+      imageUrl: '', status: ResourceStatus.ACTIVE, clinicianId: 'clinician-dr-smith', 
       notes: 'Loves babbling and trying to sit up. Very curious about toys that make noise. No known allergies.', 
-      progress: 20, aiHint: "baby happy", lastUpdate: '2024-08-20T10:00:00.000Z',
+      progress: 20, createdAt: '2024-02-15T10:00:00Z', updatedAt: '2024-08-20T10:00:00Z',
       growthRecords: [
         { date: '2024-02-15', notes: 'Birth measurements.', data: { height: '50cm', weight: '3.3kg' } },
         { date: '2024-04-15', notes: '2-month check-up.', data: { height: '58cm', weight: '5.6kg' } },
@@ -68,10 +40,10 @@ export const childrenDetails: ChildDetail[] = [
       ]
     },
     { 
-      id: '2', parentId: 'parent-jane-doe', name: 'Mia Doe', firstName: 'Mia', lastName: 'Doe', gender: 'female', age: '18 Months', dateOfBirth: new Date('2023-02-22'), 
-      avatar: '', status: 'Active', clinicianId: 'clinician-emily-carter', 
+      id: '2', parentId: 'parent-jane-doe', name: 'Mia Doe', firstName: 'Mia', lastName: 'Doe', gender: 'female', dateOfBirth: '2023-02-22', 
+      imageUrl: '', status: ResourceStatus.ACTIVE, clinicianId: 'clinician-emily-carter', 
       notes: 'Walking confidently and starting to say a few words like "mama", "dada", and "ball". Enjoys picture books. Peanut allergy.', 
-      progress: 35, aiHint: "toddler playing", lastUpdate: '2024-08-18T14:30:00.000Z',
+      progress: 35, createdAt: '2023-02-22T10:00:00Z', updatedAt: '2024-08-18T10:00:00Z',
       growthRecords: [
          { date: '2023-02-22', notes: 'Birth measurements.', data: { height: '49cm', weight: '3.2kg' } },
          { date: '2023-04-22', notes: '2-month check-up.', data: { height: '57cm', weight: '5.1kg' } },
@@ -114,10 +86,10 @@ export const childrenDetails: ChildDetail[] = [
       ]
     },
     { 
-      id: '8', parentId: 'parent-jane-doe', name: 'Noah Doe', firstName: 'Noah', lastName: 'Doe', gender: 'male', age: '4 Years', dateOfBirth: new Date('2020-08-25'), 
-      avatar: '', status: 'Active', clinicianId: 'clinician-dr-smith', 
+      id: '8', parentId: 'parent-jane-doe', name: 'Noah Doe', firstName: 'Noah', lastName: 'Doe', gender: 'male', dateOfBirth: '2020-08-25', 
+      imageUrl: '', status: ResourceStatus.ACTIVE, clinicianId: 'clinician-dr-smith', 
       notes: 'Loves building with blocks and can name most colors. Very imaginative. Some minor speech clarity issues being monitored.', 
-      progress: 65, aiHint: "boy building blocks", lastUpdate: '2024-08-26T11:00:00.000Z',
+      progress: 65, createdAt: '2020-08-25T10:00:00Z', updatedAt: '2024-08-26T10:00:00Z',
       growthRecords: [
         { date: '2020-08-25', notes: 'Birth measurements.', data: { height: '50cm', weight: '3.4kg' } },
         { date: '2020-10-25', notes: '2-month check-up.', data: { height: '58cm', weight: '5.7kg' } },
@@ -168,10 +140,10 @@ export const childrenDetails: ChildDetail[] = [
       ]
     },
     { 
-      id: '6', parentId: 'parent-mila-dasilva', name: 'Leo Da Silva', firstName: 'Leo', lastName: 'Da Silva', gender: 'male', age: '2.5 Years', dateOfBirth: new Date('2022-02-20'), 
-      avatar: '', status: 'Active', clinicianId: 'clinician-alice-williams', 
+      id: '6', parentId: 'parent-mila-dasilva', name: 'Leo Da Silva', firstName: 'Leo', lastName: 'Da Silva', gender: 'male', dateOfBirth: '2022-02-20', 
+      imageUrl: '', status: ResourceStatus.ACTIVE, clinicianId: 'clinician-alice-williams', 
       notes: 'Leo is a very active 2.5-year-old. He communicates in short sentences and is very curious. He climbs on everything! His growth is tracking slightly above the median.', 
-      progress: 50, aiHint: "toddler boy playing", lastUpdate: '2024-08-25T09:00:00.000Z',
+      progress: 50, createdAt: '2022-02-20T10:00:00Z', updatedAt: '2024-08-25T10:00:00Z',
       growthRecords: [
         { date: '2022-02-20', notes: 'Birth measurements.', data: { height: '51cm', weight: '3.5kg' } },
         { date: '2022-04-20', notes: '2-month check-up.', data: { height: '60cm', weight: '5.8kg' } },
@@ -230,15 +202,14 @@ export const childrenDetails: ChildDetail[] = [
       firstName: 'Sofia', 
       lastName: 'Da Silva', 
       gender: 'female', 
-      age: '6 Years', 
-      dateOfBirth: new Date('2018-04-12'), 
-      avatar: '', 
-      status: 'Active', 
+      dateOfBirth: '2018-04-12', 
+      imageUrl: '', 
+      status: ResourceStatus.ACTIVE, 
       clinicianId: 'clinician-alice-williams', 
       notes: 'Loves stories and is beginning to read independently. Expresses herself well. Enjoys art. Growth is tracking along the median.', 
       progress: 80, 
-      aiHint: "girl reading book", 
-      lastUpdate: '2024-07-29T16:00:00.000Z',
+      createdAt: '2018-04-12T10:00:00Z',
+      updatedAt: '2024-07-29T16:00:00.000Z',
       growthRecords: [
         { date: '2018-04-12', notes: 'Birth measurements.', data: { height: '49cm', weight: '3.2kg' } },
         { date: '2018-06-12', notes: '2-month check-up.', data: { height: '57cm', weight: '5.1kg' } },
@@ -258,24 +229,6 @@ export const childrenDetails: ChildDetail[] = [
         { milestoneId: 'm_2mo_lan_1', dateAchieved: '2018-06-15' },
         { milestoneId: 'm_4mo_mot_1', dateAchieved: '2018-08-10' },
         { milestoneId: 'm_4mo_soc_1', dateAchieved: '2018-08-01' },
-        { milestoneId: 'm_6mo_mot_1', dateAchieved: '2018-10-05' },
-        { milestoneId: 'm_6mo_lan_1', dateAchieved: '2018-10-20' },
-        { milestoneId: 'm_9mo_mot_1', dateAchieved: '2019-01-02' },
-        { milestoneId: 'm_9mo_cog_1', dateAchieved: '2019-01-20' },
-        { milestoneId: 'm_1yr_mot_1', dateAchieved: '2019-05-01' },
-        { milestoneId: 'm_1yr_lan_1', dateAchieved: '2019-04-20' },
-        { milestoneId: 'm_18mo_mot_1', dateAchieved: '2019-10-01' },
-        { milestoneId: 'm_18mo_lan_1', dateAchieved: '2019-10-10' },
-        { milestoneId: 'm_2yr_soc_1', dateAchieved: '2020-04-01' },
-        { milestoneId: 'm_2yr_lan_1', dateAchieved: '2020-04-10' },
-        { milestoneId: 'm_2yr_cog_1', dateAchieved: '2020-05-15' },
-        { milestoneId: 'm_2yr_mot_1', dateAchieved: '2020-03-20' },
-        { milestoneId: 'm_3yr_mot_1', dateAchieved: '2021-03-10' },
-        { milestoneId: 'm_3yr_lan_1', dateAchieved: '2021-04-01' },
-        { milestoneId: 'm_4yr_lan_1', dateAchieved: '2022-03-15' },
-        { milestoneId: 'm_4yr_mot_1', dateAchieved: '2022-04-20' },
-        { milestoneId: 'm_5yr_lan_1', dateAchieved: '2023-02-10' },
-        { milestoneId: 'm_5yr_mot_1', dateAchieved: '2023-04-05' },
       ],
       completedVaccinations: [
         { vaccineId: 'hepB1', dateAdministered: "2018-04-12" },
@@ -290,16 +243,6 @@ export const childrenDetails: ChildDetail[] = [
         { vaccineId: 'hib2', dateAdministered: "2018-08-12" },
         { vaccineId: 'pcv2', dateAdministered: "2018-08-12" },
         { vaccineId: 'polio2', dateAdministered: "2018-08-12" },
-        { vaccineId: 'hepB3', dateAdministered: "2018-10-12" },
-        { vaccineId: 'dtap3', dateAdministered: "2018-10-12" },
-        { vaccineId: 'pcv3', dateAdministered: "2018-10-12" },
-        { vaccineId: 'polio3', dateAdministered: "2018-10-12" },
-        { vaccineId: 'mmr1', dateAdministered: "2019-05-12" },
-        { vaccineId: 'varicella1', dateAdministered: "2019-05-12" },
-        { vaccineId: 'hib4', dateAdministered: "2019-05-12" },
-        { vaccineId: 'pcv4', dateAdministered: "2019-05-12" },
-        { vaccineId: 'dtap4', dateAdministered: "2019-10-12" },
-        { vaccineId: 'hepA1', dateAdministered: '2019-10-12'},
       ]
     },
     { 
@@ -309,23 +252,18 @@ export const childrenDetails: ChildDetail[] = [
         firstName: 'Ethan',
         lastName: 'Roux',
         gender: 'male',
-        age: '7 Years',
-        dateOfBirth: new Date('2017-06-10'),
-        avatar: '',
-        status: 'Active',
+        dateOfBirth: '2017-06-10',
+        imageUrl: '',
+        status: ResourceStatus.ACTIVE,
         clinicianId: 'clinician-olivia-chen',
         notes: 'Ethan is an energetic 7-year-old who excels in sports. He is doing well in school but sometimes struggles to focus on reading tasks. No health concerns.',
         progress: 85,
-        aiHint: "boy playing soccer",
-        lastUpdate: '2024-08-15T11:00:00.000Z',
+        createdAt: '2017-06-10T10:00:00Z',
+        updatedAt: '2024-08-15T11:00:00.000Z',
         growthRecords: [
             { date: '2017-06-10', notes: 'Birth measurements.', data: { height: '52cm', weight: '3.6kg' } },
             { date: '2018-06-10', notes: '1-year check-up.', data: { height: '76cm', weight: '10.2kg' } },
             { date: '2019-06-10', notes: '2-year check-up.', data: { height: '88cm', weight: '12.8kg' } },
-            { date: '2020-06-10', notes: '3-year check-up.', data: { height: '96cm', weight: '14.5kg' } },
-            { date: '2021-06-10', notes: '4-year check-up.', data: { height: '103cm', weight: '16.5kg' } },
-            { date: '2022-06-10', notes: '5-year check-up.', data: { height: '110cm', weight: '18.7kg' } },
-            { date: '2023-06-10', notes: '6-year check-up.', data: { height: '116cm', weight: '21.0kg' } },
             { date: '2024-06-10', notes: '7-year check-up.', data: { height: '122cm', weight: '23.1kg' } },
         ],
         completedMilestones: [
@@ -335,121 +273,6 @@ export const childrenDetails: ChildDetail[] = [
         completedVaccinations: [
             { vaccineId: 'dtap4', dateAdministered: '2021-12-10' },
             { vaccineId: 'polio3', dateAdministered: '2021-12-10' },
-        ],
-    },
-    {
-        id: 'child-olivia-roux',
-        parentId: 'parent-chloe-roux',
-        name: 'Olivia Roux',
-        firstName: 'Olivia',
-        lastName: 'Roux',
-        gender: 'female',
-        age: '5 Years',
-        dateOfBirth: new Date('2019-09-05'),
-        avatar: '',
-        status: 'Active',
-        clinicianId: 'clinician-olivia-chen',
-        notes: 'Olivia is a creative and social 5-year-old. She loves drawing and telling imaginative stories. Meeting all developmental milestones for her age.',
-        progress: 75,
-        aiHint: "girl painting",
-        lastUpdate: '2024-08-12T09:30:00.000Z',
-        growthRecords: [
-            { date: '2019-09-05', notes: 'Birth measurements.', data: { height: '50cm', weight: '3.4kg' } },
-            { date: '2020-09-05', notes: '1-year check-up.', data: { height: '75cm', weight: '9.8kg' } },
-            { date: '2021-09-05', notes: '2-year check-up.', data: { height: '87cm', weight: '12.5kg' } },
-            { date: '2022-09-05', notes: '3-year check-up.', data: { height: '95cm', weight: '14.2kg' } },
-            { date: '2023-09-05', notes: '4-year check-up.', data: { height: '102cm', weight: '16.0kg' } },
-            { date: '2024-09-05', notes: '5-year check-up.', data: { height: '109cm', weight: '18.2kg' } },
-        ],
-        completedMilestones: [
-            { milestoneId: 'm_4yr_lan_1', dateAchieved: '2023-08-01' },
-            { milestoneId: 'm_4yr_mot_1', dateAchieved: '2023-09-10' },
-            { milestoneId: 'm_5yr_lan_1', dateAchieved: '2024-07-20' },
-            { milestoneId: 'm_5yr_mot_1', dateAchieved: '2024-08-01' },
-        ],
-        completedVaccinations: [
-            { vaccineId: 'dtap4', dateAdministered: '2023-09-05' },
-        ],
-    },
-    {
-        id: 'child-liam-roux',
-        parentId: 'parent-chloe-roux',
-        name: 'Liam Roux',
-        firstName: 'Liam',
-        lastName: 'Roux',
-        gender: 'male',
-        age: '3 Years',
-        dateOfBirth: new Date('2021-07-20'),
-        avatar: '',
-        status: 'Active',
-        clinicianId: 'clinician-olivia-chen',
-        notes: 'Liam is a determined and curious toddler. He is beginning to form short sentences and loves to solve simple puzzles. He has a mild dairy intolerance.',
-        progress: 55,
-        aiHint: "toddler playing puzzle",
-        lastUpdate: '2024-08-20T14:00:00.000Z',
-        growthRecords: [
-            { date: '2021-07-20', notes: 'Birth measurements.', data: { height: '51cm', weight: '3.5kg' } },
-            { date: '2022-07-20', notes: '1-year check-up.', data: { height: '77cm', weight: '10.0kg' } },
-            { date: '2023-07-20', notes: '2-year check-up.', data: { height: '89cm', weight: '12.6kg' } },
-            { date: '2024-07-20', notes: '3-year check-up.', data: { height: '95cm', weight: '14.4kg' } },
-        ],
-        completedMilestones: [
-            { milestoneId: 'm_2yr_lan_1', dateAchieved: '2023-08-01' },
-            { milestoneId: 'm_2yr_mot_1', dateAchieved: '2023-06-15' },
-            { milestoneId: 'm_3yr_lan_1', dateAchieved: '2024-07-15' },
-            { milestoneId: 'm_3yr_mot_1', dateAchieved: '2024-06-20' },
-        ],
-        completedVaccinations: [
-            { vaccineId: 'mmr1', dateAdministered: '2022-08-20' },
-            { vaccineId: 'varicella1', dateAdministered: '2022-08-20' },
-        ],
-    },
-    {
-        id: 'child-emma-roux',
-        parentId: 'parent-chloe-roux',
-        name: 'Emma Roux',
-        firstName: 'Emma',
-        lastName: 'Roux',
-        gender: 'female',
-        age: '1 Year',
-        dateOfBirth: new Date('2023-08-30'),
-        avatar: '',
-        status: 'Active',
-        clinicianId: 'clinician-olivia-chen',
-        notes: 'Emma is a happy baby who just celebrated her first birthday. She is crawling everywhere and pulling herself up to stand. Says "mama" and "dada".',
-        progress: 30,
-        aiHint: "baby girl smiling",
-        lastUpdate: '2024-08-30T10:00:00.000Z',
-        growthRecords: [
-            { date: '2023-08-30', notes: 'Birth measurements.', data: { height: '49cm', weight: '3.3kg' } },
-            { date: '2023-10-30', notes: '2-month check-up.', data: { height: '58cm', weight: '5.2kg' } },
-            { date: '2023-12-30', notes: '4-month check-up.', data: { height: '63cm', weight: '6.5kg' } },
-            { date: '2024-02-28', notes: '6-month check-up.', data: { height: '67cm', weight: '7.4kg' } },
-            { date: '2024-05-30', notes: '9-month check-up.', data: { height: '72cm', weight: '8.6kg' } },
-            { date: '2024-08-30', notes: '12-month check-up.', data: { height: '75cm', weight: '9.6kg' } },
-        ],
-        completedMilestones: [
-            { milestoneId: 'm_6mo_mot_1', dateAchieved: '2024-03-05' },
-            { milestoneId: 'm_9mo_mot_1', dateAchieved: '2024-06-10' },
-            { milestoneId: 'm_1yr_lan_1', dateAchieved: '2024-08-25' },
-        ],
-        completedVaccinations: [
-            { vaccineId: 'hepB1', dateAdministered: "2023-08-30" },
-            { vaccineId: 'hepB2', dateAdministered: "2023-10-30" },
-            { vaccineId: 'rv1', dateAdministered: "2023-10-30" },
-            { vaccineId: 'dtap1', dateAdministered: "2023-10-30" },
-            { vaccineId: 'pcv1', dateAdministered: "2023-10-30" },
-            { vaccineId: 'hib1', dateAdministered: "2023-10-30" },
-            { vaccineId: 'polio1', dateAdministered: "2023-10-30" },
-            { vaccineId: 'rv2', dateAdministered: "2023-12-30" },
-            { vaccineId: 'dtap2', dateAdministered: "2023-12-30" },
-            { vaccineId: 'pcv2', dateAdministered: "2023-12-30" },
-            { vaccineId: 'hib2', dateAdministered: "2023-12-30" },
-            { vaccineId: 'polio2', dateAdministered: "2023-12-30" },
-            { vaccineId: 'dtap3', dateAdministered: "2024-02-28" },
-            { vaccineId: 'pcv3', dateAdministered: "2024-02-28" },
-            { vaccineId: 'hib3', dateAdministered: "2024-02-28" },
-            { vaccineId: 'polio3', dateAdministered: "2024-02-28" },
         ],
     },
   ];

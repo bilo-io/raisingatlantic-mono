@@ -7,15 +7,13 @@ const directorySections = [
     title: "Medical Practices",
     description: "Browse and manage affiliated medical practices and their details.",
     href: "/dashboard/directory/practices",
-    icon: MapPin,
-    aiHint: "clinic building"
+    icon: MapPin
   },
   {
     title: "Clinicians Directory",
     description: "View and manage clinician profiles, specializations, and contact information.",
     href: "/dashboard/directory/clinicians",
-    icon: Stethoscope,
-    aiHint: "doctor team"
+    icon: Stethoscope
   },
 ];
 

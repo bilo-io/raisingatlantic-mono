@@ -8,15 +8,13 @@ const adminSections = [
     title: "User Management",
     description: "Manage user accounts, roles, and permissions within the application.",
     href: "/dashboard/admin/users",
-    icon: Users,
-    aiHint: "user group multiple"
+    icon: Users
   },
   {
     title: "System Settings",
     description: "Configure global application settings, integrations, and maintenance tasks.",
     href: "/dashboard/admin/system",
-    icon: Settings,
-    aiHint: "gears settings cog"
+    icon: Settings
   },
 ];
 

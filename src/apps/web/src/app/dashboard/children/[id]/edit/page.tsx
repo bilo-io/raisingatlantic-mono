@@ -8,6 +8,9 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { childrenDetails } from "@/data/children";
+import { dummyUsers, DUMMY_DEFAULT_USER_ID } from "@/data/users";
+import { UserRole } from "@/lib/constants";
+import React from 'react';
 
 const getChildDataForEdit = (id: string) => {
   const child = childrenDetails.find(c => c.id === id);
@@ -18,10 +21,10 @@ const getChildDataForEdit = (id: string) => {
     id: child.id,
     firstName: child.firstName,
     lastName: child.lastName,
-    dateOfBirth: child.dateOfBirth, // This is already a Date object
+    dateOfBirth: new Date(child.dateOfBirth),
     gender: child.gender,
     notes: child.notes,
-    avatarUrl: child.avatar,
+    imageUrl: child.imageUrl,
   };
 };
 
@@ -31,7 +34,17 @@ export default function EditChildPage() {
   const params = useParams();
   const id = typeof params.id === 'string' ? params.id : '';
 
-  const childData = getChildDataForEdit(id); // In a real app, fetch this data
+  const childData = getChildDataForEdit(id);
+
+  const currentUser = React.useMemo(() => {
+    if (typeof window === 'undefined') return dummyUsers.find(u => u.id === DUMMY_DEFAULT_USER_ID)!;
+    const userId = (typeof window !== 'undefined' && localStorage.getItem('currentUserId')) || DUMMY_DEFAULT_USER_ID;
+    return dummyUsers.find(u => u.id === userId) || dummyUsers.find(u => u.id === DUMMY_DEFAULT_USER_ID)!;
+  }, []);
+
+  const parentUsers = React.useMemo(() => {
+    return dummyUsers.filter(u => u.role === UserRole.PARENT);
+  }, []);
 
   const handleSubmit = async (data: any) => {
     console.log("Updated child data:", data);
@@ -69,7 +82,13 @@ export default function EditChildPage() {
           </Link>
         </Button>
       </div>
-      <ChildProfileForm onSubmit={handleSubmit} initialData={childData} isEditing={true} />
+      <ChildProfileForm 
+        onSubmit={handleSubmit} 
+        initialData={childData} 
+        isEditing={true} 
+        currentUser={currentUser}
+        parentUsers={parentUsers}
+      />
     </div>
   );
 }

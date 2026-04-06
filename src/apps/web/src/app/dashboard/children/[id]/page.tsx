@@ -16,7 +16,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { childrenDetails, type ChildDetail } from '@/data/children';
 import { formatDateStandard, formatDatePretty } from '@/utils/date';
+import { getAgeFromDate } from '@/lib/utils/date';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ResourceStatus } from '@/types/enums';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { UserRole } from '@/lib/constants';
 
@@ -219,9 +221,9 @@ export default function ChildProfilePage() {
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'Active': return 'default';
-      case 'Inactive': return 'secondary';
-      case 'Archived': return 'outline';
+      case ResourceStatus.ACTIVE: return 'default';
+      case ResourceStatus.INACTIVE: return 'secondary';
+      case ResourceStatus.ARCHIVED: return 'outline';
       default: return 'default';
     }
   };
@@ -230,7 +232,7 @@ export default function ChildProfilePage() {
     if (!child) return [];
     return child.growthRecords.map(record => {
       const recordDate = new Date(record.date);
-      const ageInMonths = differenceInMonths(recordDate, child.dateOfBirth);
+      const ageInMonths = differenceInMonths(recordDate, new Date(child.dateOfBirth));
       
       const weightStr = record.data.weight || '';
       const heightStr = record.data.height || '';
@@ -370,7 +372,7 @@ export default function ChildProfilePage() {
           <CardHeader className="bg-muted/30 p-6">
             <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 relative">
               <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-background shadow-md shrink-0">
-                <AvatarImage src={child.avatar} alt={child.name} data-ai-hint={child.aiHint}/>
+                <AvatarImage src={child.imageUrl} alt={child.name} />
                 <AvatarFallback className="text-4xl" name={child.name}>{child.firstName?.[0]}{child.lastName?.[0]}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
@@ -378,7 +380,7 @@ export default function ChildProfilePage() {
                   <div className="flex-1">
                     <CardTitle className="font-headline text-3xl md:text-4xl">{child.name}</CardTitle>
                     <CardDescription className="text-lg mt-1">
-                      {child.age} old
+                      {getAgeFromDate(child.dateOfBirth)} old
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2 self-start absolute top-0 right-0 sm:static">
@@ -413,7 +415,7 @@ export default function ChildProfilePage() {
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-muted-foreground">
                     <div className="flex items-center text-md">
                         <Cake className="h-5 w-5 mr-2 text-pink-500" />
-                        <span className="font-medium mr-1 text-foreground">Born:</span> {formatDateStandard(child.dateOfBirth)}
+                        <span className="font-medium mr-1 text-foreground">Born:</span> {formatDateStandard(child.dateOfBirth.toString())}
                     </div>
                     <div className="flex items-center text-md">
                         <GenderIcon className={`h-5 w-5 mr-2 ${genderColor}`} />
@@ -499,10 +501,9 @@ export default function ChildProfilePage() {
                                   {clinician ? (
                                       <button onClick={() => setSelectedUser(clinician)} className="w-full flex items-center space-x-3 bg-background p-3 rounded-md border group hover:bg-muted/50 transition-colors">
                                         <RoleAvatar
-                                          src={clinician.avatarUrl}
+                                          src={clinician.imageUrl}
                                           name={clinician.name}
                                           role={clinician.role}
-                                          aiHint="doctor portrait"
                                           avatarClassName="h-10 w-10"
                                           iconContainerClassName="h-5 w-5 border-2"
                                           iconClassName="h-3 w-3"
@@ -523,7 +524,7 @@ export default function ChildProfilePage() {
                               <section>
                                   <h3 className="text-xl font-semibold mb-3">Recent Activity</h3>
                                   <ul className="space-y-2 text-sm text-muted-foreground">
-                                      <li className="flex items-center"><Badge variant="outline" className="mr-2">Note Added</Badge> Profile updated by Parent - {child.lastUpdate ? formatDateStandard(child.lastUpdate) : 'N/A'}</li>
+                                      <li className="flex items-center"><Badge variant="outline" className="mr-2">Note Added</Badge> Profile updated by Parent - {child.updatedAt ? formatDateStandard(child.updatedAt.toString()) : 'N/A'}</li>
                                       <li className="flex items-center"><Badge variant="outline" className="mr-2">Milestone</Badge> Achieved 'First Words' - 2024-06-10</li>
                                       {clinician && <li className="flex items-center"><Badge variant="outline" className="mr-2">Session</Badge> Attended therapy with {(clinician.title || '') + ' ' + clinician.name} - 2024-07-15</li>}
                                   </ul>
@@ -725,7 +726,7 @@ export default function ChildProfilePage() {
           </CardContent>
           <CardFooter className="bg-muted/30 p-6 border-t">
             <p className="text-xs text-muted-foreground">
-              Profile last updated: {child.lastUpdate ? formatDatePretty(child.lastUpdate) : 'N/A'}
+              Profile last updated: {child.updatedAt ? formatDatePretty(child.updatedAt.toString()) : 'N/A'}
             </p>
           </CardFooter>
         </Card>

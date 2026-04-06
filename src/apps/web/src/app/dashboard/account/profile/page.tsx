@@ -81,10 +81,9 @@ export default function UserProfilePage() {
       <Card className="shadow-lg">
         <CardHeader className="flex flex-col md:flex-row items-center gap-6 p-6 bg-muted/20">
           <RoleAvatar 
-            src={user.avatarUrl}
+            src={user.imageUrl}
             name={user.name}
             role={user.role}
-            aiHint={user.aiHint}
             avatarClassName="h-32 w-32 shadow-md"
             fallbackClassName="text-4xl"
             iconContainerClassName="h-8 w-8 border-4"
@@ -93,7 +92,7 @@ export default function UserProfilePage() {
           <div className="text-center md:text-left">
             <CardTitle className="text-2xl font-bold">{(user.title ? user.title + ' ' : '') + user.name}</CardTitle>
             <CardDescription className="text-md text-muted-foreground">{user.role}</CardDescription>
-            <p className="text-sm text-muted-foreground mt-1">Joined on: {formatDateStandard(user.joinedDate)}</p>
+            <p className="text-sm text-muted-foreground mt-1">Joined on: {formatDateStandard(user.createdAt.toString())}</p>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">

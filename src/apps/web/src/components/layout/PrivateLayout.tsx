@@ -263,10 +263,9 @@ export function PrivateLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                    <RoleAvatar
-                      src={currentUser.avatarUrl}
+                      src={currentUser.imageUrl}
                       name={currentUser.name}
                       role={currentUser.role}
-                      aiHint="person face"
                       avatarClassName="h-9 w-9"
                       iconContainerClassName="h-5 w-5 border-2"
                       iconClassName="h-3 w-3"

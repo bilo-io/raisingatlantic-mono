@@ -16,6 +16,7 @@ import { cliniciansToVerify, recordsToVerify } from '@/data/verifications';
 import { standardVaccinationSchedule } from "@/data/vaccinations";
 import { standardMilestonesByAge } from "@/data/milestones";
 import { addMonths, isSameMonth, differenceInMonths } from "date-fns";
+import { getAgeFromDate } from "@/lib/utils/date";
 import { RoleAvatar } from "@/components/ui/RoleAvatar";
 import { dummyTenants } from "@/data/tenants";
 import { dummyPractices } from "@/data/practices";
@@ -306,11 +307,10 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
               {stat.clinicians && stat.clinicians.length > 0 ? (
                 <div className="flex items-center">
                     {stat.clinicians.length === 1 ? (
-                        <RoleAvatar
-                            src={stat.clinicians[0].avatarUrl}
+                             <RoleAvatar
+                            src={stat.clinicians[0].imageUrl}
                             name={stat.clinicians[0].name}
                             role={stat.clinicians[0].role}
-                            aiHint={stat.clinicians[0].aiHint}
                             avatarClassName="h-8 w-8"
                             iconContainerClassName="h-5 w-5 border-2"
                             iconClassName="h-3 w-3"
@@ -319,12 +319,11 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
                         <div className="flex items-center">
                             <div className="flex -space-x-4 rtl:space-x-reverse">
                                 {stat.clinicians.slice(0, 2).map((c: UserType) => (
-                                    <RoleAvatar
+                                     <RoleAvatar
                                       key={c.id}
-                                      src={c.avatarUrl}
+                                      src={c.imageUrl}
                                       name={c.name}
                                       role={c.role}
-                                      aiHint={c.aiHint}
                                       avatarClassName="h-8 w-8 border-background"
                                       iconContainerClassName="h-5 w-5 border-2"
                                       iconClassName="h-3 w-3"
@@ -379,23 +378,22 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
               <div key={item.id} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50">
                 {item.role ? (
                     <RoleAvatar
-                        src={item.avatarUrl || item.avatar}
+                        src={item.imageUrl}
                         name={item.name}
                         role={item.role}
-                        aiHint={item.aiHint}
                         avatarClassName="h-10 w-10"
                         iconContainerClassName="h-5 w-5 border-2"
                         iconClassName="h-3 w-3"
                     />
                 ) : ( // Fallback for items that don't have a role (like Tenants)
                     <Avatar className="h-10 w-10">
-                        <AvatarImage src={item.logoUrl || item.avatar} alt={item.name} data-ai-hint={item.aiHint} />
+                        <AvatarImage src={item.logoUrl || item.imageUrl || item.avatar} alt={item.name} />
                         <AvatarFallback name={item.name}>{item.name.split(' ').map((n: any) => n[0]).join('')}</AvatarFallback>
                     </Avatar>
                 )}
                  <div className="grid gap-1 flex-1">
                   <Link href={`/dashboard/children/${item.id}`} className="font-semibold hover:underline">{(item.title || '') + ' ' + item.name}</Link>
-                  <p className="text-xs text-muted-foreground">{item.age || item.specialty || item.email}</p>
+                  <p className="text-xs text-muted-foreground">{item.imageUrl ? getAgeFromDate(item.dateOfBirth) : (item.specialty || item.email)}</p>
                  </div>
                  {currentUser.role === UserRole.PARENT && (
                   <>

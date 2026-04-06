@@ -28,7 +28,7 @@ const profileFormSchema = z.object({
   dateOfBirth: z.date({ required_error: "Date of birth is required."}),
   gender: z.enum(['male', 'female'], { required_error: "Please select a gender." }),
   notes: z.string().optional(),
-  avatarUrl: z.string().url("Invalid URL for avatar.").optional(),
+  imageUrl: z.string().url("Invalid URL for image.").optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -56,13 +56,13 @@ export function ChildProfileForm({ initialData, onSubmit, isEditing = false, cur
       firstName: initialData?.firstName || "",
       lastName: initialData?.lastName || (currentUser.role === UserRole.PARENT ? getParentLastName(currentUser.id) : ""),
       notes: initialData?.notes || "",
-      avatarUrl: initialData?.avatarUrl || "",
+      imageUrl: initialData?.imageUrl || "",
       gender: initialData?.gender || undefined,
       parentId: initialData?.parentId || (currentUser.role === UserRole.PARENT ? currentUser.id : ''),
     },
   });
 
-  const [avatarPreview, setAvatarPreview] = React.useState<string | undefined>(initialData?.avatarUrl);
+  const [avatarPreview, setAvatarPreview] = React.useState<string | undefined>(initialData?.imageUrl);
 
   const parentId = form.watch("parentId");
 
@@ -82,7 +82,7 @@ export function ChildProfileForm({ initialData, onSubmit, isEditing = false, cur
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarPreview(reader.result as string);
-        // In a real app, you'd upload this file and set form.setValue('avatarUrl', uploadedUrl)
+        // In a real app, you'd upload this file and set form.setValue('imageUrl', uploadedUrl)
       };
       reader.readAsDataURL(file);
     }
@@ -107,7 +107,7 @@ export function ChildProfileForm({ initialData, onSubmit, isEditing = false, cur
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="h-32 w-32 ring-2 ring-primary ring-offset-2 ring-offset-background">
-                <AvatarImage src={avatarPreview || "https://placehold.co/200x200.png"} alt="Child avatar" data-ai-hint="child portrait" />
+                <AvatarImage src={avatarPreview || "https://placehold.co/200x200.png"} alt="Child avatar" />
                 <AvatarFallback name={fullName}>{`${form.getValues("firstName")?.[0] || 'A'}${form.getValues("lastName")?.[0] || 'B'}`}</AvatarFallback>
               </Avatar>
               <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById('avatar-upload')?.click()}>

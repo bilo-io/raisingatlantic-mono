@@ -30,8 +30,7 @@ type FormattedMilestoneRecord = {
     id: string;
     childId: string;
     childName: string;
-    childAvatar: string;
-    childAiHint: string;
+    childImageUrl: string;
     date: string;
     category: string;
     description: string;
@@ -86,8 +85,7 @@ export default function MilestoneRecordsPage() {
                 id: `${child.id}-milestone-${completed.milestoneId}`,
                 childId: child.id,
                 childName: child.name,
-                childAvatar: child.avatar,
-                childAiHint: child.aiHint,
+                childImageUrl: child.imageUrl || '',
                 date: completed.dateAchieved,
                 category: milestoneDetails.category,
                 description: milestoneDetails.description,
@@ -192,7 +190,7 @@ export default function MilestoneRecordsPage() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={record.childAvatar} alt={record.childName} data-ai-hint={record.childAiHint} />
+                              <AvatarImage src={record.childImageUrl} alt={record.childName} />
                               <AvatarFallback name={record.childName}>{record.childName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                             </Avatar>
                             <Link href={`/dashboard/children/${record.childId}`} className="font-medium hover:underline">{record.childName}</Link>

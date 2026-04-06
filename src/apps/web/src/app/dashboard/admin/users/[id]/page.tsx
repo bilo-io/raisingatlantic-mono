@@ -82,10 +82,9 @@ export default function UserDetailPage() {
             <Card className="shadow-lg">
                 <CardHeader className="flex flex-col md:flex-row items-center gap-6 p-6 bg-muted/20">
                 <RoleAvatar 
-                    src={user.avatarUrl}
+                    src={user.imageUrl}
                     name={user.name}
                     role={user.role}
-                    aiHint={user.aiHint}
                     avatarClassName="h-32 w-32 shadow-md"
                     fallbackClassName="text-4xl"
                     iconContainerClassName="h-8 w-8 border-4"
@@ -96,7 +95,7 @@ export default function UserDetailPage() {
                     <CardDescription className="text-md text-muted-foreground">{user.role.charAt(0).toUpperCase() + user.role.slice(1)}</CardDescription>
                     <div className="text-sm text-muted-foreground mt-2 flex items-center justify-center md:justify-start gap-2">
                         <CalendarDays className="h-4 w-4" />
-                        <span>Joined on: {formatDatePretty(user.joinedDate)}</span>
+                        <span>Joined on: {formatDatePretty(user.createdAt)}</span>
                     </div>
                 </div>
                 </CardHeader>
@@ -139,12 +138,12 @@ export default function UserDetailPage() {
                             {associatedChildren.map(child => (
                                 <li key={child.id} className="flex items-center gap-3 bg-muted/50 p-2 rounded-md">
                                     <Avatar className="h-10 w-10">
-                                        <AvatarImage src={child.avatar} alt={child.name} data-ai-hint={child.aiHint} />
+                                        <AvatarImage src={child.imageUrl} alt={child.name} />
                                         <AvatarFallback>{child.firstName?.[0]}{child.lastName?.[0]}</AvatarFallback>
                                     </Avatar>
                                     <div>
                                         <Link href={`/dashboard/children/${child.id}`} className="font-semibold hover:underline text-sm">{child.name}</Link>
-                                        <p className="text-xs text-muted-foreground">{child.age}</p>
+                                        <p className="text-xs text-muted-foreground">{child.dateOfBirth.toString()}</p>
                                     </div>
                                 </li>
                             ))}

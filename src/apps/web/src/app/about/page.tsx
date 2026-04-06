@@ -14,25 +14,21 @@ const clinicDirectors = [
     nameKey: 'directorName1',
     roleKey: 'directorRole1',
     imageUrl: '/assets/images/profiles/pic_DrRaphaellaStander.avif',
-    aiHint: 'professional woman',
   },
   {
     nameKey: 'directorName2',
     roleKey: 'directorRole2',
     imageUrl: '/assets/images/profiles/pic_DrKateBrowde.avif',
-    aiHint: 'woman smiling',
   },
   {
     nameKey: 'directorName3',
     roleKey: 'directorRole3',
     imageUrl: '/assets/images/profiles/pic_MeganSmith.avif',
-    aiHint: 'professional woman',
   },
   {
     nameKey: 'directorName4',
     roleKey: 'directorRole4',
     imageUrl: '/assets/images/profiles/pic_AmyKallenbach.avif',
-    aiHint: 'woman smiling',
   },
 ];
 
@@ -76,7 +72,6 @@ export default function AboutPage() {
                       width={200}
                       height={200}
                       className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                      data-ai-hint={director.aiHint}
                     />
                   </div>
                   <h3 className="text-lg font-semibold text-foreground">{t(director.nameKey)}</h3>

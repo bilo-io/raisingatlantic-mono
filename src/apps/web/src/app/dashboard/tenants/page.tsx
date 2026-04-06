@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useEffect, useMemo, useState } from 'react';
 import { dummyTenants, type Tenant } from '@/data/tenants';
+import { ResourceStatus } from '@/types/enums';
 import { TenantFormModal } from '@/components/admin/TenantFormModal';
 import { type Practice, dummyPractices } from '@/data/practices';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -68,14 +69,16 @@ export default function TenantsPage() {
     setIsModalOpen(true);
   };
 
-  const handleTenantFormSubmit = (data: Omit<Tenant, 'id'> & { id?: string }) => {
+  const handleTenantFormSubmit = (data: { name: string; email: string; phone: string; website?: string; logoUrl?: string } & { id?: string }) => {
     if (data.id) {
-      setTenants(current => current.map(t => t.id === data.id ? { ...t, ...data } : t));
+      setTenants(current => current.map(t => t.id === data.id ? { ...t, ...data, updatedAt: new Date().toISOString() } : t));
     } else {
       const newTenant: Tenant = {
-        ...data,
+        ...data as any,
         id: `tenant-${Date.now()}`,
-        status: 'Active',
+        status: ResourceStatus.ACTIVE,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
       setTenants(current => [newTenant, ...current]);
     }
@@ -95,7 +98,7 @@ export default function TenantsPage() {
         <Card key={tenant.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
           <CardHeader className="flex flex-row items-center gap-4 space-y-0">
             <Avatar className="h-12 w-12">
-              <AvatarImage src={tenant.logoUrl || ''} alt={`${tenant.name} logo`} data-ai-hint={tenant.aiHint} />
+              <AvatarImage src={tenant.logoUrl || ''} alt={`${tenant.name} logo`} />
               <AvatarFallback>{tenant.name.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div>
@@ -134,7 +137,7 @@ export default function TenantsPage() {
               <TableCell>
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={tenant.logoUrl || ''} alt={tenant.name} data-ai-hint={tenant.aiHint} />
+                    <AvatarImage src={tenant.logoUrl || ''} alt={tenant.name} />
                     <AvatarFallback>{tenant.name.slice(0, 1)}</AvatarFallback>
                   </Avatar>
                   <span className="font-medium">{tenant.name}</span>

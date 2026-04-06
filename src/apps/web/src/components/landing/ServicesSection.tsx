@@ -19,9 +19,9 @@ const getPlaceholderUrl = (width: number, height: number, currentTheme: string |
 };
 
 const services = [
-  { icon: Users, titleKey: 'serviceCollaborativeTitle', descriptionKey: 'serviceCollaborativeDescription', width: 400, height: 300, aiHint: "team collaboration" },
-  { icon: BarChart, titleKey: 'serviceProgressTitle', descriptionKey: 'serviceProgressDescription', width: 400, height: 300, aiHint: "charts graphs" },
-  { icon: Smile, titleKey: 'serviceInsightsTitle', descriptionKey: 'serviceInsightsDescription', width: 400, height: 300, aiHint: "brain lightbulb" },
+  { icon: Users, titleKey: 'serviceCollaborativeTitle', descriptionKey: 'serviceCollaborativeDescription', width: 400, height: 300 },
+  { icon: BarChart, titleKey: 'serviceProgressTitle', descriptionKey: 'serviceProgressDescription', width: 400, height: 300 },
+  { icon: Smile, titleKey: 'serviceInsightsTitle', descriptionKey: 'serviceInsightsDescription', width: 400, height: 300 },
 ];
 
 const ServiceCard = ({ service, currentTheme }: { service: typeof services[0], currentTheme: string | undefined }) => {
@@ -42,7 +42,7 @@ const ServiceCard = ({ service, currentTheme }: { service: typeof services[0], c
         <CardTitle className="font-headline text-center">{t(service.titleKey)}</CardTitle>
       </CardHeader>
       <CardContent>
-        <Image src={imgSrc} alt={t(service.titleKey) as string} width={service.width} height={service.height} className="rounded-md mb-4" data-ai-hint={service.aiHint} />
+        <Image src={imgSrc} alt={t(service.titleKey) as string} width={service.width} height={service.height} className="rounded-md mb-4" />
         <p className="text-muted-foreground text-center">{t(service.descriptionKey)}</p>
       </CardContent>
     </Card>

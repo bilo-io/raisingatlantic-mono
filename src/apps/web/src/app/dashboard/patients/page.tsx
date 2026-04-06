@@ -25,17 +25,18 @@ import { UserRole } from '@/lib/constants';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { formatDateStandard } from '@/utils/date';
+import { getAgeFromDate } from '@/lib/utils/date';
+import { ResourceStatus } from '@/types/enums';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type PatientDisplayInfo = {
   id: string;
   name: string;
-  age: string;
-  avatar: string;
-  lastUpdate: string;
-  status: 'Active' | 'Inactive' | 'Archived';
+  dateOfBirth: string | Date;
+  imageUrl?: string;
+  updatedAt: string | Date;
+  status: ResourceStatus;
   primaryConcern?: string;
-  aiHint: string;
 };
 
 const ITEMS_PER_PAGE = 8;
@@ -72,13 +73,12 @@ export default function PatientsPage() {
     return childrenDetails.map(child => ({
       id: child.id,
       name: child.name,
-      age: child.age,
-      avatar: child.avatar,
-      lastUpdate: child.lastUpdate,
+      dateOfBirth: child.dateOfBirth,
+      imageUrl: child.imageUrl,
+      updatedAt: child.updatedAt,
       status: child.status,
       // This could be dynamically determined in a real app
       primaryConcern: child.notes.split('.')[0] || 'Routine Checkup',
-      aiHint: child.aiHint,
     }));
   }, []);
   
@@ -106,11 +106,11 @@ export default function PatientsPage() {
     return filteredPatients.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredPatients, currentPage]);
 
-  const getStatusBadgeVariant = (status: PatientDisplayInfo['status']) => {
+  const getStatusBadgeVariant = (status: ResourceStatus) => {
     switch (status) {
-      case 'Active': return 'default';
-      case 'Inactive': return 'secondary';
-      case 'Archived': return 'outline';
+      case ResourceStatus.ACTIVE: return 'default';
+      case ResourceStatus.INACTIVE: return 'secondary';
+      case ResourceStatus.ARCHIVED: return 'outline';
       default: return 'default';
     }
   };
@@ -139,14 +139,14 @@ export default function PatientsPage() {
           <CardHeader>
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12">
-                <AvatarImage src={patient.avatar} alt={patient.name} data-ai-hint={patient.aiHint} />
+                <AvatarImage src={patient.imageUrl} alt={patient.name} />
                 <AvatarFallback name={patient.name}>{patient.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
               </Avatar>
               <div>
                 <CardTitle className="font-headline text-lg">
                   <Link href={`/dashboard/children/${patient.id}`} className="hover:underline">{patient.name}</Link>
                 </CardTitle>
-                <CardDescription>{patient.age}</CardDescription>
+                <CardDescription>{getAgeFromDate(patient.dateOfBirth)}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -157,7 +157,7 @@ export default function PatientsPage() {
              <Badge variant={getStatusBadgeVariant(patient.status)} className="mt-2">{patient.status}</Badge>
           </CardContent>
           <CardFooter className="flex items-center justify-between border-t pt-4">
-             <span className="text-xs text-muted-foreground">Updated: {formatDateStandard(patient.lastUpdate)}</span>
+             <span className="text-xs text-muted-foreground">Updated: {formatDateStandard(patient.updatedAt.toString())}</span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -196,18 +196,18 @@ export default function PatientsPage() {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={patient.avatar} alt={patient.name} data-ai-hint={patient.aiHint} />
+                      <AvatarImage src={patient.imageUrl} alt={patient.name} />
                       <AvatarFallback name={patient.name}>{patient.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
                     <Link href={`/dashboard/children/${patient.id}`} className="font-medium hover:underline">{patient.name}</Link>
                   </div>
                 </TableCell>
-                <TableCell className="hidden md:table-cell">{patient.age}</TableCell>
+                <TableCell className="hidden md:table-cell">{getAgeFromDate(patient.dateOfBirth)}</TableCell>
                 <TableCell className="hidden lg:table-cell">{patient.primaryConcern || 'N/A'}</TableCell>
                 <TableCell>
                   <Badge variant={getStatusBadgeVariant(patient.status)}>{patient.status}</Badge>
                 </TableCell>
-                <TableCell className="hidden md:table-cell">{formatDateStandard(patient.lastUpdate)}</TableCell>
+                <TableCell className="hidden md:table-cell">{formatDateStandard(patient.updatedAt.toString())}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

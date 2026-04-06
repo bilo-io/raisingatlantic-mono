@@ -8,15 +8,13 @@ const verificationSections = [
     title: "Verify Clinicians",
     description: "Review and approve clinician accounts, manage credentials, and ensure compliance.",
     href: "/dashboard/verifications/clinicians",
-    icon: UserCheck,
-    aiHint: "clinician profile checkmark"
+    icon: UserCheck
   },
   {
     title: "Verify Records",
     description: "Audit and verify the integrity of child records, ensuring data accuracy and completeness.",
     href: "/dashboard/verifications/records",
-    icon: FileCheck,
-    aiHint: "document checkmark"
+    icon: FileCheck
   },
 ];
 

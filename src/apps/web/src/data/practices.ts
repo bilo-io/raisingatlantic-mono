@@ -10,7 +10,6 @@ export type Practice = {
   website?: string;
   status: 'Active' | 'Inactive' | 'Temporarily Closed';
   manager?: string; 
-  aiHint?: string; 
   tenantId: string;
 };
 
@@ -26,7 +25,6 @@ export const dummyPractices: Practice[] = [
     website: 'https://www.atlanticchild.com/',
     status: 'Active', 
     manager: 'Dr. Sarah Miller', 
-    aiHint: 'modern pediatric clinic',
     tenantId: 'tenant-1'
   },
   { 
@@ -39,7 +37,6 @@ export const dummyPractices: Practice[] = [
     phone: '(021) 480-5678', 
     status: 'Active', 
     manager: 'Prof. A. James', 
-    aiHint: 'hospital pediatric ward',
     tenantId: 'tenant-1'
   },
   { 
@@ -52,7 +49,6 @@ export const dummyPractices: Practice[] = [
     phone: '(021) 461-9876', 
     status: 'Active', 
     manager: 'Dr. Linda Khumalo', 
-    aiHint: 'child friendly clinic',
     tenantId: 'tenant-2'
   },
   { 
@@ -64,7 +60,6 @@ export const dummyPractices: Practice[] = [
     zip: '7708', 
     phone: '(021) 671-2345', 
     status: 'Active', 
-    aiHint: 'suburban medical practice',
     tenantId: 'tenant-2'
   },
   { 
@@ -77,7 +72,6 @@ export const dummyPractices: Practice[] = [
     phone: '(021) 391-8765', 
     status: 'Temporarily Closed', 
     manager: 'Ms. Fatima Adams', 
-    aiHint: 'community health center',
     tenantId: 'tenant-3'
   },
   { 
@@ -89,7 +83,6 @@ export const dummyPractices: Practice[] = [
     zip: '7646', 
     phone: '(021) 872-3456', 
     status: 'Active', 
-    aiHint: 'rural clinic building',
     tenantId: 'tenant-3'
   },
   { 
@@ -102,7 +95,6 @@ export const dummyPractices: Practice[] = [
     phone: '(021) 554-6789', 
     status: 'Inactive', 
     manager: 'Dr. Ben Peters', 
-    aiHint: 'clinic sea view',
     tenantId: 'tenant-5' 
   },
   { 
@@ -114,7 +106,6 @@ export const dummyPractices: Practice[] = [
     zip: '7130', 
     phone: '(021) 851-9900', 
     status: 'Active', 
-    aiHint: 'health practice building',
     tenantId: 'tenant-5'
   },
 ];

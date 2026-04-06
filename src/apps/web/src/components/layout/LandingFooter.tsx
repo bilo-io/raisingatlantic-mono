@@ -30,10 +30,10 @@ export function LandingFooter() {
   ];
 
   const socialLinks = [
-    { href: "https://facebook.com", label: "Facebook", icon: Facebook, aiHint: "Facebook logo" },
-    { href: "https://twitter.com", label: "Twitter", icon: Twitter, aiHint: "Twitter logo" },
-    { href: "https://linkedin.com", label: "LinkedIn", icon: Linkedin, aiHint: "LinkedIn logo" },
-    { href: "https://www.instagram.com/atlantic_childrens_practice/?igshid=YmMyMTA2M2Y%3D", label: "Instagram", icon: Instagram, aiHint: "Instagram logo" },
+    { href: "https://facebook.com", label: "Facebook", icon: Facebook },
+    { href: "https://twitter.com", label: "Twitter", icon: Twitter },
+    { href: "https://linkedin.com", label: "LinkedIn", icon: Linkedin },
+    { href: "https://www.instagram.com/atlantic_childrens_practice/?igshid=YmMyMTA2M2Y%3D", label: "Instagram", icon: Instagram },
   ];
 
   return (

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -18,7 +17,6 @@ interface RoleAvatarProps {
   src?: string | null;
   name: string;
   role: UserRole;
-  aiHint?: string;
   avatarClassName?: string;
   fallbackClassName?: string;
   iconContainerClassName?: string;
@@ -29,7 +27,6 @@ export function RoleAvatar({
   src,
   name,
   role,
-  aiHint,
   avatarClassName,
   fallbackClassName,
   iconContainerClassName,
@@ -46,7 +43,7 @@ export function RoleAvatar({
   return (
     <div className="relative group w-fit h-fit">
       <Avatar className={cn('border-2 border-primary', avatarClassName)}>
-        <AvatarImage src={src || undefined} alt={name} data-ai-hint={aiHint} />
+        <AvatarImage src={src || undefined} alt={name} />
         <AvatarFallback name={name} className={fallbackClassName}>
           {nameInitials}
         </AvatarFallback>

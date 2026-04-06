@@ -97,9 +97,9 @@ export default function UserManagementPage() {
     });
   };
 
-  const handleFormSubmit = (data: Omit<User, 'id' | 'joinedDate'> & { id?: string }) => {
+  const handleFormSubmit = (data: { name: string; email: string; role: UserRole; title?: string; phone?: string; imageUrl?: string } & { id?: string }) => {
     if (editingUser) { // Update existing user
-      setUsers(currentUsers => currentUsers.map(u => u.id === editingUser.id ? { ...u, ...data } : u));
+      setUsers(currentUsers => currentUsers.map(u => u.id === editingUser.id ? { ...u, ...data, phone: data.phone || '', updatedAt: new Date().toISOString() } : u));
       addToast({
         title: "User Updated",
         description: `${data.name}'s profile has been updated.`,
@@ -108,8 +108,10 @@ export default function UserManagementPage() {
     } else { // Add new user
       const newUser: User = {
         ...data,
+        phone: data.phone || '',
         id: `user-${Date.now()}`, // Simple unique ID generation
-        joinedDate: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
       setUsers(currentUsers => [newUser, ...currentUsers]);
       addToast({
@@ -205,10 +207,9 @@ export default function UserManagementPage() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <RoleAvatar
-                            src={user.avatarUrl}
+                            src={user.imageUrl}
                             name={user.name}
                             role={user.role}
-                            aiHint={user.aiHint}
                             avatarClassName="h-10 w-10"
                           />
                           <Link href={`/dashboard/admin/users/${user.id}`} className="font-medium hover:underline">
@@ -222,7 +223,7 @@ export default function UserManagementPage() {
                           {user.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </Badge>
                       </TableCell>
-                      <TableCell className="hidden lg:table-cell">{formatDateStandard(user.joinedDate)}</TableCell>
+                      <TableCell className="hidden lg:table-cell">{formatDateStandard(user.createdAt)}</TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

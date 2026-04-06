@@ -1,15 +1,63 @@
 import { UserRole } from "@/lib/constants";
+import { ResourceStatus } from '../types/enums';
 
 // Dummy data for clinicians needing verification
 export const cliniciansToVerify = [
-  { id: 'c1', title: 'Dr.', name: 'Evelyn Reed', specialty: 'Pediatric Neurology', submissionDate: '2024-07-28', status: 'Pending Review', avatar: '', aiHint: 'doctor serious', role: UserRole.CLINICIAN },
-  { id: 'c2', title: 'Mr.', name: 'Samuel Green', specialty: 'Child Psychology', submissionDate: '2024-07-25', status: 'Pending Review', avatar: '', aiHint: 'therapist friendly', role: UserRole.CLINICIAN },
-  { id: 'c3', title: 'Ms.', name: 'Aisha Khan', specialty: 'Occupational Therapy', submissionDate: '2024-07-22', status: 'More Info Required', avatar: '', aiHint: 'professional woman', role: UserRole.CLINICIAN },
+  { 
+    id: 'c1', 
+    title: 'Dr.', 
+    name: 'Evelyn Reed', 
+    specialty: 'Pediatric Neurology', 
+    createdAt: '2024-07-28T10:00:00Z', 
+    updatedAt: '2024-07-28T10:00:00Z', 
+    status: ResourceStatus.PENDING_ASSESSMENT,
+    imageUrl: '', 
+    role: UserRole.CLINICIAN
+  },
+  { 
+    id: 'c2', 
+    title: 'Mr.', 
+    name: 'Samuel Green', 
+    specialty: 'Child Psychology', 
+    createdAt: '2024-07-25T10:00:00Z', 
+    updatedAt: '2024-07-25T10:00:00Z', 
+    status: ResourceStatus.PENDING_ASSESSMENT, 
+    imageUrl: '', 
+    role: UserRole.CLINICIAN
+  }, 
+  { 
+    id: 'c3', 
+    title: 'Ms.', 
+    name: 'Aisha Khan', 
+    specialty: 'Occupational Therapy', 
+    createdAt: '2024-07-22T10:00:00Z', 
+    updatedAt: '2024-07-22T10:00:00Z', 
+    status: ResourceStatus.PENDING_ASSESSMENT, 
+    imageUrl: '', 
+    role: UserRole.CLINICIAN
+  },
 ];
 
 // Dummy data for records needing verification or flagged
 export const recordsToVerify = [
-  { id: 'r1', childName: 'Alex Doe', recordType: 'Growth', issue: 'Unusual height change', dateFlagged: '2024-07-29', flaggedBy: 'System', status: 'Needs Review' },
-  { id: 'r2', childName: 'Mia Doe', recordType: 'Milestone', issue: 'Delayed speech milestone reported by parent', dateFlagged: '2024-07-28', flaggedBy: 'Dr. Smith', status: 'Needs Review' },
-  { id: 'r3', childName: 'Noah Doe', recordType: 'Vaccination', issue: 'Missing DTaP Series Entry', dateFlagged: '2024-07-27', flaggedBy: 'System Audit', status: 'Info Requested' },
+  { 
+    id: 'r1', 
+    childName: 'Alex Doe', 
+    recordType: 'Growth', 
+    issue: 'Unusual height change', 
+    createdAt: '2024-07-29T10:00:00Z', 
+    updatedAt: '2024-07-29T10:00:00Z', 
+    flaggedBy: 'System', 
+    status: ResourceStatus.PENDING_ASSESSMENT
+  },
+  { 
+    id: 'r2', 
+    childName: 'Mia Doe', 
+    recordType: 'Milestone', 
+    issue: 'Delayed speech milestone reported by parent', 
+    createdAt: '2024-07-28T10:00:00Z', 
+    updatedAt: '2024-07-28T10:00:00Z', 
+    flaggedBy: 'Dr. Smith', 
+    status: ResourceStatus.PENDING_ASSESSMENT
+  },
 ];

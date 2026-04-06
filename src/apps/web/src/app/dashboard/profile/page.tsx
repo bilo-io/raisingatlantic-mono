@@ -98,7 +98,7 @@ export default function UserProfilePage() {
         <CardHeader className="flex flex-col md:flex-row items-center gap-6 p-6 bg-muted/20">
            <div className="relative group">
               <Avatar className="h-32 w-32 border-2 border-primary/50 group-hover:border-primary/100 transition-colors shadow-md">
-                <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint={user.aiHint} />
+                <AvatarImage src={user.imageUrl} alt={user.name} />
                 <AvatarFallback className="text-4xl" name={user.name}>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
               </Avatar>
               <div className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground border-4 border-background">
@@ -108,7 +108,7 @@ export default function UserProfilePage() {
           <div className="text-center md:text-left">
             <CardTitle className="text-2xl font-bold">{(user.title ? user.title + ' ' : '') + user.name}</CardTitle>
             <CardDescription className="text-md text-muted-foreground">{user.role}</CardDescription>
-            <p className="text-sm text-muted-foreground mt-1">Joined on: {formatDateStandard(user.joinedDate)}</p>
+            <p className="text-sm text-muted-foreground mt-1">Joined on: {formatDateStandard(user.createdAt.toString())}</p>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">

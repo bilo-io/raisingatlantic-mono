@@ -19,13 +19,13 @@ const getPlaceholderUrl = (width: number, height: number, currentTheme: string |
 };
 
 const testimonials = [
-  { quoteKey: 'testimonialQuote1', nameKey: 'testimonialName1', roleKey: 'testimonialRole1', width: 50, height: 50, aiHint: 'happy parent' },
-  { quoteKey: 'testimonialQuote2', nameKey: 'testimonialName2', roleKey: 'testimonialRole2', width: 50, height: 50, aiHint: 'professional doctor' },
-  { quoteKey: 'testimonialQuote3', nameKey: 'testimonialName3', roleKey: 'testimonialRole3', width: 50, height: 50, aiHint: 'smiling teacher' },
-  { quoteKey: 'testimonialQuote4', nameKey: 'testimonialName4', roleKey: 'testimonialRole4', width: 50, height: 50, aiHint: 'grateful user' },
-  { quoteKey: 'testimonialQuote5', nameKey: 'testimonialName5', roleKey: 'testimonialRole5', width: 50, height: 50, aiHint: 'community leader' },
-  { quoteKey: 'testimonialQuote6', nameKey: 'testimonialName6', roleKey: 'testimonialRole6', width: 50, height: 50, aiHint: 'satisfied customer' },
-  { quoteKey: 'testimonialQuote7', nameKey: 'testimonialName7', roleKey: 'testimonialRole7', width: 50, height: 50, aiHint: 'happy client' },
+  { quoteKey: 'testimonialQuote1', nameKey: 'testimonialName1', roleKey: 'testimonialRole1', width: 50, height: 50 },
+  { quoteKey: 'testimonialQuote2', nameKey: 'testimonialName2', roleKey: 'testimonialRole2', width: 50, height: 50 },
+  { quoteKey: 'testimonialQuote3', nameKey: 'testimonialName3', roleKey: 'testimonialRole3', width: 50, height: 50 },
+  { quoteKey: 'testimonialQuote4', nameKey: 'testimonialName4', roleKey: 'testimonialRole4', width: 50, height: 50 },
+  { quoteKey: 'testimonialQuote5', nameKey: 'testimonialName5', roleKey: 'testimonialRole5', width: 50, height: 50 },
+  { quoteKey: 'testimonialQuote6', nameKey: 'testimonialName6', roleKey: 'testimonialRole6', width: 50, height: 50 },
+  { quoteKey: 'testimonialQuote7', nameKey: 'testimonialName7', roleKey: 'testimonialRole7', width: 50, height: 50 },
 ];
 
 const TestimonialCard = ({ testimonial, currentTheme }: { testimonial: typeof testimonials[0], currentTheme: string | undefined }) => {
@@ -44,7 +44,7 @@ const TestimonialCard = ({ testimonial, currentTheme }: { testimonial: typeof te
         <p className="italic text-muted-foreground mb-4">"{t(testimonial.quoteKey)}"</p>
       </CardContent>
       <CardHeader className="flex flex-row items-center space-x-4 border-t pt-4 mt-auto">
-        <Image src={avatarSrc} alt={t(testimonial.nameKey) as string} width={testimonial.width} height={testimonial.height} className="rounded-full" data-ai-hint={testimonial.aiHint} />
+        <Image src={avatarSrc} alt={t(testimonial.nameKey) as string} width={testimonial.width} height={testimonial.height} className="rounded-full" />
         <div>
           <CardTitle className="text-base font-semibold">{t(testimonial.nameKey)}</CardTitle>
           <CardDescription className="text-sm">{t(testimonial.roleKey)}</CardDescription>

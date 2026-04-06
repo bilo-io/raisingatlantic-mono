@@ -7,18 +7,78 @@ export type Vaccination = {
 };
 
 export const standardVaccinationSchedule: Vaccination[] = [
-  { id: 'hepB1', name: "Hepatitis B (HepB)", recommendedAge: "Birth", doseInfo: "1st dose" },
-  { id: 'hepB2', name: "Hepatitis B (HepB)", recommendedAge: "1-2 Months", doseInfo: "2nd dose" },
-  { id: 'rv1', name: "Rotavirus (RV)", recommendedAge: "2 Months", doseInfo: "1st dose" },
-  { id: 'dtap1', name: "DTaP", recommendedAge: "2 Months", doseInfo: "1st dose" },
-  { id: 'hib1', name: "Hib", recommendedAge: "2 Months", doseInfo: "1st dose" },
-  { id: 'pcv1', name: "PCV13", recommendedAge: "2 Months", doseInfo: "1st dose" },
-  { id: 'polio1', name: "IPV (Polio)", recommendedAge: "2 Months", doseInfo: "2nd dose" },
-  { id: 'rv2', name: "Rotavirus (RV)", recommendedAge: "4 Months", doseInfo: "2nd dose" },
-  { id: 'dtap2', name: "DTaP", recommendedAge: "4 Months", doseInfo: "2nd dose" },
-  { id: 'hib2', name: "Hib", recommendedAge: "4 Months", doseInfo: "2nd dose" },
-  { id: 'pcv2', name: "PCV13", recommendedAge: "4 Months", doseInfo: "2nd dose" },
-  { id: 'polio2', name: "IPV (Polio)", recommendedAge: "4 Months", doseInfo: "2nd dose" },
+  { 
+    id: 'hepB1', 
+    name: "Hepatitis B (HepB)", 
+    recommendedAge: "Birth", 
+    doseInfo: "1st dose" 
+  },
+  { 
+    id: 'hepB2', 
+    name: "Hepatitis B (HepB)", 
+    recommendedAge: "1-2 Months", 
+    doseInfo: "2nd dose" 
+  },
+  { 
+    id: 'rv1', 
+    name: "Rotavirus (RV)", 
+    recommendedAge: "2 Months", 
+    doseInfo: "1st dose" 
+  },
+  { 
+    id: 'dtap1', 
+    name: "DTaP", 
+    recommendedAge: "2 Months", 
+    doseInfo: "1st dose" 
+  },
+  { 
+    id: 'hib1', 
+    name: "Hib", 
+    recommendedAge: "2 Months", 
+    doseInfo: "1st dose" 
+  },
+  { 
+    id: 'pcv1', 
+    name: "PCV13", 
+    recommendedAge: "2 Months", 
+    doseInfo: "1st dose" 
+  },
+  { 
+    id: 'polio1', 
+    name: "IPV (Polio)", 
+    recommendedAge: "2 Months", 
+    doseInfo: "2nd dose" 
+  },
+  { 
+    id: 'rv2', 
+    name: "Rotavirus (RV)", 
+    recommendedAge: "4 Months", 
+    doseInfo: "2nd dose" 
+  },
+  { 
+    id: 'dtap2', 
+    name: "DTaP", 
+    recommendedAge: "4 Months", 
+    doseInfo: "2nd dose" 
+  },
+  { 
+    id: 'hib2', 
+    name: "Hib", 
+    recommendedAge: "4 Months", 
+    doseInfo: "2nd dose" 
+  },
+  { 
+    id: 'pcv2', 
+    name: "PCV13", 
+    recommendedAge: "4 Months", 
+    doseInfo: "2nd dose" 
+  },
+  { 
+    id: 'polio2', 
+    name: "IPV (Polio)", 
+    recommendedAge: "4 Months", 
+    doseInfo: "2nd dose" 
+  },
   { id: 'hepB3', name: "Hepatitis B (HepB)", recommendedAge: "6-18 Months", doseInfo: "3rd dose" },
   { id: 'dtap3', name: "DTaP", recommendedAge: "6 Months", doseInfo: "3rd dose" },
   { id: 'hib3', name: "Hib", recommendedAge: "6 Months", doseInfo: "3rd dose (if needed)" },
