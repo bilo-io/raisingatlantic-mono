@@ -17,12 +17,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UserRole } from '@/lib/constants';
-import { DUMMY_DEFAULT_USER_ID, dummyUsers, type User } from '@/data/users';
-import { childrenDetails, type ChildDetail } from '@/data/children';
-import { standardVaccinationSchedule, type Vaccination } from '@/data/vaccinations';
+import { 
+  getChildren, 
+} from "@/lib/api/adapters/child.adapter";
+import { 
+  getUsers, 
+} from "@/lib/api/adapters/user.adapter";
+import { 
+  getVaccinationSchedule, 
+} from "@/lib/api/adapters/master-data.adapter";
 import { formatDateStandard } from '@/utils/date';
 import { VaccinationRecordFormModal } from '@/components/records/VaccinationRecordFormModal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -36,48 +43,67 @@ type FormattedVaccinationRecord = {
     doseInfo: string;
 };
 
-// Create a map for quick lookup of vaccination details by ID
-const allVaccinationsMap = new Map<string, Vaccination>();
-standardVaccinationSchedule.forEach(vaccine => {
-    allVaccinationsMap.set(vaccine.id, vaccine);
-});
-
-
 export default function VaccinationRecordsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentUser, setCurrentUser] = useState<User | undefined>();
+  const [currentUser, setCurrentUser] = useState<any | undefined>();
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [childrenForUser, setChildrenForUser] = useState<ChildDetail[]>([]);
+  const [childrenForUser, setChildrenForUser] = useState<any[]>([]);
+  const [vaccinationsMaster, setVaccinationsMaster] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== 'undefined') {
-      const storedUserId = localStorage.getItem('currentUserId') || DUMMY_DEFAULT_USER_ID;
-      const user = dummyUsers.find(u => u.id === storedUserId);
-      if (user) {
-        setCurrentUser(user);
+    
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [allChildren, allUsers, allVaccinations] = await Promise.all([
+          getChildren(),
+          getUsers(),
+          getVaccinationSchedule()
+        ]);
         
-        let relevantChildren: ChildDetail[];
-        if (user.role === UserRole.PARENT) {
-          relevantChildren = childrenDetails.filter(c => c.parentId === user.id);
-        } else if (user.role === UserRole.CLINICIAN) {
-          relevantChildren = childrenDetails.filter(c => c.clinicianId === user.id);
-        } else { // Admin sees all
-          relevantChildren = childrenDetails;
+        setVaccinationsMaster(allVaccinations);
+        
+        const storedUserId = localStorage.getItem('currentUserId') || 'user-1';
+        const user = allUsers.find((u: any) => u.id === storedUserId);
+        
+        if (user) {
+          setCurrentUser(user);
+          
+          let relevantChildren: any[];
+          if (user.role === UserRole.PARENT) {
+            relevantChildren = allChildren.filter(c => c.parentId === user.id);
+          } else if (user.role === UserRole.CLINICIAN) {
+            relevantChildren = allChildren.filter(c => c.clinicianId === user.id);
+          } else { // Admin sees all
+            relevantChildren = allChildren;
+          }
+          setChildrenForUser(relevantChildren);
         }
-        setChildrenForUser(relevantChildren);
+      } catch (error) {
+        console.error("Failed to load vaccination records:", error);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
+    loadData();
   }, []);
 
   const allVaccinationRecords = useMemo(() => {
     if (!currentUser) return [];
 
+    const allVaccinationsMap = new Map<string, any>();
+    vaccinationsMaster.forEach(vaccine => {
+        allVaccinationsMap.set(vaccine.id, vaccine);
+    });
+
     const formattedRecords: FormattedVaccinationRecord[] = [];
     childrenForUser.forEach(child => {
-      child.completedVaccinations.forEach(completed => {
+      (child.completedVaccinations || []).forEach((completed: any) => {
         const vaccineDetails = allVaccinationsMap.get(completed.vaccineId);
         if (vaccineDetails) {
             formattedRecords.push({
@@ -94,7 +120,7 @@ export default function VaccinationRecordsPage() {
     });
 
     return formattedRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [currentUser, childrenForUser]);
+  }, [currentUser, childrenForUser, vaccinationsMaster]);
 
 
   const filteredRecords = useMemo(() => {
@@ -119,7 +145,23 @@ export default function VaccinationRecordsPage() {
     // Here you would typically handle the API call to save the data
   };
   
-  if (!mounted || !currentUser) return null;
+  if (!mounted || loading || !currentUser) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center gap-4">
+           <Skeleton className="h-8 w-8 rounded-full" />
+           <Skeleton className="h-8 w-48" />
+        </div>
+        <div className="flex justify-between items-center">
+           <Skeleton className="h-10 w-64" />
+           <Skeleton className="h-10 w-10" />
+        </div>
+        <Card>
+           {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-16 w-full border-b" />)}
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <>

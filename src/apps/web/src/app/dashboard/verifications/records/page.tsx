@@ -1,16 +1,61 @@
+"use client";
 
-import { FileCheck } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { 
+  getRecordsForVerification 
+} from '@/lib/api/adapters/verification.adapter';
+import { formatDateStandard } from '@/utils/date';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Search, AlertTriangle, CheckCircle2, FileCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { recordsToVerify } from '@/data/verifications';
-import { formatDateStandard } from '@/utils/date';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function RecordVerificationsPage() {
-  // In a real app, you'd fetch and manage state for records
+  const [records, setRecords] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const data = await getRecordsForVerification();
+        setRecords(data);
+      } catch (error) {
+        console.error("Failed to load records for verification:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const filteredRecords = records.filter(r => 
+    r.childName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.recordType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.issue.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-10 w-full" />
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48 mb-2" />
+            <Skeleton className="h-4 w-96" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   return (
     <TooltipProvider>
       <div className="flex flex-col gap-6">
@@ -34,7 +79,8 @@ export default function RecordVerificationsPage() {
                       type="search"
                       placeholder="Search records by child or issue..."
                       className="pl-8 w-full sm:w-[300px]"
-                      // value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                   />
               </div>
                {/* Placeholder for potential actions */}
@@ -45,9 +91,9 @@ export default function RecordVerificationsPage() {
             <CardDescription>Review child records that have been flagged for inconsistencies or require verification.</CardDescription>
           </CardHeader>
           <CardContent>
-             {recordsToVerify.length > 0 ? (
+             {filteredRecords.length > 0 ? (
               <ul className="space-y-4">
-                {recordsToVerify.map((record) => (
+                {filteredRecords.map((record) => (
                   <li key={record.id} className="p-4 border rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-muted/50 transition-colors">
                     <div className="flex-1">
                       <p className="font-semibold text-primary">{record.childName} - <span className="text-foreground font-normal">{record.recordType} Record</span></p>
@@ -69,7 +115,9 @@ export default function RecordVerificationsPage() {
                 ))}
               </ul>
             ) : (
-              <p className="text-muted-foreground text-center py-8">No records currently flagged for verification.</p>
+              <p className="text-muted-foreground text-center py-8">
+                {searchTerm ? "No records match your search." : "No records currently flagged for verification."}
+              </p>
             )}
           </CardContent>
         </Card>

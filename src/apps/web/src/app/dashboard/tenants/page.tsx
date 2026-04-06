@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Building, ChevronLeft, ChevronRight, LayoutGrid, List, PlusCircle, Search } from 'lucide-react';
@@ -10,24 +9,28 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useEffect, useMemo, useState } from 'react';
-import { dummyTenants, type Tenant } from '@/data/tenants';
 import { ResourceStatus } from '@/types/enums';
 import { TenantFormModal } from '@/components/admin/TenantFormModal';
-import { type Practice, dummyPractices } from '@/data/practices';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getTenants, createTenant, updateTenant } from '@/lib/api/adapters/tenant.adapter';
+import { getPractices } from '@/lib/api/adapters/practice.adapter';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/useToast';
 
 const ITEMS_PER_PAGE = 8;
 const VIEW_MODE_STORAGE_KEY = 'viewMode_tenants';
 
 export default function TenantsPage() {
-  const [tenants, setTenants] = useState<Tenant[]>(dummyTenants);
-  const [practices, setPractices] = useState<Practice[]>(dummyPractices);
+  const { addToast } = useToast();
+  const [tenants, setTenants] = useState<any[]>([]);
+  const [practices, setPractices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
+  const [editingTenant, setEditingTenant] = useState<any | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -36,6 +39,29 @@ export default function TenantsPage() {
     if (storedViewMode) {
       setViewMode(storedViewMode);
     }
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [tenantsData, practicesData] = await Promise.all([
+          getTenants(),
+          getPractices()
+        ]);
+        setTenants(tenantsData);
+        setPractices(practicesData);
+      } catch (error) {
+        console.error("Failed to fetch tenants data:", error);
+        addToast({
+          title: "Error",
+          description: "Failed to load tenants and practices.",
+          type: 'error',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -46,8 +72,8 @@ export default function TenantsPage() {
 
   const filteredTenants = useMemo(() => {
     return tenants.filter(tenant => {
-        const searchMatch = tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            tenant.email.toLowerCase().includes(searchTerm.toLowerCase());
+        const searchMatch = (tenant.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            tenant.email?.toLowerCase().includes(searchTerm.toLowerCase()));
         const statusMatch = statusFilter === 'all' || tenant.status === statusFilter;
         return searchMatch && statusMatch;
     });
@@ -69,26 +95,33 @@ export default function TenantsPage() {
     setIsModalOpen(true);
   };
 
-  const handleTenantFormSubmit = (data: { name: string; email: string; phone: string; website?: string; logoUrl?: string } & { id?: string }) => {
-    if (data.id) {
-      setTenants(current => current.map(t => t.id === data.id ? { ...t, ...data, updatedAt: new Date().toISOString() } : t));
-    } else {
-      const newTenant: Tenant = {
-        ...data as any,
-        id: `tenant-${Date.now()}`,
-        status: ResourceStatus.ACTIVE,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setTenants(current => [newTenant, ...current]);
+  const handleTenantFormSubmit = async (data: any) => {
+    try {
+      if (data.id) {
+        const updated = await updateTenant(data.id, data);
+        setTenants(current => current.map(t => t.id === updated.id ? { ...t, ...updated } : t));
+        addToast({ title: "Success", description: "Tenant updated successfully.", type: 'success' });
+      } else {
+        const created = await createTenant(data);
+        setTenants(current => [created, ...current]);
+        addToast({ title: "Success", description: "Tenant created successfully.", type: 'success' });
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save tenant:", error);
+      addToast({
+        title: "Error",
+        description: "Failed to save tenant details.",
+        type: 'error',
+      });
     }
   };
   
-  const handlePracticeChange = (updatedPractices: Practice[]) => {
+  const handlePracticeChange = (updatedPractices: any[]) => {
     setPractices(updatedPractices);
   };
 
-  const getStatusBadgeVariant = (status: Tenant['status']) => {
+  const getStatusBadgeVariant = (status: string) => {
     return status === 'Active' ? 'default' : 'secondary';
   };
 
@@ -99,15 +132,15 @@ export default function TenantsPage() {
           <CardHeader className="flex flex-row items-center gap-4 space-y-0">
             <Avatar className="h-12 w-12">
               <AvatarImage src={tenant.logoUrl || ''} alt={`${tenant.name} logo`} />
-              <AvatarFallback>{tenant.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarFallback>{tenant.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div>
               <CardTitle className="font-headline text-lg">{tenant.name}</CardTitle>
-              <CardDescription>{tenant.email}</CardDescription>
+              <CardDescription className="line-clamp-1">{tenant.email}</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="flex-grow text-sm">
-            <p className="text-muted-foreground">{tenant.phone}</p>
+            <p className="text-muted-foreground">{tenant.phone || 'No phone'}</p>
             <Badge variant={getStatusBadgeVariant(tenant.status)} className="mt-3">{tenant.status}</Badge>
           </CardContent>
           <CardFooter>
@@ -138,13 +171,13 @@ export default function TenantsPage() {
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={tenant.logoUrl || ''} alt={tenant.name} />
-                    <AvatarFallback>{tenant.name.slice(0, 1)}</AvatarFallback>
+                    <AvatarFallback>{tenant.name?.slice(0, 1)}</AvatarFallback>
                   </Avatar>
                   <span className="font-medium">{tenant.name}</span>
                 </div>
               </TableCell>
               <TableCell className="hidden md:table-cell">{tenant.email}</TableCell>
-              <TableCell className="hidden lg:table-cell">{tenant.phone}</TableCell>
+              <TableCell className="hidden lg:table-cell">{tenant.phone || '-'}</TableCell>
               <TableCell>
                 <Badge variant={getStatusBadgeVariant(tenant.status)}>{tenant.status}</Badge>
               </TableCell>
@@ -153,6 +186,29 @@ export default function TenantsPage() {
         </TableBody>
       </Table>
     </Card>
+  );
+
+  const renderSkeletons = () => (
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+        <Card key={i} className="shadow-lg">
+          <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-6 w-16" />
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-9 w-full" />
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
   );
 
   return (
@@ -217,7 +273,9 @@ export default function TenantsPage() {
             </div>
           </div>
 
-          {paginatedTenants.length > 0 ? (
+          {loading ? (
+             renderSkeletons()
+          ) : paginatedTenants.length > 0 ? (
             <>
               {viewMode === 'grid' ? renderGrid() : renderList()}
               {totalPages > 1 && (

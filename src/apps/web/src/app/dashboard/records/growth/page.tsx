@@ -17,11 +17,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UserRole } from '@/lib/constants';
-import { DUMMY_DEFAULT_USER_ID, dummyUsers, type User } from '@/data/users';
-import { childrenDetails, type ChildDetail } from '@/data/children';
+import { 
+  getChildren, 
+} from "@/lib/api/adapters/child.adapter";
+import { 
+  getUsers, 
+} from "@/lib/api/adapters/user.adapter";
 import { formatDateStandard } from '@/utils/date';
 import { GrowthRecordFormModal } from '@/components/records/GrowthRecordFormModal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -38,30 +43,47 @@ type FormattedGrowthRecord = {
 export default function GrowthRecordsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentUser, setCurrentUser] = useState<User | undefined>();
+  const [currentUser, setCurrentUser] = useState<any | undefined>();
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [childrenForUser, setChildrenForUser] = useState<ChildDetail[]>([]);
+  const [childrenForUser, setChildrenForUser] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== 'undefined') {
-      const storedUserId = localStorage.getItem('currentUserId') || DUMMY_DEFAULT_USER_ID;
-      const user = dummyUsers.find(u => u.id === storedUserId);
-      if (user) {
-        setCurrentUser(user);
+    
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [allChildren, allUsers] = await Promise.all([
+          getChildren(),
+          getUsers()
+        ]);
         
-        let relevantChildren: ChildDetail[];
-        if (user.role === UserRole.PARENT) {
-          relevantChildren = childrenDetails.filter(c => c.parentId === user.id);
-        } else if (user.role === UserRole.CLINICIAN) {
-          relevantChildren = childrenDetails.filter(c => c.clinicianId === user.id);
-        } else { // Admin sees all
-          relevantChildren = childrenDetails;
+        const storedUserId = localStorage.getItem('currentUserId') || 'user-1';
+        const user = allUsers.find((u: any) => u.id === storedUserId);
+        
+        if (user) {
+          setCurrentUser(user);
+          
+          let relevantChildren: any[];
+          if (user.role === UserRole.PARENT) {
+            relevantChildren = allChildren.filter(c => c.parentId === user.id);
+          } else if (user.role === UserRole.CLINICIAN) {
+            relevantChildren = allChildren.filter(c => c.clinicianId === user.id);
+          } else { // Admin sees all
+            relevantChildren = allChildren;
+          }
+          setChildrenForUser(relevantChildren);
         }
-        setChildrenForUser(relevantChildren);
+      } catch (error) {
+        console.error("Failed to load growth records:", error);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
+    loadData();
   }, []);
 
   const allGrowthRecords = useMemo(() => {
@@ -69,7 +91,7 @@ export default function GrowthRecordsPage() {
 
     const formattedRecords: FormattedGrowthRecord[] = [];
     childrenForUser.forEach(child => {
-      child.growthRecords.forEach((record, index) => {
+      (child.growthRecords || []).forEach((record: any, index: number) => {
         const parts: string[] = [];
         if (record.data.height) parts.push(`Height: ${record.data.height}`);
         if (record.data.weight) parts.push(`Weight: ${record.data.weight}`);
@@ -113,7 +135,23 @@ export default function GrowthRecordsPage() {
     // Here you would typically handle the API call to save the data
   };
 
-  if (!mounted || !currentUser) return null; // Or a loading spinner
+  if (!mounted || loading || !currentUser) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center gap-4">
+           <Skeleton className="h-8 w-8 rounded-full" />
+           <Skeleton className="h-8 w-48" />
+        </div>
+        <div className="flex justify-between items-center">
+           <Skeleton className="h-10 w-64" />
+           <Skeleton className="h-10 w-10" />
+        </div>
+        <Card>
+           {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-16 w-full border-b" />)}
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <>

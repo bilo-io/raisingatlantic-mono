@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -9,9 +8,10 @@ import { MoreHorizontal, Search, MapPin, ChevronLeft, ChevronRight, Eye, Edit3, 
 import { useState, useMemo, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
-import { type Practice, dummyPractices } from '@/data/practices';
+import { getPractices, type Practice } from '@/lib/api/adapters/practice.adapter';
 import { PracticeDetailModal } from '@/components/medical/PracticeDetailModal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ITEMS_PER_PAGE = 8;
 const VIEW_MODE_STORAGE_KEY = 'viewMode_practices';
@@ -20,10 +20,25 @@ export default function PracticesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [selectedPractice, setSelectedPractice] = useState<Practice | null>(null);
+  const [selectedPractice, setSelectedPractice] = useState<any | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [practices, setPractices] = useState<Practice[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const fetchPractices = async () => {
+      try {
+        setLoading(true);
+        const data = await getPractices();
+        setPractices(data);
+      } catch (error) {
+        console.error("Failed to fetch practices:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPractices();
     setMounted(true);
     const storedViewMode = localStorage.getItem(VIEW_MODE_STORAGE_KEY) as 'grid' | 'list' | null;
     if (storedViewMode) {
@@ -38,13 +53,13 @@ export default function PracticesPage() {
   }, [viewMode, mounted]);
 
   const filteredPractices = useMemo(() => {
-    return dummyPractices.filter(practice =>
+    return practices.filter(practice =>
       practice.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       practice.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
       practice.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (practice.manager && practice.manager.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-  }, [searchTerm]);
+  }, [searchTerm, practices]);
 
   const totalPages = Math.ceil(filteredPractices.length / ITEMS_PER_PAGE);
   const paginatedPractices = useMemo(() => {
@@ -52,7 +67,7 @@ export default function PracticesPage() {
     return filteredPractices.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredPractices, currentPage]);
 
-  const getStatusBadgeVariant = (status: Practice['status']) => {
+  const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'Active': return 'default';
       case 'Inactive': return 'secondary';
@@ -174,7 +189,28 @@ export default function PracticesPage() {
           </div>
         </div>
 
-        {filteredPractices.length === 0 ? (
+        {loading ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {[...Array(8)].map((_, i) => (
+              <Card key={i} className="flex flex-col">
+                <CardHeader>
+                  <div className="flex items-start gap-4">
+                    <Skeleton className="h-12 w-12 rounded-md" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-6 w-16 mt-2" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : filteredPractices.length === 0 ? (
           <Card className="text-center py-12">
             <CardHeader>
               <CardTitle>No Practices Found</CardTitle>
@@ -184,7 +220,7 @@ export default function PracticesPage() {
             </CardHeader>
              <CardContent>
               <Button asChild>
-                <Link href="#"> {/* Placeholder link */}
+                <Link href="#">
                   <PlusCircle className="mr-2 h-4 w-4" /> Add First Practice
                 </Link>
               </Button>

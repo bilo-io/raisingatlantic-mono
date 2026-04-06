@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
@@ -10,13 +9,14 @@ import { Badge } from '@/components/ui/badge';
 import { Stethoscope, Search, LayoutGrid, List, MoreHorizontal, ChevronLeft, ChevronRight, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { dummyClinicians, type Clinician } from '@/data/clinicians';
-import { dummyPractices } from '@/data/practices';
+import { getPractices, type Practice } from '@/lib/api/adapters/practice.adapter';
+import { getUsers } from '@/lib/api/adapters/user.adapter';
+import { UserRole } from '@/lib/constants';
 import { ClinicianDetailModal } from '@/components/medical/ClinicianDetailModal';
 import { RoleAvatar } from '@/components/ui/RoleAvatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const practiceNameMap = new Map(dummyPractices.map(p => [p.id, p.name]));
 const ITEMS_PER_PAGE = 8;
 const VIEW_MODE_STORAGE_KEY = 'viewMode_clinicians';
 
@@ -24,11 +24,36 @@ export default function CliniciansDirectoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [practiceFilter, setPracticeFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [selectedClinician, setSelectedClinician] = useState<Clinician | null>(null);
+  const [selectedClinician, setSelectedClinician] = useState<any | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [mounted, setMounted] = useState(false);
+  const [clinicians, setClinicians] = useState<any[]>([]);
+  const [practices, setPractices] = useState<Practice[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const practiceNameMap = useMemo(() => new Map(practices.map(p => [p.id, p.name])), [practices]);
   
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [usersData, practicesData] = await Promise.all([
+          getUsers(),
+          getPractices()
+        ]);
+        
+        // Filter for clinicians
+        const cliniciansList = usersData.filter((u: any) => u.role === UserRole.CLINICIAN);
+        setClinicians(cliniciansList);
+        setPractices(practicesData);
+      } catch (error) {
+        console.error("Failed to fetch clinicians directory data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
     setMounted(true);
     const storedViewMode = localStorage.getItem(VIEW_MODE_STORAGE_KEY) as 'grid' | 'list' | null;
     if (storedViewMode) {
@@ -43,22 +68,22 @@ export default function CliniciansDirectoryPage() {
   }, [viewMode, mounted]);
 
   const filteredClinicians = useMemo(() => {
-    let clinicians = dummyClinicians;
+    let filtered = clinicians;
 
     if (practiceFilter !== 'all') {
-      clinicians = clinicians.filter(c => c.practiceIds.includes(practiceFilter));
+      filtered = filtered.filter(c => c.practiceIds?.includes(practiceFilter));
     }
 
     if (searchTerm) {
       const lowercasedTerm = searchTerm.toLowerCase();
-      clinicians = clinicians.filter(c =>
+      filtered = filtered.filter(c =>
         c.name.toLowerCase().includes(lowercasedTerm) ||
-        c.specialty.toLowerCase().includes(lowercasedTerm)
+        c.specialty?.toLowerCase().includes(lowercasedTerm)
       );
     }
     
-    return clinicians;
-  }, [searchTerm, practiceFilter]);
+    return filtered;
+  }, [searchTerm, practiceFilter, clinicians]);
   
   const totalPages = Math.ceil(filteredClinicians.length / ITEMS_PER_PAGE);
   
@@ -105,7 +130,7 @@ export default function CliniciansDirectoryPage() {
           <CardContent className="flex-grow text-sm text-muted-foreground text-center">
             <p className="mb-4 line-clamp-3">{clinician.bio}</p>
             <div className="flex flex-wrap justify-center gap-2">
-              {clinician.practiceIds.map(id => (
+              {clinician.practiceIds?.map((id: string) => (
                 <Badge key={id} variant="secondary">
                   {practiceNameMap.get(id) || 'Unknown Practice'}
                 </Badge>
@@ -152,7 +177,7 @@ export default function CliniciansDirectoryPage() {
               <TableCell>{clinician.specialty}</TableCell>
               <TableCell className="hidden lg:table-cell">
                 <div className="flex flex-wrap gap-1">
-                  {clinician.practiceIds.map(id => (
+                  {clinician.practiceIds?.map((id: string) => (
                     <Badge key={id} variant="secondary">{practiceNameMap.get(id) || 'N/A'}</Badge>
                   ))}
                 </div>
@@ -202,7 +227,7 @@ export default function CliniciansDirectoryPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Practices</SelectItem>
-                {dummyPractices.map(practice => (
+                {practices.map(practice => (
                   <SelectItem key={practice.id} value={practice.id}>
                     {practice.name}
                   </SelectItem>
@@ -225,7 +250,24 @@ export default function CliniciansDirectoryPage() {
           </div>
         </div>
 
-        {paginatedClinicians.length > 0 ? (
+        {loading ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {[...Array(8)].map((_, i) => (
+              <Card key={i} className="flex flex-col">
+                <CardHeader className="items-center">
+                  <Skeleton className="h-24 w-24 rounded-full mb-4" />
+                  <Skeleton className="h-6 w-32 mb-2" />
+                  <Skeleton className="h-4 w-24" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-3/4" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : paginatedClinicians.length > 0 ? (
           <>
             {viewMode === 'grid' ? renderGrid() : renderList()}
             {totalPages > 1 && (

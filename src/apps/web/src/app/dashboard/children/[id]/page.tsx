@@ -14,15 +14,24 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { childrenDetails, type ChildDetail } from '@/data/children';
+import { 
+  getChildById
+} from '@/lib/api/adapters/child.adapter';
+import { 
+  getUsers 
+} from "@/lib/api/adapters/user.adapter";
+import { 
+  getMilestones, 
+  getVaccinationSchedule 
+} from "@/lib/api/adapters/master-data.adapter";
 import { formatDateStandard, formatDatePretty } from '@/utils/date';
 import { getAgeFromDate } from '@/lib/utils/date';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ResourceStatus } from '@/types/enums';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { UserRole } from '@/lib/constants';
+import { Skeleton } from '@/components/ui/skeleton';
 
-import { DUMMY_DEFAULT_USER_ID, dummyUsers, type User as UserType } from '@/data/users';
 import {
   LineChart,
   Line,
@@ -38,12 +47,6 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart"
-import { boysWeightForAgeData } from '@/data/charts/boys-weight-for-age';
-import { girlsWeightForAgeData } from '@/data/charts/girls-weight-for-age';
-import { boysHeightForAgeData } from '@/data/charts/boys-height-for-age';
-import { girlsHeightForAgeData } from '@/data/charts/girls-height-for-age';
-import { standardVaccinationSchedule } from '@/data/vaccinations';
-import { standardMilestonesByAge } from '@/data/milestones';
 import { cn } from '@/lib/utils';
 import { differenceInMonths } from 'date-fns';
 import { RoleAvatar } from '@/components/ui/RoleAvatar';
@@ -61,22 +64,17 @@ export default function ChildProfilePage() {
   const profileCardRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isGrowthModalOpen, setIsGrowthModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
   
-  const id = typeof params.id === 'string' ? params.id : '';
-  const child = childrenDetails.find(child => child.id === id);
+  const { id } = params as { id: string };
+  const [child, setChild] = useState<any | null>(null);
+  const [parent, setParent] = useState<any | null>(null);
+  const [clinician, setClinician] = useState<any | null>(null);
+  const [milestonesMaster, setMilestonesMaster] = useState<any[]>([]);
+  const [vaccinationsMaster, setVaccinationsMaster] = useState<any[]>([]);
   
-  const clinician = React.useMemo(() => {
-    if (!child?.clinicianId) return null;
-    return dummyUsers.find(u => u.id === child.clinicianId);
-  }, [child?.clinicianId]);
-
-  const parent = React.useMemo(() => {
-    if (!child?.parentId) return null;
-    return dummyUsers.find(u => u.id === child.parentId);
-  }, [child?.parentId]);
-
-  const [currentUserRole, setCurrentUserRole] = useState<UserRole | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isDetailsCollapsed, setIsDetailsCollapsed] = useState(true);
   const [openAccordionItems, setOpenAccordionItems] = useState<string[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -85,18 +83,47 @@ export default function ChildProfilePage() {
   const activeTab = searchParams.get('recordType') || 'vaccinations';
   const growthView = searchParams.get('growthView') || 'list';
   const chartMetric = searchParams.get('chartMetric') || 'weight';
-  
-  const allMilestoneAccordionValues = standardMilestonesByAge.map(g => g.age);
-
 
   useEffect(() => {
-    const userId = localStorage.getItem('currentUserId') || DUMMY_DEFAULT_USER_ID;
-    const user = dummyUsers.find(u => u.id === userId);
-    if (user) {
-      setCurrentUserRole(user.role);
-    }
-    
-    if (typeof window !== 'undefined' && id && !isInitialized) {
+    const fetchData = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const [childData, allUsers, milestones, vaccinations] = await Promise.all([
+          getChildById(id),
+          getUsers(),
+          getMilestones(),
+          getVaccinationSchedule()
+        ]);
+
+        setChild(childData);
+        setMilestonesMaster(milestones);
+        setVaccinationsMaster(vaccinations);
+
+        if (childData.parentId) {
+          setParent(allUsers.find((u: any) => u.id === childData.parentId) || null);
+        }
+        if (childData.clinicianId) {
+          setClinician(allUsers.find((u: any) => u.id === childData.clinicianId) || null);
+        }
+
+        const storedUserId = localStorage.getItem('currentUserId') || 'user-1';
+        const user = allUsers.find((u: any) => u.id === storedUserId);
+        if (user) {
+          setCurrentUserRole(user.role);
+        }
+      } catch (error) {
+        console.error("Error fetching child details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && id && !isInitialized && !loading) {
       const hasParamsInUrl = searchParams.has('recordType');
       
       if (!hasParamsInUrl) {
@@ -116,7 +143,7 @@ export default function ChildProfilePage() {
       }
       setIsInitialized(true);
     }
-  }, [id, isInitialized, pathname, router, searchParams]);
+  }, [id, isInitialized, pathname, router, searchParams, loading]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && id && isInitialized) {
@@ -135,14 +162,14 @@ export default function ChildProfilePage() {
   const handleExportPdf = () => {
     if (!profileCardRef.current || !child) return;
     setIsDetailsCollapsed(false);
+    const allMilestoneAccordionValues = milestonesMaster.map(g => g.age || g.ageRange);
     setOpenAccordionItems(allMilestoneAccordionValues);
-    setIsExporting(true); // This triggers the useEffect
+    setIsExporting(true);
   };
 
   useEffect(() => {
     if (isExporting && profileCardRef.current) {
         const timer = setTimeout(async () => {
-            // Dynamic import: jsPDF (~250 kB gzipped) is only loaded on export click
             const { default: jsPDF } = await import('jspdf');
             const pdf = new jsPDF({
                 orientation: 'p',
@@ -163,12 +190,11 @@ export default function ChildProfilePage() {
             } catch (error) {
                 console.error("Error exporting PDF:", error);
             } finally {
-                // Reset states after export
                 setIsExporting(false);
                 setIsDetailsCollapsed(true);
                 setOpenAccordionItems([]);
             }
-        }, 500); // Small delay to allow React to re-render with expanded content
+        }, 500);
 
         return () => clearTimeout(timer);
     }
@@ -195,26 +221,42 @@ export default function ChildProfilePage() {
         description: `A new growth record for ${child?.name} has been created.`,
         type: 'success',
     });
-    // In a real app, you would mutate your data here
   };
 
+  if (loading) {
+    return (
+      <div className="container mx-auto py-6 space-y-6">
+        <Skeleton className="h-10 w-32" />
+        <Card>
+          <CardHeader className="flex flex-row gap-6">
+            <Skeleton className="h-32 w-32 rounded-full" />
+            <div className="flex-1 space-y-4">
+               <Skeleton className="h-10 w-64" />
+               <Skeleton className="h-6 w-32" />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+             <Skeleton className="h-12 w-full" />
+             <Skeleton className="h-64 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const backLink = currentUserRole === UserRole.CLINICIAN ? '/dashboard/patients' : '/dashboard/children';
   const backText = currentUserRole === UserRole.CLINICIAN ? 'Back to Patients' : 'Back to Children List';
-  const notFoundBackText = currentUserRole === UserRole.CLINICIAN ? 'Go Back to Patients' : 'Go Back to Children List';
 
   if (!child) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-8">
         <h2 className="text-2xl font-semibold mb-4">Child Profile Not Found</h2>
         <p className="text-muted-foreground mb-6">We couldn't find a profile for the specified ID.</p>
-        {currentUserRole && (
-          <Button asChild>
-            <Link href={backLink}>
-              <ArrowLeft className="mr-2 h-4 w-4" /> {notFoundBackText}
-            </Link>
-          </Button>
-        )}
+        <Button asChild>
+          <Link href="/dashboard/children">
+            <ArrowLeft className="mr-2 h-4 w-4" /> Go Back to Children List
+          </Link>
+        </Button>
       </div>
     );
   }
@@ -228,27 +270,29 @@ export default function ChildProfilePage() {
     }
   };
   
-  const childsGrowthData = React.useMemo(() => {
-    if (!child) return [];
-    return child.growthRecords.map(record => {
-      const recordDate = new Date(record.date);
-      const ageInMonths = differenceInMonths(recordDate, new Date(child.dateOfBirth));
-      
-      const weightStr = record.data.weight || '';
-      const heightStr = record.data.height || '';
-      
-      const weight = parseFloat(weightStr.replace(/[^0-9.]/g, ''));
-      const height = parseFloat(heightStr.replace(/[^0-9.]/g, ''));
+  const childsGrowthData = child.growthRecords ? child.growthRecords.map((record: any) => {
+    const recordDate = new Date(record.date);
+    const ageInMonths = differenceInMonths(recordDate, new Date(child.dateOfBirth));
+    
+    const weightStr = record.data.weight || '';
+    const heightStr = record.data.height || '';
+    
+    const weight = parseFloat(weightStr.toString().replace(/[^0-9.]/g, ''));
+    const height = parseFloat(heightStr.toString().replace(/[^0-9.]/g, ''));
 
-      return {
-        age: ageInMonths,
-        weight: isNaN(weight) ? null : weight,
-        height: isNaN(height) ? null : height,
-      };
-    }).sort((a, b) => a.age - b.age);
-  }, [child]);
+    return {
+      age: ageInMonths,
+      weight: isNaN(weight) ? null : weight,
+      height: isNaN(height) ? null : height,
+    };
+  }).sort((a: any, b: any) => a.age - b.age) : [];
 
-  const GrowthChart = ({ metric, child }: { metric: 'weight' | 'height', child: typeof childrenDetails[0] }) => {
+  const GrowthChart = ({ metric, child }: { metric: 'weight' | 'height', child: any }) => {
+    const boysWeightForAgeData = require('@/data/charts/boys-weight-for-age').boysWeightForAgeData;
+    const girlsWeightForAgeData = require('@/data/charts/girls-weight-for-age').girlsWeightForAgeData;
+    const boysHeightForAgeData = require('@/data/charts/boys-height-for-age').boysHeightForAgeData;
+    const girlsHeightForAgeData = require('@/data/charts/girls-height-for-age').girlsHeightForAgeData;
+
     const chartConfig = React.useMemo(() => ({
       line_plus_3:  { label: "+3 line",  color: "var(--destructive)" },
       line_plus_2: { label: "+2 line", color: "#E68A19" },
@@ -264,11 +308,11 @@ export default function ChildProfilePage() {
           : (child.gender === 'male' ? boysWeightForAgeData : girlsWeightForAgeData);
 
       const childDataMap = new Map<number, { weight: number | null, height: number | null }>();
-      childsGrowthData.forEach(d => {
+      childsGrowthData.forEach((d: any) => {
         childDataMap.set(d.age, { weight: d.weight, height: d.height });
       });
 
-      const mergedData = standardChartData.map(standardDataPoint => {
+      const mergedData = standardChartData.map((standardDataPoint: any) => {
         const childDataForAge = childDataMap.get(standardDataPoint.age);
         const childMetricValue = childDataForAge
           ? (metric === 'weight' ? childDataForAge.weight : childDataForAge.height)
@@ -281,7 +325,7 @@ export default function ChildProfilePage() {
       });
       
       return mergedData;
-    }, [metric, child.gender, childsGrowthData]);
+    }, [metric, child.gender, childsGrowthData, boysHeightForAgeData, girlsHeightForAgeData, boysWeightForAgeData, girlsWeightForAgeData]);
 
     return (
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
@@ -323,7 +367,7 @@ export default function ChildProfilePage() {
     <>
       {child.growthRecords && child.growthRecords.length > 0 ? (
         <ul className="space-y-3">
-          {child.growthRecords.map((record, index) => (
+          {child.growthRecords.map((record: any, index: number) => (
             <li key={index} className="flex items-start justify-between gap-4 p-3 bg-muted/50 rounded-md border">
               <div className="flex-1">
                 <p className="font-semibold text-foreground">{formatDateStandard(record.date)}</p>
@@ -353,19 +397,17 @@ export default function ChildProfilePage() {
       <GrowthRecordFormModal
         open={isGrowthModalOpen}
         onOpenChange={setIsGrowthModalOpen}
-        childrenList={[child] as ChildDetail[]}
+        childrenList={[child] as any[]}
         initialChildId={child.id}
         onFormSubmit={handleGrowthFormSubmit}
       />
       <div className="container mx-auto py-6">
         <div className="mb-6">
-          {currentUserRole && (
-            <Button variant="outline" asChild>
-              <Link href={backLink}>
-                <ArrowLeft className="mr-2 h-4 w-4" /> {backText}
-              </Link>
-            </Button>
-          )}
+          <Button variant="outline" asChild>
+            <Link href={backLink}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> {backText}
+            </Link>
+          </Button>
         </div>
 
         <Card ref={profileCardRef} className="shadow-xl overflow-hidden">
@@ -373,7 +415,7 @@ export default function ChildProfilePage() {
             <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 relative">
               <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-background shadow-md shrink-0">
                 <AvatarImage src={child.imageUrl} alt={child.name} />
-                <AvatarFallback className="text-4xl" name={child.name}>{child.firstName?.[0]}{child.lastName?.[0]}</AvatarFallback>
+                <AvatarFallback className="text-4xl">{child.firstName?.[0]}{child.lastName?.[0]}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
@@ -628,9 +670,9 @@ export default function ChildProfilePage() {
                           value={openAccordionItems}
                           onValueChange={isExporting ? undefined : setOpenAccordionItems}
                       >
-                        {standardMilestonesByAge.map((ageGroup) => (
-                          <AccordionItem value={ageGroup.age} key={ageGroup.age}>
-                            <AccordionTrigger className="text-lg font-semibold">{ageGroup.age} Milestones</AccordionTrigger>
+                        {milestonesMaster.map((ageGroup: any) => (
+                          <AccordionItem value={ageGroup.age || ageGroup.ageRange} key={ageGroup.id || ageGroup.age || ageGroup.ageRange}>
+                            <AccordionTrigger className="text-lg font-semibold">{ageGroup.age || ageGroup.ageRange} Milestones</AccordionTrigger>
                             <AccordionContent>
                               <Table>
                                 <TableHeader>
@@ -642,9 +684,9 @@ export default function ChildProfilePage() {
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                  {ageGroup.milestones.map((milestone) => {
+                                  {ageGroup.milestones?.map((milestone: any) => {
                                     const completedMilestone = child.completedMilestones?.find(
-                                      (cm) => cm.milestoneId === milestone.id
+                                      (cm: any) => cm.milestoneId === milestone.id
                                     );
                                     const isCompleted = !!completedMilestone;
                                     return (
@@ -692,8 +734,8 @@ export default function ChildProfilePage() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {standardVaccinationSchedule.map((vaccine) => {
-                            const completedVaccine = child.completedVaccinations?.find(cv => cv.vaccineId === vaccine.id);
+                          {vaccinationsMaster.map((vaccine: any) => {
+                            const completedVaccine = child.completedVaccinations?.find((cv: any) => cv.vaccineId === vaccine.id);
                             const isCompleted = !!completedVaccine;
                             return (
                               <TableRow key={vaccine.id}>

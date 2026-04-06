@@ -9,17 +9,27 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, Baby, BookOpen, PlusCircle, Users, Award, ShieldCheck, UserCheck, Zap, User, Settings, Shield, ClipboardList, FileText, Syringe, Stethoscope, Building, Search } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { childrenDetails, type ChildDetail } from "@/data/children";
-import { dummyUsers, DUMMY_DEFAULT_USER_ID, type User as UserType } from "@/data/users";
+import { RoleAvatar } from "@/components/ui/RoleAvatar";
 import { UserRole } from "@/lib/constants";
-import { cliniciansToVerify, recordsToVerify } from '@/data/verifications';
-import { standardVaccinationSchedule } from "@/data/vaccinations";
-import { standardMilestonesByAge } from "@/data/milestones";
 import { addMonths, isSameMonth, differenceInMonths } from "date-fns";
 import { getAgeFromDate } from "@/lib/utils/date";
-import { RoleAvatar } from "@/components/ui/RoleAvatar";
-import { dummyTenants } from "@/data/tenants";
-import { dummyPractices } from "@/data/practices";
+import { useApi, withDataSource } from "@/lib/api/data-source";
+import { 
+  getChildren, 
+  Child as ChildType 
+} from "@/lib/api/adapters/child.adapter";
+import { 
+  getUsers, 
+  getClinicians 
+} from "@/lib/api/adapters/user.adapter";
+import { 
+  getMilestones, 
+  getVaccinationSchedule 
+} from "@/lib/api/adapters/master-data.adapter";
+import { 
+  getCliniciansForVerification, 
+  getRecordsForVerification 
+} from "@/lib/api/adapters/verification.adapter";
 
 const parseAgeString = (ageString: string): number | null => {
     if (ageString.toLowerCase() === 'birth') return 0;
@@ -32,31 +42,73 @@ interface DashboardClientProps {
 }
 
 export default function DashboardClient({ initialServerData }: DashboardClientProps) {
-  const [currentUser, setCurrentUser] = useState<UserType | undefined>();
+  const [currentUser, setCurrentUser] = useState<any | undefined>();
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  // Data state
+  const [children, setChildren] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [vaccinations, setVaccinations] = useState<any[]>([]);
+  const [milestones, setMilestones] = useState<any[]>([]);
+  const [cliniciansToVerifyState, setCliniciansToVerify] = useState<any[]>([]);
+  const [recordsToVerifyState, setRecordsToVerify] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
     
-    // Check if we already have a user from the server fetch
-    if (initialServerData?.userId) {
-       const user = dummyUsers.find(u => u.id === initialServerData.userId);
-       if (user) {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        // 1. Identify User
+        let user: any;
+        if (initialServerData?.userId) {
+           const allUsers = await getUsers();
+           user = allUsers.find((u: any) => u.id === initialServerData.userId);
+        }
+        
+        if (!user && typeof window !== 'undefined') {
+            const storedUserId = localStorage.getItem('currentUserId') || 'user-1';
+            const allUsers = await getUsers();
+            user = allUsers.find((u: any) => u.id === storedUserId);
+        }
+
+        if (user) {
           setCurrentUser(user);
-          return;
-       }
-    }
-    
-    // Fallback to localStorage for client-only legacy identification
-    if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.getItem === 'function') {
-        const storedUserId = localStorage.getItem('currentUserId') || DUMMY_DEFAULT_USER_ID;
-        const user = dummyUsers.find(u => u.id === storedUserId);
-        setCurrentUser(user);
-    } else if (typeof window === 'undefined') {
-        // Fallback for SSR if needed, but usually we just wait for mount
-        setCurrentUser(dummyUsers.find(u => u.id === DUMMY_DEFAULT_USER_ID));
-    }
-  }, []);
+          
+          // 2. Fetch all other dashboard dependencies in parallel
+          const [
+            allChildren,
+            allUsers,
+            allVaccinations,
+            allMilestones,
+            pendingClinicians,
+            pendingRecords
+          ] = await Promise.all([
+            getChildren(),
+            getUsers(),
+            getVaccinationSchedule(),
+            getMilestones(),
+            getCliniciansForVerification(),
+            getRecordsForVerification()
+          ]);
+
+          setChildren(allChildren);
+          setUsers(allUsers);
+          setVaccinations(allVaccinations);
+          setMilestones(allMilestones);
+          setCliniciansToVerify(pendingClinicians);
+          setRecordsToVerify(pendingRecords);
+        }
+      } catch (error) {
+        console.error("Dashboard data load failed:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [initialServerData]);
 
   const {
     stats,
@@ -74,7 +126,7 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
     
     // Parent-specific data
     if (role === UserRole.PARENT) {
-      const myChildren = childrenDetails.filter(c => c.parentId === currentUser.id);
+      const myChildren = children.filter(c => c.parentId === currentUser.id);
       const currentDate = new Date();
       
       let upcomingVaccinationsCount = 0;
@@ -85,12 +137,12 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
 
       myChildren.forEach(child => {
         // Calculate upcoming vaccinations for the current month
-        standardVaccinationSchedule.forEach(vaccine => {
-          const isCompleted = child.completedVaccinations.some(cv => cv.vaccineId === vaccine.id);
+        vaccinations.forEach(vaccine => {
+          const isCompleted = (child.completedVaccinations || []).some((cv: any) => cv.vaccineId === vaccine.id);
           if (!isCompleted) {
             const dueInMonths = parseAgeString(vaccine.recommendedAge);
             if (dueInMonths !== null) {
-              const dueDate = addMonths(child.dateOfBirth, dueInMonths);
+              const dueDate = addMonths(new Date(child.dateOfBirth), dueInMonths);
               if (isSameMonth(dueDate, currentDate)) {
                 upcomingVaccinationsCount++;
               }
@@ -99,22 +151,22 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
         });
 
         // Calculate due milestones for the current month
-        standardMilestonesByAge.forEach(ageGroup => {
+        milestones.forEach(ageGroup => {
           const dueInMonths = parseAgeString(ageGroup.age);
           if (dueInMonths !== null) {
-            const dueDate = addMonths(child.dateOfBirth, dueInMonths);
+            const dueDate = addMonths(new Date(child.dateOfBirth), dueInMonths);
             if (isSameMonth(dueDate, currentDate)) {
-              const uncompletedMilestones = ageGroup.milestones.filter(m => !child.completedMilestones.some(cm => cm.milestoneId === m.id));
+              const uncompletedMilestones = ageGroup.milestones.filter((m: any) => !(child.completedMilestones || []).some((cm: any) => cm.milestoneId === m.id));
               dueMilestonesCount += uncompletedMilestones.length;
             }
           }
         });
         
         // Calculate due growth records for the current month
-        const childAgeInMonths = differenceInMonths(currentDate, child.dateOfBirth);
+        const childAgeInMonths = differenceInMonths(currentDate, new Date(child.dateOfBirth));
         if (growthCheckupMonths.includes(childAgeInMonths)) {
-            const hasRecordForCheckupMonth = child.growthRecords.some(r => 
-                isSameMonth(new Date(r.date), addMonths(child.dateOfBirth, childAgeInMonths))
+            const hasRecordForCheckupMonth = (child.growthRecords || []).some((r: any) => 
+                isSameMonth(new Date(r.date), addMonths(new Date(child.dateOfBirth), childAgeInMonths))
             );
             if (!hasRecordForCheckupMonth) {
                 dueGrowthRecordsCount++;
@@ -123,7 +175,7 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
       });
       
       const uniqueClinicianIds = [...new Set(myChildren.map(c => c.clinicianId).filter(Boolean))];
-      const assignedClinicians = uniqueClinicianIds.map(id => dummyUsers.find(u => u.id === id)).filter(Boolean as any as (x: UserType | undefined) => x is UserType);
+      const assignedClinicians = uniqueClinicianIds.map(id => users.find(u => u.id === id)).filter(Boolean);
 
       return {
         welcomeTitle: `Welcome back, ${currentUser.name}!`,
@@ -164,18 +216,18 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
 
     // Clinician-specific data
     if (role === UserRole.CLINICIAN) {
-      const myPatients = childrenDetails.filter(c => c.clinicianId === currentUser.id);
+      const myPatients = children.filter(c => c.clinicianId === currentUser.id);
       const currentDate = new Date();
 
       // Upcoming Vaccinations Logic
       let upcomingVaccinationsCount = 0;
       myPatients.forEach(child => {
-        standardVaccinationSchedule.forEach(vaccine => {
-          const isCompleted = child.completedVaccinations.some(cv => cv.vaccineId === vaccine.id);
+        vaccinations.forEach(vaccine => {
+          const isCompleted = (child.completedVaccinations || []).some((cv: any) => cv.vaccineId === vaccine.id);
           if (!isCompleted) {
             const dueInMonths = parseAgeString(vaccine.recommendedAge);
             if (dueInMonths !== null) {
-              const dueDate = addMonths(child.dateOfBirth, dueInMonths);
+              const dueDate = addMonths(new Date(child.dateOfBirth), dueInMonths);
               if (isSameMonth(dueDate, currentDate)) {
                 upcomingVaccinationsCount++;
               }
@@ -186,7 +238,7 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
 
       // All Parents Logic
       const parentIds = [...new Set(myPatients.map(p => p.parentId))];
-      const associatedParents = parentIds.map(id => dummyUsers.find(u => u.id === id)).filter(Boolean as any as (x: UserType | undefined) => x is UserType);
+      const associatedParents = parentIds.map(id => users.find(u => u.id === id)).filter(Boolean);
 
       return {
         welcomeTitle: `Welcome back, ${(currentUser.title || '') + ' ' + currentUser.name}!`,
@@ -201,7 +253,7 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
             clinicians: associatedParents, // Re-using 'clinicians' key for avatar stack
           },
           { title: "Upcoming Vaccinations", value: upcomingVaccinationsCount, icon: Syringe, change: "Due this month", href: "/dashboard/records/vaccinations" },
-          { title: "Pending Verifications", value: cliniciansToVerify.length, icon: ShieldCheck, change: "Awaiting review", href: "/dashboard/verifications" },
+          { title: "Pending Verifications", value: cliniciansToVerifyState.length, icon: ShieldCheck, change: "Awaiting review", href: "/dashboard/verifications" },
         ],
         mainListTitle: "My Recently Active Patients",
         mainListDescription: "Patients with recent profile updates or activity.",
@@ -218,21 +270,21 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
     
     // Admin-specific data
     if (role === UserRole.ADMIN) {
-       const pendingVerifications = cliniciansToVerify.length + recordsToVerify.length;
-       const totalClinicians = dummyUsers.filter(u => u.role === UserRole.CLINICIAN).length;
-       const totalParents = dummyUsers.filter(u => u.role === UserRole.PARENT).length;
+       const pendingVerifications = cliniciansToVerifyState.length + recordsToVerifyState.length;
+       const totalClinicians = users.filter((u: any) => u.role === UserRole.CLINICIAN).length;
+       const totalParents = users.filter((u: any) => u.role === UserRole.PARENT).length;
        return {
         welcomeTitle: "Administrator Dashboard",
         welcomeDescription: "Manage users, monitor system health, and oversee platform operations.",
         stats: [
           { title: "Total Clinicians", value: totalClinicians, icon: Stethoscope, change: "Platform-wide", href: "/dashboard/admin/users" },
           { title: "Total Parents", value: totalParents, icon: Users, change: "Platform-wide", href: "/dashboard/admin/users" },
-          { title: "Total Children", value: childrenDetails.length, icon: Baby, change: "Platform-wide", href: "/dashboard/patients" },
+          { title: "Total Children", value: children.length, icon: Baby, change: "Platform-wide", href: "/dashboard/patients" },
           { title: "Pending Verifications", value: pendingVerifications, icon: UserCheck, change: "Need review", href: "/dashboard/verifications" },
         ],
         mainListTitle: "Pending Verifications",
         mainListDescription: "Items that require immediate attention and review.",
-        mainList: cliniciansToVerify.slice(0, 3),
+        mainList: cliniciansToVerifyState.slice(0, 3),
         mainListLink: "/dashboard/verifications/clinicians",
         quickActions: [
           { label: "Manage Users", href: "/dashboard/admin/users", icon: Users },
@@ -245,23 +297,23 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
     
     // SuperAdmin-specific data
     if (role === UserRole.SUPER_ADMIN) {
-        const pendingVerifications = cliniciansToVerify.length + recordsToVerify.length;
-        const totalUsers = dummyUsers.length;
-        const totalTenants = dummyTenants.length;
-        const totalPractices = dummyPractices.length;
+        const pendingVerifications = cliniciansToVerifyState.length + recordsToVerifyState.length;
+        const totalUsers = users.length;
+        // For Tenants/Practices we might need more adapters or just keep mock for now
+        // But let's assume we can at least show the basic stats
         return {
          welcomeTitle: "Super Administrator Dashboard",
          welcomeDescription: "Oversee the entire platform, including all tenants, users, and system settings.",
          stats: [
-           { title: "Total Tenants", value: totalTenants, icon: Building, change: "Platform-wide", href: "/dashboard/tenants" },
-           { title: "Total Practices", value: totalPractices, icon: Stethoscope, change: "Across all tenants", href: "/dashboard/directory/practices" },
+           { title: "Total Tenants", value: 0, icon: Building, change: "Platform-wide", href: "/dashboard/tenants" },
+           { title: "Total Practices", value: 0, icon: Stethoscope, change: "Across all tenants", href: "/dashboard/directory/practices" },
            { title: "Total Users", value: totalUsers, icon: Users, change: "All roles", href: "/dashboard/admin/users" },
            { title: "Pending Verifications", value: pendingVerifications, icon: UserCheck, change: "Need review", href: "/dashboard/verifications" },
          ],
-         mainListTitle: "Recently Added Tenants",
-         mainListDescription: "Overview of the newest organizations on the platform.",
-         mainList: dummyTenants.slice(0, 3), // Using tenants as an example list
-         mainListLink: "/dashboard/tenants",
+         mainListTitle: "Recently Active Items",
+         mainListDescription: "Overview of activity on the platform.",
+         mainList: [], // Snapshot
+         mainListLink: "/dashboard/admin/users",
          quickActions: [
            { label: "Manage Tenants", href: "/dashboard/tenants", icon: Building },
            { label: "Manage Users", href: "/dashboard/admin/users", icon: Users },
@@ -272,9 +324,9 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
     }
 
     return { welcomeTitle: 'Dashboard', welcomeDescription: '', stats: [], quickActions: [], mainList: [], mainListTitle: '', mainListDescription: '', mainListLink: '#'};
-  }, [currentUser]);
+  }, [currentUser, children, users, vaccinations, milestones, cliniciansToVerifyState, recordsToVerifyState]);
 
-  if (!mounted || !currentUser) {
+  if (!mounted || loading || !currentUser) {
     return (
       <div className="flex flex-col gap-6">
         <div className="space-y-2">
@@ -318,7 +370,7 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
                     ) : (
                         <div className="flex items-center">
                             <div className="flex -space-x-4 rtl:space-x-reverse">
-                                {stat.clinicians.slice(0, 2).map((c: UserType) => (
+                                {stat.clinicians.slice(0, 2).map((c: any) => (
                                      <RoleAvatar
                                       key={c.id}
                                       src={c.imageUrl}

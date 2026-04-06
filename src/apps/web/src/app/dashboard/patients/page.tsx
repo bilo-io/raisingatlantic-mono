@@ -19,8 +19,13 @@ import {
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { PatientFormModal } from '@/components/patients/PatientFormModal';
-import { childrenDetails, type ChildDetail } from '@/data/children';
-import { dummyUsers, DUMMY_DEFAULT_USER_ID, type User } from '@/data/users';
+import { 
+  getChildren, 
+  Child as ChildType 
+} from "@/lib/api/adapters/child.adapter";
+import { 
+  getUsers, 
+} from "@/lib/api/adapters/user.adapter";
 import { UserRole } from '@/lib/constants';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -28,6 +33,7 @@ import { formatDateStandard } from '@/utils/date';
 import { getAgeFromDate } from '@/lib/utils/date';
 import { ResourceStatus } from '@/types/enums';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type PatientDisplayInfo = {
   id: string;
@@ -46,21 +52,44 @@ export default function PatientsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [currentUser, setCurrentUser] = useState<User | undefined>();
+  const [currentUser, setCurrentUser] = useState<any | undefined>();
+  const [children, setChildren] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showMyPatientsOnly, setShowMyPatientsOnly] = useState(true);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const storedViewMode = localStorage.getItem(VIEW_MODE_STORAGE_KEY) as 'grid' | 'list' | null;
-    if (storedViewMode) {
-      setViewMode(storedViewMode);
-    }
     
-    const userId = localStorage.getItem('currentUserId') || DUMMY_DEFAULT_USER_ID;
-    const user = dummyUsers.find(u => u.id === userId);
-    setCurrentUser(user);
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [allChildren, allUsers] = await Promise.all([
+          getChildren(),
+          getUsers()
+        ]);
+        
+        setChildren(allChildren);
+        setUsers(allUsers);
+        
+        const storedViewMode = localStorage.getItem(VIEW_MODE_STORAGE_KEY) as 'grid' | 'list' | null;
+        if (storedViewMode) {
+          setViewMode(storedViewMode);
+        }
+        
+        const userId = localStorage.getItem('currentUserId') || 'user-1';
+        const user = allUsers.find((u: any) => u.id === userId);
+        setCurrentUser(user);
+      } catch (error) {
+        console.error("Failed to load patients list:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -70,7 +99,7 @@ export default function PatientsPage() {
   }, [viewMode, mounted]);
 
   const allPatients = useMemo((): PatientDisplayInfo[] => {
-    return childrenDetails.map(child => ({
+    return children.map(child => ({
       id: child.id,
       name: child.name,
       dateOfBirth: child.dateOfBirth,
@@ -78,15 +107,15 @@ export default function PatientsPage() {
       updatedAt: child.updatedAt,
       status: child.status,
       // This could be dynamically determined in a real app
-      primaryConcern: child.notes.split('.')[0] || 'Routine Checkup',
+      primaryConcern: (child.notes || '').split('.')[0] || 'Routine Checkup',
     }));
-  }, []);
+  }, [children]);
   
   const filteredPatients = useMemo(() => {
     let patients = allPatients;
 
     if (currentUser?.role === UserRole.CLINICIAN && showMyPatientsOnly) {
-        const myPatientIds = childrenDetails.filter(c => c.clinicianId === currentUser.id).map(c => c.id);
+        const myPatientIds = children.filter(c => c.clinicianId === currentUser.id).map(c => c.id);
         patients = patients.filter(p => myPatientIds.includes(p.id));
     }
     
@@ -130,7 +159,29 @@ export default function PatientsPage() {
     setIsModalOpen(false);
   };
 
-  if (!mounted || !currentUser) return null;
+  if (!mounted || loading || !currentUser) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center gap-4">
+           <Skeleton className="h-8 w-8 rounded-full" />
+           <Skeleton className="h-8 w-48" />
+        </div>
+        <div className="flex justify-between items-center">
+           <Skeleton className="h-10 w-64" />
+           <Skeleton className="h-10 w-32" />
+        </div>
+        {viewMode === 'grid' ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+             {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-64 rounded-xl" />)}
+          </div>
+        ) : (
+          <Card>
+             {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-16 w-full border-b" />)}
+          </Card>
+        )}
+      </div>
+    );
+  }
 
   const renderGrid = () => (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

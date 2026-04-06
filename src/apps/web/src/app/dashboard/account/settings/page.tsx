@@ -1,3 +1,4 @@
+"use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,13 +7,58 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings, Bell, Palette, Languages, Trash2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { deleteUser } from "@/lib/api/adapters/user.adapter";
+import { useToast } from "@/hooks/useToast";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog";
 
 export default function SettingsPage() {
+  const { addToast } = useToast();
+  const router = useRouter();
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedUserId = localStorage.getItem('currentUserId') || 'user-1';
+    setCurrentUserId(storedUserId);
+  }, []);
+
+  const handleAccountDeletion = async () => {
+    if (!currentUserId) return;
+    try {
+      await deleteUser(currentUserId);
+      addToast({
+        title: "Account Deleted",
+        description: "Your account and all associated data have been permanently removed.",
+        type: 'error',
+      });
+      // Redirect to landing or login
+      router.push('/');
+    } catch (error) {
+      console.error("Failed to delete account:", error);
+      addToast({
+        title: "Error",
+        description: "There was a problem deleting your account. Please try again later.",
+        type: 'error',
+      });
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center">
-        <Settings className="mr-3 h-7 w-7 text-primary" />
-        <h1 className="font-headline text-2xl font-bold tracking-tight">Settings</h1>
+        <Settings className="mr-3 h-8 w-8 text-primary" />
+        <h1 className="font-headline text-3xl font-bold tracking-tight">Settings</h1>
       </div>
 
       <Card className="shadow-lg">
@@ -116,7 +162,26 @@ export default function SettingsPage() {
           <p className="text-sm text-muted-foreground mb-4">
             Warning: This action is irreversible. All your data, including child profiles, notes, and collaboration history, will be permanently erased.
           </p>
-          <Button variant="destructive">Delete My Account</Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive">Delete My Account</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                   This action is irreversible. It will permanently delete your account
+                   and all your associated data including children profiles and records.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleAccountDeletion} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Delete Permanently
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
     </div>

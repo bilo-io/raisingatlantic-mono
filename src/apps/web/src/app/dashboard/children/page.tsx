@@ -19,11 +19,17 @@ import {
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { ResourceStatus } from '@/types/enums';
-import { childrenDetails } from '@/data/children';
+import { 
+  getChildren, 
+  Child as ChildTypeBase 
+} from "@/lib/api/adapters/child.adapter";
+import { 
+  getUsers, 
+} from "@/lib/api/adapters/user.adapter";
 import { UserRole } from '@/lib/constants';
-import { DUMMY_DEFAULT_USER_ID, dummyUsers } from '@/data/users';
 import { formatDateStandard } from '@/utils/date';
 import { getAgeFromDate } from '@/lib/utils/date';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
@@ -43,24 +49,47 @@ export default function ChildrenListPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [currentUserRole, setCurrentUserRole] = useState<UserRole | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [children, setChildren] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.getItem === 'function') {
-        const storedViewMode = localStorage.getItem(VIEW_MODE_STORAGE_KEY) as 'grid' | 'list' | null;
-        if (storedViewMode) {
-          setViewMode(storedViewMode);
-        }
+    
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [allChildren, allUsers] = await Promise.all([
+          getChildren(),
+          getUsers()
+        ]);
         
-        const userId = localStorage.getItem('currentUserId') || DUMMY_DEFAULT_USER_ID;
-        setCurrentUserId(userId);
-        const user = dummyUsers.find(u => u.id === userId);
-        if(user) {
-            setCurrentUserRole(user.role);
+        setChildren(allChildren);
+        setUsers(allUsers);
+        
+        if (typeof window !== 'undefined' && window.localStorage) {
+           const storedViewMode = localStorage.getItem(VIEW_MODE_STORAGE_KEY) as 'grid' | 'list' | null;
+           if (storedViewMode) {
+             setViewMode(storedViewMode);
+           }
+           
+           const userId = localStorage.getItem('currentUserId') || 'user-1';
+           setCurrentUserId(userId);
+           const user = allUsers.find((u: any) => u.id === userId);
+           if(user) {
+               setCurrentUserRole(user.role);
+           }
         }
-    }
+      } catch (error) {
+        console.error("Failed to load children list:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -71,13 +100,13 @@ export default function ChildrenListPage() {
 
 
   const displayedChildren = useMemo(() => {
-    let childrenForUser = childrenDetails;
+    let childrenForUser = children;
     if(currentUserRole === UserRole.PARENT && currentUserId) {
-        childrenForUser = childrenDetails.filter(child => child.parentId === currentUserId);
+        childrenForUser = children.filter(child => child.parentId === currentUserId);
     }
     
     const mappedChildren: Child[] = childrenForUser.map(child => {
-      const clinician = child.clinicianId ? dummyUsers.find(u => u.id === child.clinicianId) : undefined;
+      const clinician = child.clinicianId ? users.find((u: any) => u.id === child.clinicianId) : undefined;
       const clinicianName = clinician ? `${clinician.title || ''} ${clinician.name}`.trim() : undefined;
 
       return {
@@ -92,7 +121,7 @@ export default function ChildrenListPage() {
     });
     
     return mappedChildren;
-  }, [currentUserId, currentUserRole]);
+  }, [currentUserId, currentUserRole, children, users]);
 
 
   const filteredChildren = useMemo(() => {
@@ -111,6 +140,30 @@ export default function ChildrenListPage() {
     }
   };
 
+
+  if (!mounted || loading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center gap-4">
+           <Skeleton className="h-8 w-8 rounded-full" />
+           <Skeleton className="h-8 w-48" />
+        </div>
+        <div className="flex justify-between items-center">
+           <Skeleton className="h-10 w-64" />
+           <Skeleton className="h-10 w-32" />
+        </div>
+        {viewMode === 'grid' ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+             {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-64 rounded-xl" />)}
+          </div>
+        ) : (
+          <Card>
+             {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-16 w-full border-b" />)}
+          </Card>
+        )}
+      </div>
+    );
+  }
 
   return (
     <TooltipProvider>

@@ -6,13 +6,58 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { cliniciansToVerify } from '@/data/verifications';
+import { useState, useEffect } from 'react';
+import { 
+  getCliniciansForVerification 
+} from '@/lib/api/adapters/verification.adapter';
 import { formatDateStandard } from '@/utils/date';
 import { RoleAvatar } from '@/components/ui/RoleAvatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ClinicianVerificationsPage() {
-  // In a real app, you'd fetch and manage state for clinicians
+  const [clinicians, setClinicians] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const data = await getCliniciansForVerification();
+        setClinicians(data);
+      } catch (error) {
+        console.error("Failed to load clinicians for verification:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const filteredClinicians = clinicians.filter(c => 
+    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.specialty && c.specialty.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-10 w-full" />
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48 mb-2" />
+            <Skeleton className="h-4 w-96" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <TooltipProvider>
       <div className="flex flex-col gap-6">
@@ -37,7 +82,8 @@ export default function ClinicianVerificationsPage() {
               type="search"
               placeholder="Search clinicians..."
               className="pl-8 w-full sm:w-[300px]"
-              // value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           {/* Placeholder for potential actions */}
@@ -48,9 +94,9 @@ export default function ClinicianVerificationsPage() {
             <CardDescription>Review and approve or request more information for new clinician applications.</CardDescription>
           </CardHeader>
           <CardContent>
-            {cliniciansToVerify.length > 0 ? (
+            {filteredClinicians.length > 0 ? (
               <ul className="space-y-4">
-                {cliniciansToVerify.map((clinician) => (
+                {filteredClinicians.map((clinician) => (
                   <li key={clinician.id} className="p-4 border rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-3">
                        <RoleAvatar
@@ -78,7 +124,9 @@ export default function ClinicianVerificationsPage() {
                 ))}
               </ul>
             ) : (
-              <p className="text-muted-foreground text-center py-8">No clinicians currently pending verification.</p>
+              <p className="text-muted-foreground text-center py-8">
+                {searchTerm ? "No clinicians match your search." : "No clinicians currently pending verification."}
+              </p>
             )}
           </CardContent>
         </Card>

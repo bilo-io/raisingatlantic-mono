@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
@@ -25,7 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MoreHorizontal, PlusCircle, Search, Users, ChevronLeft, ChevronRight, Edit, Trash2, Eye } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { dummyUsers, type User } from '@/data/users';
+import { getUsers, createUser, updateUser, deleteUser } from '@/lib/api/adapters/user.adapter';
 import { UserRole } from '@/lib/constants';
 import { formatDateStandard } from '@/utils/date';
 import { RoleAvatar } from '@/components/ui/RoleAvatar';
@@ -44,18 +43,41 @@ import {
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ITEMS_PER_PAGE = 10;
 
 export default function UserManagementPage() {
   const { addToast } = useToast();
   const router = useRouter();
-  const [users, setUsers] = useState<User[]>(dummyUsers);
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<any | null>(null);
+
+  const fetchUsersData = async () => {
+    try {
+      setLoading(true);
+      const data = await getUsers();
+      setUsers(data);
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+      addToast({
+        title: "Error",
+        description: "Failed to load users directory.",
+        type: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsersData();
+  }, []);
 
   useEffect(() => {
     // Reset to page 1 whenever filters change
@@ -83,46 +105,55 @@ export default function UserManagementPage() {
     setIsModalOpen(true);
   };
 
-  const handleEditUser = (user: User) => {
+  const handleEditUser = (user: any) => {
     setEditingUser(user);
     setIsModalOpen(true);
   };
 
-  const handleDeleteUser = (userId: string) => {
-    setUsers(currentUsers => currentUsers.filter(u => u.id !== userId));
-    addToast({
-        title: "User Deleted",
-        description: "The user has been successfully removed.",
-        type: "error"
-    });
-  };
-
-  const handleFormSubmit = (data: { name: string; email: string; role: UserRole; title?: string; phone?: string; imageUrl?: string } & { id?: string }) => {
-    if (editingUser) { // Update existing user
-      setUsers(currentUsers => currentUsers.map(u => u.id === editingUser.id ? { ...u, ...data, phone: data.phone || '', updatedAt: new Date().toISOString() } : u));
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      await deleteUser(userId);
+      setUsers(currentUsers => currentUsers.filter(u => u.id !== userId));
       addToast({
-        title: "User Updated",
-        description: `${data.name}'s profile has been updated.`,
-        type: 'success',
+          title: "User Deleted",
+          description: "The user has been successfully removed.",
+          type: "error"
       });
-    } else { // Add new user
-      const newUser: User = {
-        ...data,
-        phone: data.phone || '',
-        id: `user-${Date.now()}`, // Simple unique ID generation
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setUsers(currentUsers => [newUser, ...currentUsers]);
-      addToast({
-        title: "User Added",
-        description: `${newUser.name} has been successfully added.`,
-        type: 'success',
-      });
+    } catch (error) {
+        console.error("Failed to delete user:", error);
     }
   };
 
-  const getRoleBadgeVariant = (role: UserRole) => {
+  const handleFormSubmit = async (data: any) => {
+    try {
+        if (editingUser) {
+          const updated = await updateUser(editingUser.id, data);
+          setUsers(currentUsers => currentUsers.map(u => u.id === editingUser.id ? updated : u));
+          addToast({
+            title: "User Updated",
+            description: `${data.name}'s profile has been updated.`,
+            type: 'success',
+          });
+        } else {
+          const newUser = await createUser(data);
+          setUsers(currentUsers => [newUser, ...currentUsers]);
+          addToast({
+            title: "User Added",
+            description: `${newUser.name} has been successfully added.`,
+            type: 'success',
+          });
+        }
+    } catch (error) {
+        console.error("Failed to save user:", error);
+        addToast({
+            title: "Error",
+            description: "Failed to save user details.",
+            type: 'error',
+        });
+    }
+  };
+
+  const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case UserRole.ADMIN: return 'destructive';
       case UserRole.SUPER_ADMIN: return 'destructive';
@@ -202,7 +233,22 @@ export default function UserManagementPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedUsers.length > 0 ? paginatedUsers.map((user) => (
+                  {loading ? (
+                    [...Array(5)].map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Skeleton className="h-10 w-10 rounded-full" />
+                            <Skeleton className="h-4 w-32" />
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-40" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-8 w-8 rounded-md" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : paginatedUsers.length > 0 ? paginatedUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -220,50 +266,41 @@ export default function UserManagementPage() {
                       <TableCell className="hidden md:table-cell">{user.email}</TableCell>
                       <TableCell>
                         <Badge variant={getRoleBadgeVariant(user.role)}>
-                          {user.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          {user.role.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                         </Badge>
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">{formatDateStandard(user.createdAt)}</TableCell>
                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Toggle menu</span>
+                        <div className="flex items-center gap-2">
+                             <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/users/${user.id}`)}>
+                                <Eye className="h-4 w-4" />
+                             </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleEditUser(user)}>
+                              <Edit className="h-4 w-4" />
                             </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                             <DropdownMenuItem onSelect={() => router.push(`/dashboard/admin/users/${user.id}`)}>
-                                <Eye className="mr-2 h-4 w-4" /> View Profile
-                             </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleEditUser(user)}>
-                              <Edit className="mr-2 h-4 w-4" /> Edit
-                            </DropdownMenuItem>
                              <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
-                                     <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                  </DropdownMenuItem>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                      This action cannot be undone. This will permanently delete the user account
-                                      and remove their data from our servers.
-                                  </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteUser(user.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                      Yes, delete user
-                                  </AlertDialogAction>
-                                  </AlertDialogFooter>
-                              </AlertDialogContent>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                       <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete the user account
+                                        and remove their data from our servers.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteUser(user.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                        Yes, delete user
+                                    </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
                               </AlertDialog>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        </div>
                       </TableCell>
                     </TableRow>
                   )) : (
