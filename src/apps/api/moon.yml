@@ -35,6 +35,18 @@ tasks:
   dev-api:
     command: 'npm run dev'
     
+  db-start:
+    command: 'npm run db:start'
+    
+  db-stop:
+    command: 'npm run db:stop'
+    
+  db-migrate:
+    command: 'npm run db:migration:run'
+    
+  db-seed:
+    command: 'npm run db:seed'
+
   clean:
     command: 'rm -rf dist node_modules'
 

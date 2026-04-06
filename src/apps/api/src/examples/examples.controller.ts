@@ -1,52 +1,39 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller, Get, Post, Body, Patch, Param, Delete,
+  HttpCode, HttpStatus,
+} from '@nestjs/common';
 import { ExamplesService } from './examples.service';
 import { CreateExampleDto } from './dto/create-example.dto';
 import { UpdateExampleDto } from './dto/update-example.dto';
+import { Example } from './examples.model';
 
 @Controller('examples')
 export class ExamplesController {
   constructor(private readonly examplesService: ExamplesService) {}
 
   @Post()
-  async create(@Body() dto: CreateExampleDto) {
-    try {
-      const example = await this.examplesService.create(dto);
-      return { statusCode: 201, data: example };
-    } catch (error) {
-      return { statusCode: 500, message: (error as Error).message };
-    }
+  async create(@Body() dto: CreateExampleDto): Promise<Example> {
+    return this.examplesService.create(dto);
   }
 
   @Get()
-  async findAll() {
-    const data = await this.examplesService.findAll();
-    return { statusCode: 200, data };
+  async findAll(): Promise<Example[]> {
+    return this.examplesService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const data = await this.examplesService.findOne(id);
-    if (!data) {
-      return { statusCode: 404, message: `Example with ID: ${id} not found` };
-    }
-    return { statusCode: 200, data };
+  async findOne(@Param('id') id: string): Promise<Example> {
+    return this.examplesService.findOne(id);
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateExampleDto) {
-    const data = await this.examplesService.update(id, dto);
-    if (!data) {
-      return { statusCode: 404, message: `Cannot update - Example with ID: ${id} not found` };
-    }
-    return { statusCode: 200, data };
+  async update(@Param('id') id: string, @Body() dto: UpdateExampleDto): Promise<Example> {
+    return this.examplesService.update(id, dto);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    const isDeleted = await this.examplesService.remove(id);
-    if (!isDeleted) {
-      return { statusCode: 404, message: `Cannot delete - Example with ID: ${id} not found` };
-    }
-    return { statusCode: 204, message: 'Successfully removed' };
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param('id') id: string): Promise<void> {
+    return this.examplesService.remove(id);
   }
 }

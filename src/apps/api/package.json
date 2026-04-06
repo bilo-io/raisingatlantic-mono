@@ -13,6 +13,12 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+    "db:start": "docker compose up -d",
+    "db:stop": "docker compose down",
+    "db:migration:run": "ts-node -r tsconfig-paths/register node_modules/typeorm/cli.js -d db/data-source.ts migration:run",
+    "db:seed": "ts-node -r tsconfig-paths/register db/seeds/1712404718000-SeedExamples.ts",
+    "db:migration:revert": "ts-node -r tsconfig-paths/register node_modules/typeorm/cli.js -d db/data-source.ts migration:revert",
+    "db:migration:generate": "ts-node -r tsconfig-paths/register node_modules/typeorm/cli.js -d db/data-source.ts migration:generate",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -22,11 +28,16 @@
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/typeorm": "^11.0.1",
     "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.5",
+    "pg": "^8.11.5",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "typeorm": "^0.3.20"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

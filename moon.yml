@@ -37,3 +37,19 @@ tasks:
       - 'api:clean'
       - 'web:clean'
       - 'ui:clean'
+
+  db:start:
+    deps:
+      - 'api:db-start'
+
+  db:stop:
+    deps:
+      - 'api:db-stop'
+
+  db:migrate:
+    deps:
+      - 'api:db-migrate'
+
+  db:seed:
+    deps:
+      - 'api:db-seed'

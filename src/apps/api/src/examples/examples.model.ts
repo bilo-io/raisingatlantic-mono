@@ -1,13 +1,25 @@
-export class Example {
-  id: string;
-  name: string;
-  description?: string;
-  createdAt: Date;
-  updatedAt: Date;
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
-  constructor(partial: Partial<Example>) {
-    Object.assign(this, partial);
-    this.createdAt = partial.createdAt || new Date();
-    this.updatedAt = partial.updatedAt || new Date();
-  }
+@Entity('examples')
+export class Example {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  name: string;
+
+  @Column({ type: 'text', nullable: true })
+  description?: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
