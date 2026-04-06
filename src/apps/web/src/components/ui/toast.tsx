@@ -39,6 +39,7 @@ const iconColorClasses: { [key: string]: string } = {
     info: "text-blue-500",
 };
 
+// @ts-ignore
 export interface ToastProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof toastVariants> {
   id: string;
   type?: 'info' | 'success' | 'warning' | 'error';
