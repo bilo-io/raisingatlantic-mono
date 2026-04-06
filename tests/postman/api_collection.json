@@ -101,6 +101,469 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"role\": \"parent\"\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/users",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "users"]
+						}
+					}
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/users",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "users"]
+						}
+					}
+				},
+				{
+					"name": "Get User By ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/users/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "users", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"John Updated\"\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/users/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "users", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/users/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "users", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Tenants",
+			"item": [
+				{
+					"name": "Create Tenant",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Atlantic Health\",\n    \"email\": \"contact@atlantic.com\",\n    \"phone\": \"0123456789\"\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/tenants",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "tenants"]
+						}
+					}
+				},
+				{
+					"name": "Get All Tenants",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/tenants",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "tenants"]
+						}
+					}
+				},
+				{
+					"name": "Get Tenant By ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/tenants/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "tenants", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Tenant",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Atlantic Health Global\"\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/tenants/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "tenants", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Tenant",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/tenants/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "tenants", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Practices",
+			"item": [
+				{
+					"name": "Create Practice",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"tenantId\": \"{{TENANT_ID}}\",\n    \"name\": \"Central Clinic\",\n    \"address\": \"123 Main St\",\n    \"city\": \"Cape Town\",\n    \"state\": \"WC\",\n    \"zip\": \"8001\",\n    \"phone\": \"0123456789\"\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/practices",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "practices"]
+						}
+					}
+				},
+				{
+					"name": "Get All Practices",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/practices",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "practices"]
+						}
+					}
+				},
+				{
+					"name": "Get Practice By ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/practices/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "practices", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Practice",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Central Clinic North\"\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/practices/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "practices", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Practice",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/practices/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "practices", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Children",
+			"item": [
+				{
+					"name": "Create Child",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"parentId\": \"{{USER_ID}}\",\n    \"firstName\": \"Baby\",\n    \"lastName\": \"Doe\",\n    \"name\": \"Baby Doe\",\n    \"gender\": \"male\",\n    \"dateOfBirth\": \"2024-01-01\"\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/children",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "children"]
+						}
+					}
+				},
+				{
+					"name": "Get All Children",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/children",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "children"]
+						}
+					}
+				},
+				{
+					"name": "Get Child By ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/children/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "children", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Unified Records",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/children/:id/records",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "children", ":id", "records"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Child",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Junior\"\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/children/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "children", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Child",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/children/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "children", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Master Data",
+			"item": [
+				{
+					"name": "Get All Milestones",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/master-data/milestones",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "master-data", "milestones"]
+						}
+					}
+				},
+				{
+					"name": "Get All Vaccinations",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/master-data/vaccinations",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "master-data", "vaccinations"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Verifications",
+			"item": [
+				{
+					"name": "Get Clinicians for Verification",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/verifications/clinicians",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "verifications", "clinicians"]
+						}
+					}
+				},
+				{
+					"name": "Get Records for Verification",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/verifications/records",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "verifications", "records"]
+						}
+					}
+				}
+			]
 		}
 	]
 }
