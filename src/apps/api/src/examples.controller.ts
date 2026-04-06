@@ -1,14 +1,14 @@
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ExamplesService } from './examples.service';
 import { CreateExampleDto } from './dto/create-example.dto';
 import { UpdateExampleDto } from './dto/update-example.dto';
 
-/**
- * Controller class (Mocking standard REST framework such as NestJS or Express)
- */
+@Controller('examples')
 export class ExamplesController {
   constructor(private readonly examplesService: ExamplesService) {}
 
-  async create(dto: CreateExampleDto) {
+  @Post()
+  async create(@Body() dto: CreateExampleDto) {
     try {
       const example = await this.examplesService.create(dto);
       return { statusCode: 201, data: example };
@@ -17,12 +17,14 @@ export class ExamplesController {
     }
   }
 
+  @Get()
   async findAll() {
     const data = await this.examplesService.findAll();
     return { statusCode: 200, data };
   }
 
-  async findOne(id: string) {
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
     const data = await this.examplesService.findOne(id);
     if (!data) {
       return { statusCode: 404, message: `Example with ID: ${id} not found` };
@@ -30,7 +32,8 @@ export class ExamplesController {
     return { statusCode: 200, data };
   }
 
-  async update(id: string, dto: UpdateExampleDto) {
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() dto: UpdateExampleDto) {
     const data = await this.examplesService.update(id, dto);
     if (!data) {
       return { statusCode: 404, message: `Cannot update - Example with ID: ${id} not found` };
@@ -38,7 +41,8 @@ export class ExamplesController {
     return { statusCode: 200, data };
   }
 
-  async remove(id: string) {
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
     const isDeleted = await this.examplesService.remove(id);
     if (!isDeleted) {
       return { statusCode: 404, message: `Cannot delete - Example with ID: ${id} not found` };

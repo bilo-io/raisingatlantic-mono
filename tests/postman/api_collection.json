@@ -22,9 +22,9 @@
 							"raw": "{\n    \"name\": \"Sample Example\",\n    \"description\": \"A test description\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/examples",
-							"host": ["{{baseUrl}}"],
-							"path": ["examples"]
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/examples",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "examples"]
 						}
 					}
 				},
@@ -33,9 +33,9 @@
 					"request": {
 						"method": "GET",
 						"url": {
-							"raw": "{{baseUrl}}/examples",
-							"host": ["{{baseUrl}}"],
-							"path": ["examples"]
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/examples",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "examples"]
 						}
 					}
 				},
@@ -44,9 +44,9 @@
 					"request": {
 						"method": "GET",
 						"url": {
-							"raw": "{{baseUrl}}/examples/:id",
-							"host": ["{{baseUrl}}"],
-							"path": ["examples", ":id"],
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/examples/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "examples", ":id"],
 							"variable": [
 								{
 									"key": "id",
@@ -71,9 +71,9 @@
 							"raw": "{\n    \"name\": \"Updated Example Name\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/examples/:id",
-							"host": ["{{baseUrl}}"],
-							"path": ["examples", ":id"],
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/examples/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "examples", ":id"],
 							"variable": [
 								{
 									"key": "id",
@@ -88,9 +88,9 @@
 					"request": {
 						"method": "DELETE",
 						"url": {
-							"raw": "{{baseUrl}}/examples/:id",
-							"host": ["{{baseUrl}}"],
-							"path": ["examples", ":id"],
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/examples/:id",
+							"host": ["{{API_BASE_URL}}"],
+							"path": ["{{API_VERSION}}", "examples", ":id"],
 							"variable": [
 								{
 									"key": "id",

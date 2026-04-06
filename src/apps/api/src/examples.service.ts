@@ -1,19 +1,21 @@
-import { ILoggerService } from '../../../core/telemetry/interfaces/logger.interface';
-import { ITracingService } from '../../../core/telemetry/interfaces/tracer.interface';
-import { IMetricService } from '../../../core/telemetry/interfaces/metric.interface';
-import { IErrorReportingService } from '../../../core/telemetry/interfaces/error-reporter.interface';
+import { Injectable, Inject } from '@nestjs/common';
+import { ILoggerService } from '@core/telemetry/interfaces/logger.interface';
+import { ITracingService } from '@core/telemetry/interfaces/tracer.interface';
+import { IMetricService } from '@core/telemetry/interfaces/metric.interface';
+import { IErrorReportingService } from '@core/telemetry/interfaces/error-reporter.interface';
 import { Example } from './examples.model';
 import { CreateExampleDto } from './dto/create-example.dto';
 import { UpdateExampleDto } from './dto/update-example.dto';
 
+@Injectable()
 export class ExamplesService {
   private examples: Example[] = [];
 
   constructor(
-    private readonly logger: ILoggerService,
-    private readonly tracer: ITracingService,
-    private readonly metric: IMetricService,
-    private readonly errorReporter: IErrorReportingService
+    @Inject('ILoggerService') private readonly logger: ILoggerService,
+    @Inject('ITracingService') private readonly tracer: ITracingService,
+    @Inject('IMetricService') private readonly metric: IMetricService,
+    @Inject('IErrorReportingService') private readonly errorReporter: IErrorReportingService
   ) {}
 
   async create(dto: CreateExampleDto): Promise<Example> {
@@ -96,7 +98,7 @@ export class ExamplesService {
     this.logger.log(`Attempting to delete example with ID: ${id}`);
     try {
       const initialLength = this.examples.length;
-      this.examples = this.examples.filter(e => e.id !== id);
+      this.examples = this.examples = this.examples.filter(e => e.id !== id);
       const isDeleted = initialLength !== this.examples.length;
       if (isDeleted) {
         this.metric.incrementCounter('example.deleted', 1, { status: 'success' });
