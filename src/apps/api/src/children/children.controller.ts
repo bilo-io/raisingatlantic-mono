@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Query } from '@nestjs/common';
 import { ChildrenService } from './children.service';
 import { CreateChildDto } from './dto/create-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
@@ -14,8 +14,11 @@ export class ChildrenController {
   }
 
   @Get()
-  async findAll(): Promise<Child[]> {
-    return this.childrenService.findAll();
+  async findAll(
+    @Query('tenantId') tenantId?: string,
+    @Query('clinicianId') clinicianId?: string,
+  ): Promise<Child[]> {
+    return this.childrenService.findAll({ tenantId, clinicianId });
   }
 
   @Get(':id')

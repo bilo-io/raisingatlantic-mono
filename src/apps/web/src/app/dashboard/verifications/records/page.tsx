@@ -33,10 +33,10 @@ export default function RecordVerificationsPage() {
     loadData();
   }, []);
 
-  const filteredRecords = records.filter(r => 
-    r.childName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.recordType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.issue.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredRecords = records?.filter(r => 
+    r.childName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.recordType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.issue?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {

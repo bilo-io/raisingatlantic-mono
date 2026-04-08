@@ -116,7 +116,7 @@ export default function GrowthRecordsPage() {
   const filteredRecords = useMemo(() => {
     const lowercasedTerm = searchTerm.toLowerCase();
     return allGrowthRecords.filter(record =>
-      record.childName.toLowerCase().includes(lowercasedTerm) ||
+      record.childName?.toLowerCase().includes(lowercasedTerm) ||
       record.details.toLowerCase().includes(lowercasedTerm)
     );
   }, [allGrowthRecords, searchTerm]);

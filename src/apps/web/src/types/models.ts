@@ -49,6 +49,7 @@ export interface User extends BaseEntity {
   phone: string;
   imageUrl?: string;
   role: UserRole;
+  tenantId?: string;
 }
 
 // Any other specific entities (like Clinician, Practice, Tenant) can be added here

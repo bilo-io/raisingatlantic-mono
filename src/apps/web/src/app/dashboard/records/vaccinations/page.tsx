@@ -126,7 +126,7 @@ export default function VaccinationRecordsPage() {
   const filteredRecords = useMemo(() => {
     const lowercasedTerm = searchTerm.toLowerCase();
     return allVaccinationRecords.filter(record =>
-      record.childName.toLowerCase().includes(lowercasedTerm) ||
+      record.childName?.toLowerCase().includes(lowercasedTerm) ||
       record.vaccineName.toLowerCase().includes(lowercasedTerm)
     );
   }, [allVaccinationRecords, searchTerm]);

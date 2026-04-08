@@ -23,9 +23,7 @@ import {
   getChildren, 
   Child as ChildType 
 } from "@/lib/api/adapters/child.adapter";
-import { 
-  getUsers, 
-} from "@/lib/api/adapters/user.adapter";
+import { getCurrentUser } from '@/lib/auth';
 import { UserRole } from '@/lib/constants';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -54,7 +52,6 @@ export default function PatientsPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [currentUser, setCurrentUser] = useState<any | undefined>();
   const [children, setChildren] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showMyPatientsOnly, setShowMyPatientsOnly] = useState(true);
@@ -66,22 +63,26 @@ export default function PatientsPage() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [allChildren, allUsers] = await Promise.all([
-          getChildren(),
-          getUsers()
-        ]);
-        
+        const user = getCurrentUser();
+        setCurrentUser(user);
+
+        const fetchFilters: any = {};
+        if (user) {
+           if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
+              // Admin fetches all for tenant - assume top level for now or pass tenantId if mock user has it
+              if (user.tenantId) fetchFilters.tenantId = user.tenantId;
+           } else if (user.role === UserRole.CLINICIAN) {
+              fetchFilters.clinicianId = user.id;
+           }
+        }
+
+        const allChildren = await getChildren(fetchFilters);
         setChildren(allChildren);
-        setUsers(allUsers);
         
         const storedViewMode = localStorage.getItem(VIEW_MODE_STORAGE_KEY) as 'grid' | 'list' | null;
         if (storedViewMode) {
           setViewMode(storedViewMode);
         }
-        
-        const userId = localStorage.getItem('currentUserId') || 'user-1';
-        const user = allUsers.find((u: any) => u.id === userId);
-        setCurrentUser(user);
       } catch (error) {
         console.error("Failed to load patients list:", error);
       } finally {
@@ -115,7 +116,10 @@ export default function PatientsPage() {
     let patients = allPatients;
 
     if (currentUser?.role === UserRole.CLINICIAN && showMyPatientsOnly) {
-        const myPatientIds = children.filter(c => c.clinicianId === currentUser.id).map(c => c.id);
+        const myPatientIds = children.filter(c => 
+          c.clinicianId === currentUser.id || 
+          (c.clinician?.email === currentUser.email)
+        ).map(c => c.id);
         patients = patients.filter(p => myPatientIds.includes(p.id));
     }
     

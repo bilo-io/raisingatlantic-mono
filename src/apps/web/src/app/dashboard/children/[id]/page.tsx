@@ -1,5 +1,10 @@
 "use client";
 
+import { boysWeightForAgeData } from '@/data/charts/boys-weight-for-age';
+import { girlsWeightForAgeData } from '@/data/charts/girls-weight-for-age';
+import { boysHeightForAgeData } from '@/data/charts/boys-height-for-age';
+import { girlsHeightForAgeData } from '@/data/charts/girls-height-for-age';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -288,18 +293,13 @@ export default function ChildProfilePage() {
   }).sort((a: any, b: any) => a.age - b.age) : [];
 
   const GrowthChart = ({ metric, child }: { metric: 'weight' | 'height', child: any }) => {
-    const boysWeightForAgeData = require('@/data/charts/boys-weight-for-age').boysWeightForAgeData;
-    const girlsWeightForAgeData = require('@/data/charts/girls-weight-for-age').girlsWeightForAgeData;
-    const boysHeightForAgeData = require('@/data/charts/boys-height-for-age').boysHeightForAgeData;
-    const girlsHeightForAgeData = require('@/data/charts/girls-height-for-age').girlsHeightForAgeData;
-
     const chartConfig = React.useMemo(() => ({
-      line_plus_3:  { label: "+3 line",  color: "var(--destructive)" },
+      line_plus_3:  { label: "+3 line",  color: "hsl(var(--destructive))" },
       line_plus_2: { label: "+2 line", color: "#E68A19" },
       line_0: { label: "0-line (median)", color: "#21C45D" },
       line_minus_2: { label: "-2 line", color: "#E68A19" },
-      line_minus_3: { label: "-3 line", color: "var(--destructive)" },
-      childData: { label: child.name, color: "var(--primary)" },
+      line_minus_3: { label: "-3 line", color: "hsl(var(--destructive))" },
+      childData: { label: child.name, color: "hsl(var(--primary))" },
     }), [child.name]) satisfies ChartConfig;
 
     const combinedChartData = React.useMemo(() => {

@@ -36,8 +36,46 @@ export class ChildrenService {
     }
   }
 
-  async findAll(): Promise<Child[]> {
-    return this.childRepo.find({ relations: ['parent', 'clinician'] });
+  async findAll(filters?: { tenantId?: string; clinicianId?: string }): Promise<Child[]> {
+    const query = this.childRepo.createQueryBuilder('child')
+      .leftJoinAndSelect('child.parent', 'parent')
+      .leftJoinAndSelect('child.clinician', 'clinician')
+      .leftJoinAndSelect('clinician.practices', 'practice')
+      .leftJoinAndSelect('practice.tenant', 'tenant');
+
+    if (filters?.tenantId) {
+      if (filters.tenantId.includes('@')) {
+        query.andWhere('tenant.email = :tEmail', { tEmail: filters.tenantId });
+      } else if (filters.tenantId.includes('-') && filters.tenantId.length > 20) {
+        query.andWhere('tenant.id = :tenantId', { tenantId: filters.tenantId });
+      } else {
+        // Mock ID support: match by common name in our seeds
+        if (filters.tenantId === 'tenant-raising-atlantic' || filters.tenantId === 'tenant-1') {
+           query.andWhere('tenant.name = :tName', { tName: 'Raising Atlantic Health' });
+        } else {
+           query.andWhere('tenant.id = :tenantId', { tenantId: filters.tenantId });
+        }
+      }
+    }
+
+    if (filters?.clinicianId) {
+      if (filters.clinicianId.includes('@')) {
+        query.andWhere('clinician.email = :email', { email: filters.clinicianId });
+      } else if (filters.clinicianId.includes('-') && filters.clinicianId.length > 20) {
+        // Likely a UUID
+        query.andWhere('clinician.id = :clinicianId', { clinicianId: filters.clinicianId });
+      } else {
+        // Fallback or mock ID - try matching name or email prefix if needed, 
+        // but for now let's try to match the email prefix of our seeded clinician
+        if (filters.clinicianId === 'clinician-dr-smith') {
+           query.andWhere('clinician.email = :email', { email: 'dr.smith@clinician.com' });
+        } else {
+           query.andWhere('clinician.id = :clinicianId', { clinicianId: filters.clinicianId });
+        }
+      }
+    }
+
+    return await query.getMany();
   }
 
   async findOne(id: string): Promise<Child> {

@@ -13,7 +13,15 @@ export async function getCliniciansForVerification(): Promise<any[]> {
 export async function getRecordsForVerification(): Promise<any[]> {
   if (useApi()) {
     const response = await apiClient.get('/v1/verifications/records');
-    return response.data;
+    return response.data.map((r: any) => ({
+      ...r,
+      childName: r.child?.name || 'Unknown Child',
+      recordType: r.type || 'Growth', // Backend currently returns 'type'
+      issue: r.notes || "Inconsistent measurements or needs review",
+      dateFlagged: r.createdAt || new Date().toISOString(),
+      flaggedBy: "System",
+      status: r.status // Map status from the record
+    }));
   }
   return recordsToVerify;
 }

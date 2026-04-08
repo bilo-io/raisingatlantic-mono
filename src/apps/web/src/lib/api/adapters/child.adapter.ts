@@ -23,10 +23,18 @@ export interface Child {
   progress?: number;
 }
 
-export async function getChildren(): Promise<Child[]> {
+export async function getChildren(filters?: { tenantId?: string; clinicianId?: string }): Promise<Child[]> {
   if (useApi()) {
-    const response = await apiClient.get('/v1/children');
-    return response.data;
+    const params = new URLSearchParams();
+    if (filters?.tenantId) params.append('tenantId', filters.tenantId);
+    if (filters?.clinicianId) params.append('clinicianId', filters.clinicianId);
+    
+    const response = await apiClient.get(`/v1/children?${params.toString()}`);
+    return response.data.map((child: any) => ({
+      ...child,
+      parentId: child.parent?.id,
+      clinicianId: child.clinician?.id,
+    }));
   }
   return childrenDetails as any;
 }
@@ -34,7 +42,12 @@ export async function getChildren(): Promise<Child[]> {
 export async function getChildById(id: string): Promise<Child> {
   if (useApi()) {
     const response = await apiClient.get(`/v1/children/${id}`);
-    return response.data;
+    const child = response.data;
+    return {
+      ...child,
+      parentId: child.parent?.id,
+      clinicianId: child.clinician?.id,
+    };
   }
   const child = childrenDetails.find(c => c.id === id);
   if (!child) throw new Error('Child not found');

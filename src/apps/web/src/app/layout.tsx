@@ -40,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={ptSans.variable}>
       <head />
-      <body className="font-body antialiased min-h-screen flex flex-col">
+      <body suppressHydrationWarning className="font-body antialiased min-h-screen flex flex-col">
         <I18nProvider>
           <ThemeProvider
             attribute="class"

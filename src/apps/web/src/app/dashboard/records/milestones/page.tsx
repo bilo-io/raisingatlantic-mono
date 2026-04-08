@@ -128,7 +128,7 @@ export default function MilestoneRecordsPage() {
   const filteredRecords = useMemo(() => {
     const lowercasedTerm = searchTerm.toLowerCase();
     return allMilestoneRecords.filter(record =>
-      record.childName.toLowerCase().includes(lowercasedTerm) ||
+      record.childName?.toLowerCase().includes(lowercasedTerm) ||
       record.description.toLowerCase().includes(lowercasedTerm) ||
       record.category.toLowerCase().includes(lowercasedTerm)
     );

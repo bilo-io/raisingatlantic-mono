@@ -72,6 +72,7 @@ export const dummyUsers: User[] = [
     phone: "(021) 555-5555",
     imageUrl: "",
     role: UserRole.ADMIN,
+    tenantId: 'tenant-1',
     createdAt: "2021-01-01T00:00:00Z",
     updatedAt: "2021-01-01T00:00:00Z"
   },
@@ -82,6 +83,7 @@ export const dummyUsers: User[] = [
     phone: "(021) 000-0000",
     imageUrl: "",
     role: UserRole.SUPER_ADMIN,
+    tenantId: 'tenant-1',
     createdAt: "2020-01-01T00:00:00Z",
     updatedAt: "2020-01-01T00:00:00Z"
   }
