@@ -1,8 +1,13 @@
 
+import type { Metadata } from 'next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Fingerprint, HeartHandshake, Lightbulb, PenTool, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import { DesignSystemLayout } from '@/components/layout/DesignSystemLayout';
+
+export const metadata: Metadata = {
+  title: 'Visual Identity | Design System',
+};
 
 const principles = [
   {

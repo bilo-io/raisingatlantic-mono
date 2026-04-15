@@ -83,12 +83,18 @@ export async function generateStaticParams() {
 
 // Generate metadata for each legal page
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const titles: { [key: string]: string } = {
-    'privacy-policy': 'Privacy Policy',
-    'terms-of-service': 'Terms of Service',
-    'eula': 'End User License Agreement (EULA)',
-  };
-  const title = titles[params.slug] || "Legal Document";
+  const content = await getLegalDocumentContent(params.slug);
+  
+  let title = "Legal Document";
+  if (content) {
+    // Try to extract the first H1 tag (# Title)
+    const match = content.match(/^#\s+(.+)$/m);
+    if (match && match[1]) {
+      // Remove any trailing "for Raising Atlantic" if desired, or keep as is.
+      title = match[1].trim();
+    }
+  }
+
   return {
     title: title,
   };

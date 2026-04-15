@@ -1,8 +1,13 @@
 
+import type { Metadata } from 'next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Gem, Baby, Users, Stethoscope } from 'lucide-react';
 import Image from 'next/image';
 import { DesignSystemLayout } from '@/components/layout/DesignSystemLayout';
+
+export const metadata: Metadata = {
+  title: 'Branding | Design System',
+};
 
 const ColorSwatch = ({ color, name, hex }: { color: string; name: string; hex: string }) => (
   <div className="flex flex-col items-center">
