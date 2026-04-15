@@ -4,7 +4,7 @@ import DashboardClient from './DashboardClient';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Dashboard | Raising Atlantic',
+  title: 'Dashboard',
   description: 'Manage your activity and records.',
 };
 

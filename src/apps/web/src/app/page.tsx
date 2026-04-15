@@ -6,6 +6,12 @@ import { FaqSection } from '@/components/landing/FaqSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { LeadCaptureSection } from '@/components/landing/LeadCaptureSection';
 
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Home',
+};
+
 export const dynamic = 'force-static';
 
 export default function Home() {

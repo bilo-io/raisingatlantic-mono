@@ -90,6 +90,6 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
   const title = titles[params.slug] || "Legal Document";
   return {
-    title: `${title} | Raising Atlantic`,
+    title: title,
   };
 }

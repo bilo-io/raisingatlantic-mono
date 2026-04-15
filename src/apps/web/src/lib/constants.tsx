@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, Users, Baby, Settings, ShieldCheck, MessageCircleQuestion, Sparkles, FileText, UserPlus, LogIn, Briefcase, PlusCircle, UserCircle as UserCircleIcon, MapPin, ClipboardList, TrendingUp, Award, Syringe, User, UserCheck, FileCheck, Shield, Stethoscope, Info, Mail, Search, Newspaper, Building, Palette, Gem, Fingerprint } from 'lucide-react';
+import { LayoutDashboard, Users, Baby, Settings, ShieldCheck, MessageCircleQuestion, Sparkles, FileText, UserPlus, LogIn, Briefcase, PlusCircle, UserCircle as UserCircleIcon, MapPin, ClipboardList, TrendingUp, Award, Syringe, User, UserCheck, FileCheck, Shield, Stethoscope, Info, Mail, Search, Newspaper, Building, Palette, Gem, Fingerprint, Tag } from 'lucide-react';
 
 export enum UserRole {
   PARENT = 'parent',
@@ -25,6 +25,7 @@ export const LANDING_NAV_LINKS: NavLinkItem[] = [
   { href: '/about', label: 'navAbout', icon: Info, isPublic: true },
   { href: '/contact', label: 'navContact', icon: Mail, isPublic: true },
   { href: '/directory', label: 'navDirectory', icon: Search, isPublic: true },
+  { href: '/pricing', label: 'navPricing', icon: Tag, isPublic: true },
   { href: '/login', label: 'navLogin', icon: LogIn, isAuthLink: true, isPublic: true },
   { href: '/signup', label: 'navSignUp', icon: UserPlus, isAuthLink: true, isPublic: true },
 ];

@@ -25,6 +25,7 @@ export function LandingFooter() {
   ];
 
   const resourceLinks = [
+    { href: "/pricing", label: t('navPricing') },
     { href: "/design-system/branding", label: "Design System" },
     { href: "/blog", label: "Blog" },
   ];

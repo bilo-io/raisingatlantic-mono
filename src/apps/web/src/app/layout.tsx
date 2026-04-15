@@ -17,7 +17,10 @@ const ptSans = PT_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Raising Atlantic',
+  title: {
+    default: 'RaisingAtlantic',
+    template: 'RaisingAtlantic | %s',
+  },
   description: 'Supporting Child Development Together',
   icons: {
     icon: [
