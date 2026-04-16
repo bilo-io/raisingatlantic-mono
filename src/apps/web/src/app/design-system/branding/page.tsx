@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { DesignSystemLayout } from '@/components/layout/DesignSystemLayout';
 
 export const metadata: Metadata = {
-  title: 'Branding | Design System',
+  title: 'Design / Branding',
 };
 
 const ColorSwatch = ({ color, name, hex }: { color: string; name: string; hex: string }) => (

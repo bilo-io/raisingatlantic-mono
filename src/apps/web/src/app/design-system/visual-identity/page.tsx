@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { DesignSystemLayout } from '@/components/layout/DesignSystemLayout';
 
 export const metadata: Metadata = {
-  title: 'Visual Identity | Design System',
+  title: 'Design / Visual Identity',
 };
 
 const principles = [

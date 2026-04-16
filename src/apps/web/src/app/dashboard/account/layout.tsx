@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Account Settings',
+  title: 'Dashboard / Account Settings',
 };
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {

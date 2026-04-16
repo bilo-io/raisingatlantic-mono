@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Records',
+  title: 'Dashboard / Records',
 };
 
 export default function RecordsLayout({ children }: { children: React.ReactNode }) {

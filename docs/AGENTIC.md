@@ -44,9 +44,19 @@ raisingatlantic-mono/
 
 ---
 
-## 🎭 Using Agents (Personas)
+## 🎭 Using Agents
 
-Trigger an agent in the Antigravity chat by typing `@` followed by its name. Each agent has a strict domain boundary to prevent hallucinations and enforce specific standards.
+| Agent | Trigger | Domain |
+| :--- | :--- | :--- |
+| **Architect** | `@architect` | Orchestrator & monorepo graph guardian |
+| **Frontend** | `@frontend` | Next.js, React Native, shared UI library |
+| **Backend** | `@backend` | NestJS, PostgreSQL, TypeORM, Genkit AI |
+| **Security** | `@security` | POPIA, PAIA, HPCSA/SANC, RBAC |
+| **QA Tester** | `@qa-tester` | Jest, Playwright, Postman |
+| **Copywriter** | `@copywriter` | Dual-audience brand voice (parents & clinicians) |
+| **Legal Writer** | `@legalwriter` | ToS, EULA, Privacy Policy, DPA, medical liability |
+| **Pediatric Advisor** | `@pediatric-advisor` | EPI-SA 2024/25 immunisation & growth logic validation |
+| **Infrastructure** | `@infrastructure` | GCP, Vercel deployments, Neon DB, GitHub Actions |
 
 ### Example Prompts
 
@@ -63,6 +73,9 @@ Trigger an agent in the Antigravity chat by typing `@` followed by its name. Eac
 > `@copywriter` rewrite this error message so a stressed parent understands what to do next without using medical jargon.
 > 
 > `@legalwriter` draft a medical liability disclaimer for the new AI growth prediction chart.
+
+**5. CI/CD & Cloud Deployments (`@infrastructure`)**
+> `@infrastructure` we need to set up a new GitHub Action workflow to deploy the Next.js preview app to Vercel whenever a PR is opened, and spin up an isolated Neon database branch.
 
 ---
 

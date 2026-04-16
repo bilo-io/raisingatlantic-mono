@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Medical Records',
+  title: 'Dashboard / Medical Records',
 };
 
 export default function MedicalLayout({ children }: { children: React.ReactNode }) {
