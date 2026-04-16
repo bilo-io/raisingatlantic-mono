@@ -51,7 +51,7 @@ export class Practice {
   @Column({ type: 'varchar', length: 255, nullable: true })
   manager?: string;
 
-  @ManyToMany(() => ClinicianProfile)
+  @ManyToMany(() => ClinicianProfile, (profile) => profile.practices)
   @JoinTable({ name: 'practice_clinicians' })
   clinicians: ClinicianProfile[];
 

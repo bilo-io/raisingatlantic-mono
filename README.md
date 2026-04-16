@@ -2,6 +2,12 @@
 
 Welcome to the **Raising Atlantic** monorepo. This project is built using a modern, scalable stack and managed with **Moonrepo** to ensure high performance and consistent developer workflows.
 
+### 📚 Core Documentation
+- [System Context](./docs/SYSTEM_CONTEXT.md)
+- [Brand Guidelines](./docs/BRAND_GUIDELINE.md)
+- [Agentic Coding System](./docs/AGENTIC.md)
+- [NotebookLM MCP Setup](./docs/NOTEBOOK_LM_MCP.md)
+
 ## 🚀 Quickstart
 
 Get up and running in minutes:
@@ -26,6 +32,7 @@ Get up and running in minutes:
 
 The API will be available at `http://localhost:3000/v1/`.
 The Frontend will be available at `http://localhost:9002/`.
+The Mobile app will launch its Expo server dynamically (check terminal for QR code).
 
 ---
 
@@ -41,8 +48,8 @@ All database commands are unified across the monorepo root:
 - `moon run :db-seed`: Populates the database with initial developer data.
 
 ### 🏗 API & Development
-- `moon run :build`: Builds all applications (API, Web, etc.).
-- `moon run :dev`: Starts the API and Web watchers simultaneously.
+- `moon run :build`: Builds all applications (API, Web, Mobile, etc.).
+- `moon run :dev`: Starts the API, Web, and Mobile watchers simultaneously.
 
 ---
 
@@ -50,6 +57,7 @@ All database commands are unified across the monorepo root:
 
 -   `src/apps/api`: NestJS API.
 -   `src/apps/web`: React Next.js application.
+-   `src/apps/mobile`: React Native Expo mobile application.
 -   `src/pkgs/ui`: Shared UI component library.
 -   `src/core`: Shared logic, interfaces, and telemetry.
 -   `tests/postman`: API integration tests and Postman collections.
@@ -58,6 +66,81 @@ All database commands are unified across the monorepo root:
 
 All API endpoints strictly follow the `v1` prefix convention. 
 Example: `GET http://localhost:3000/v1/examples`
+
+---
+
+## 🤖 Agentic Coding
+
+This monorepo is built with an AI agent orchestration system that provides specialised, domain-scoped intelligence for every layer of the stack. All configuration lives in the **`.ai/`** directory at the root.
+
+> Full documentation: [`docs/AGENTIC.md`](./docs/AGENTIC.md)
+
+---
+
+### Agents (Personas) — `@name`
+
+Invoke an agent by prefixing its name with `@`. Each agent has a strict domain boundary and system prompt to prevent hallucinations across different parts of the stack.
+
+| Agent | Trigger | Domain |
+|---|---|---|
+| **Architect** | `@architect` | Monorepo graph, toolchain, orchestration & agent dispatch |
+| **Frontend** | `@frontend` | Next.js, React Native, shared UI library (`src/pkgs/ui`) |
+| **Backend** | `@backend` | NestJS API, PostgreSQL, TypeORM, Genkit AI integration |
+| **Security** | `@security` | POPIA, PAIA, HPCSA/SANC compliance, RBAC auditing |
+| **QA Tester** | `@qa-tester` | Jest unit tests, Playwright E2E, Postman collections |
+| **Copywriter** | `@copywriter` | Dual-audience brand voice (parents & clinicians) |
+| **Legal Writer** | `@legalwriter` | ToS, EULA, Privacy Policy, DPA, medical liability |
+| **Pediatric Advisor** | `@pediatric-advisor` | EPI-SA 2024/25 immunisation & growth logic validation |
+
+**Example usage:**
+```
+@architect I need a new "appointment booking" feature for parents and clinicians.
+@security /audit-popia src/apps/api/src/children/children.controller.ts
+@pediatric-advisor Review the rotavirus scheduling logic in vaccines.service.ts
+```
+
+---
+
+### Skills (Actions) — `/name`
+
+Skills are repeatable, ephemeral tasks. They are agent-agnostic and can be triggered directly or invoked by `@architect` as part of a pipeline.
+
+| Skill | Trigger | What it does |
+|---|---|---|
+| **Scaffold Feature** | `/scaffold-feature <name>` | Generates entity, service, controller, page, form, and hook for a new feature |
+| **Audit POPIA** | `/audit-popia <file-path>` | Scans for PII exposure, unencrypted health data, and missing RBAC guards |
+| **Generate Tests** | `/generate-tests <file-path>` | Produces Jest unit tests and Postman assertions for a completed file |
+| **Sync Schema** | `/sync-schema` | Detects TypeORM entity changes and generates the SQL migration script |
+| **Draft Release Notes** | `/draft-release-notes` | Converts `git diff` into user-facing release notes (Features / Fixes / Clinical) |
+
+---
+
+### Workflows (Automations)
+
+Pre-built, multi-step pipelines that combine agents and skills. Located in `.ai/workflows/`.
+
+#### `feature-delivery-pipeline`
+End-to-end feature shipping from a single natural language request:
+```
+@architect → /scaffold-feature → (@frontend ∥ @backend) → @security /audit-popia → @qa-tester /generate-tests
+```
+
+#### `clinical-report-generation`
+Converts raw patient data into a validated, AI-drafted Crèche Admission PDF report:
+```
+Patient data → @pediatric-advisor validates → @backend invokes Genkit AI → @copywriter formats PDF
+```
+
+#### Dev Workflows
+| Command | What it runs |
+|---|---|
+| `/build` | `moon run :build` |
+| `/dev` | `moon run :dev` |
+| `/install` | `bun run cli:install` |
+| `/new-endpoint` | Full-stack endpoint scaffold (route → Zod schema → hook) |
+| `/ui-loop` | Stitch component generation + design token refactor |
+| `/fix-config` | Moon v2 config repair with schema validation |
+| `/storybook` | `moon run :storybook` |
 
 ---
 

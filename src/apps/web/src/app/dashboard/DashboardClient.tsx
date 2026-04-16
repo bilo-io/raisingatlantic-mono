@@ -45,6 +45,7 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
   const [currentUser, setCurrentUser] = useState<any | undefined>();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   
   // Data state
   const [children, setChildren] = useState<any[]>([]);
@@ -60,6 +61,7 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
     const loadData = async () => {
       try {
         setLoading(true);
+        setError(null);
         // 1. Identify User
         let user: any;
         if (initialServerData?.userId) {
@@ -100,8 +102,9 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
           setCliniciansToVerify(pendingClinicians);
           setRecordsToVerify(pendingRecords);
         }
-      } catch (error) {
-        console.error("Dashboard data load failed:", error);
+      } catch (err: any) {
+        console.error("Dashboard data load failed:", err);
+        setError(err);
       } finally {
         setLoading(false);
       }
@@ -325,6 +328,10 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
 
     return { welcomeTitle: 'Dashboard', welcomeDescription: '', stats: [], quickActions: [], mainList: [], mainListTitle: '', mainListDescription: '', mainListLink: '#'};
   }, [currentUser, children, users, vaccinations, milestones, cliniciansToVerifyState, recordsToVerifyState]);
+
+  if (error) {
+    throw error;
+  }
 
   if (!mounted || loading || !currentUser) {
     return (

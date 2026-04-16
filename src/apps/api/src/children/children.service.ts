@@ -40,8 +40,12 @@ export class ChildrenService {
     const query = this.childRepo.createQueryBuilder('child')
       .leftJoinAndSelect('child.parent', 'parent')
       .leftJoinAndSelect('child.clinician', 'clinician')
-      .leftJoinAndSelect('clinician.practices', 'practice')
-      .leftJoinAndSelect('practice.tenant', 'tenant');
+      .leftJoinAndSelect('clinician.clinicianProfile', 'clinicianProfile')
+      .leftJoinAndSelect('clinicianProfile.practices', 'practice')
+      .leftJoinAndSelect('practice.tenant', 'tenant')
+      .leftJoinAndSelect('child.growthRecords', 'growthRecords')
+      .leftJoinAndSelect('child.completedMilestones', 'completedMilestones')
+      .leftJoinAndSelect('child.completedVaccinations', 'completedVaccinations');
 
     if (filters?.tenantId) {
       if (filters.tenantId.includes('@')) {

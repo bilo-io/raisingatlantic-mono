@@ -12,9 +12,11 @@ import { LogIn, Shield, User, Stethoscope } from "lucide-react";
 import { SITE_NAME, UserRole } from "@/lib/constants";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import Image from 'next/image';
-import { useState, useMemo } from 'react';
 import { dummyUsers } from "@/data/users";
 import { SiteLogo } from "@/components/layout/SiteLogo";
+import { useApi } from "@/lib/api/data-source";
+import { getUsers } from "@/lib/api/adapters/user.adapter";
+import { useEffect, useMemo, useState } from 'react';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" {...props}>
@@ -30,15 +32,27 @@ export default function LoginPage() {
   const router = useRouter();
   const [selectedRole, setSelectedRole] = useState<UserRole | ''>('');
   const [selectedUserId, setSelectedUserId] = useState('');
+  const [apiUsers, setApiUsers] = useState<any[]>([]);
+  const isApiEnabled = useApi();
+
+  useEffect(() => {
+    if (isApiEnabled) {
+      getUsers().then(users => setApiUsers(users)).catch(err => console.error("Test login API load failed:", err));
+    }
+  }, [isApiEnabled]);
+
+  const activeUsers = useMemo(() => {
+    return isApiEnabled && apiUsers.length > 0 ? apiUsers : dummyUsers;
+  }, [isApiEnabled, apiUsers]);
 
   const usersForRole = useMemo(() => {
     if (!selectedRole) return [];
-    return dummyUsers.filter(user => user.role === selectedRole);
-  }, [selectedRole]);
+    return activeUsers.filter((user: any) => user.role.toLowerCase() === selectedRole.toLowerCase());
+  }, [selectedRole, activeUsers]);
 
   const selectedUser = useMemo(() => {
-    return dummyUsers.find(user => user.id === selectedUserId);
-  }, [selectedUserId]);
+    return activeUsers.find((user: any) => user.id === selectedUserId);
+  }, [selectedUserId, activeUsers]);
   
   const handleRoleChange = (role: UserRole) => {
     setSelectedRole(role);
@@ -47,7 +61,17 @@ export default function LoginPage() {
 
   const handleUserLogin = () => {
     if (selectedUserId) {
+      if (isApiEnabled && selectedUser) {
+        // Sync to mock auth storage so synchronous lookups (getCurrentUser) work
+        const storageKey = 'mock_auth_users';
+        const existingRaw = localStorage.getItem(storageKey);
+        const existing = existingRaw ? JSON.parse(existingRaw) : [];
+        if (!existing.find((u: any) => u.id === selectedUserId)) {
+          localStorage.setItem(storageKey, JSON.stringify([...existing, selectedUser]));
+        }
+      }
       localStorage.setItem('currentUserId', selectedUserId);
+      localStorage.setItem('mock_auth_current_user_id', selectedUserId);
       router.push('/dashboard');
     }
   };

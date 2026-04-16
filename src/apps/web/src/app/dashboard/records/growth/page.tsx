@@ -46,6 +46,7 @@ export default function GrowthRecordsPage() {
   const [currentUser, setCurrentUser] = useState<any | undefined>();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [childrenForUser, setChildrenForUser] = useState<any[]>([]);
 
@@ -55,6 +56,7 @@ export default function GrowthRecordsPage() {
     const loadData = async () => {
       try {
         setLoading(true);
+        setError(null);
         const [allChildren, allUsers] = await Promise.all([
           getChildren(),
           getUsers()
@@ -76,8 +78,9 @@ export default function GrowthRecordsPage() {
           }
           setChildrenForUser(relevantChildren);
         }
-      } catch (error) {
-        console.error("Failed to load growth records:", error);
+      } catch (err: any) {
+        console.error("Failed to load growth records:", err);
+        setError(err);
       } finally {
         setLoading(false);
       }
@@ -134,6 +137,10 @@ export default function GrowthRecordsPage() {
     console.log("New growth record submitted:", data);
     // Here you would typically handle the API call to save the data
   };
+
+  if (error) {
+    throw error;
+  }
 
   if (!mounted || loading || !currentUser) {
     return (

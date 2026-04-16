@@ -1,0 +1,39 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+project:
+  name: 'mobile'
+  description: 'Raising Atlantic React Native Expo App'
+
+tasks:
+  install:
+    command: 'npm install --legacy-peer-deps'
+
+  dev:
+    # Triggers 'npm run dev' which is mapped to 'expo start'
+    command: 'npm run dev'
+
+  build:
+    # Standard expo web export or EAS pre-flight
+    command: 'npx expo export'
+    inputs:
+      - 'App.tsx'
+      - 'app.json'
+      - 'package.json'
+      - 'tsconfig.json'
+      - 'assets/**/*'
+    outputs:
+      - 'dist'
+
+  lint:
+    # Typecheck as a basic lint step
+    command: 'npx tsc --noEmit'
+    inputs:
+      - '**/*.{ts,tsx}'
+      - 'tsconfig.json'
+
+  test:
+    # Placeholder until Jest is configured for React Native
+    command: 'echo "No tests configured for mobile"'
+
+  clean:
+    command: 'rm -rf .expo node_modules dist'

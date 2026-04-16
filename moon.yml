@@ -7,17 +7,20 @@ tasks:
       - 'api:install'
       - 'web:install'
       - 'ui:install'
+      - 'mobile:install'
 
   build:
     deps:
       - 'api:build'
       - 'web:build'
       - 'ui:build'
+      - 'mobile:build'
 
   dev:
     deps:
       - 'api:dev'
       - 'web:dev'
+      - 'mobile:dev'
     options:
       runInCI: false
 
@@ -25,11 +28,13 @@ tasks:
     deps:
       - 'api:lint'
       - 'web:lint'
+      - 'mobile:lint'
 
   test:
     deps:
       - 'api:test'
       - 'web:test'
+      - 'mobile:test'
       - 'tests:test'
 
   clean:
@@ -37,6 +42,7 @@ tasks:
       - 'api:clean'
       - 'web:clean'
       - 'ui:clean'
+      - 'mobile:clean'
 
   db:start:
     deps:

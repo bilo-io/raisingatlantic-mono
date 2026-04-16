@@ -10,7 +10,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { User } from './users.model';
-// Practice relation will be added once that entity is created
+import { Practice } from '../practices/practices.model';
 
 @Entity('clinician_profiles')
 export class ClinicianProfile {
@@ -32,4 +32,7 @@ export class ClinicianProfile {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @ManyToMany(() => Practice, (practice) => practice.clinicians)
+  practices: Practice[];
 }
