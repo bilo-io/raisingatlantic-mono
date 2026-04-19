@@ -1,5 +1,5 @@
 project:
-  name: 'core'
+  name: core
   description: 'Shared Workspace root project'
 
 tasks:
