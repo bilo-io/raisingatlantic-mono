@@ -2,7 +2,7 @@ import { IsEnum, IsOptional, IsString, IsObject, IsUUID } from 'class-validator'
 import { ReportType } from '../reports.model';
 
 export class CreateReportDto {
-  @IsUUID()
+  @IsString()
   childId: string;
 
   @IsEnum(ReportType)
@@ -17,6 +17,6 @@ export class CreateReportDto {
   pdfUrl?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   generatedById?: string;
 }

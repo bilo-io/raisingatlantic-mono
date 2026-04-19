@@ -1,9 +1,5 @@
 project:
-<<<<<<< Updated upstream
   name: 'core'
-=======
-  name: core
->>>>>>> Stashed changes
   description: 'Shared Workspace root project'
 
 tasks:
@@ -101,13 +97,3 @@ tasks:
   db-seed:
     deps:
       - 'api:db-seed'
-
-  deploy-test:
-    script: 'git stash push -u -m "Auto-deploy to test" && git checkout test && git merge dev && git push origin test && git checkout dev && (git stash pop || true)'
-    options:
-      runInCI: false
-
-  deploy-prod:
-    script: 'git stash push -u -m "Auto-deploy to main" && git checkout main && git merge dev && git push origin main && git checkout dev && (git stash pop || true)'
-    options:
-      runInCI: false

@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { Report } from './reports.model';
 import { CreateReportDto } from './dto/create-report.dto';
 import { Child } from '../children/children.model';
 import { User } from '../users/users.model';
+import { isUUID } from '../common/utils/id-validator';
 
 @Injectable()
 export class ReportsService {
@@ -18,7 +19,19 @@ export class ReportsService {
   ) {}
 
   async create(dto: CreateReportDto): Promise<Report> {
-    const child = await this.childrenRepository.findOne({ where: { id: dto.childId } });
+    let child: Child | null = null;
+    if (isUUID(dto.childId)) {
+      child = await this.childrenRepository.findOne({ where: { id: dto.childId } });
+    } else {
+      child = await this.childrenRepository.findOne({ 
+        where: [
+          { name: ILike(dto.childId) },
+          { firstName: ILike(dto.childId) },
+          { name: ILike(dto.childId.replace(/-/g, ' ')) }
+        ] 
+      });
+    }
+    
     if (!child) throw new NotFoundException('Child not found');
 
     let generatedBy: User | null = null;
@@ -45,17 +58,25 @@ export class ReportsService {
       .leftJoinAndSelect('report.generatedBy', 'user');
 
     if (filters.childId) {
-      query.andWhere('child.id = :childId', { childId: filters.childId });
+      if (isUUID(filters.childId)) {
+        query.andWhere('child.id = :childId', { childId: filters.childId });
+      } else {
+        query.andWhere('(child.name ILIKE :cName OR child.firstName ILIKE :cName)', { cName: `%${filters.childId}%` });
+      }
     }
 
     return query.getMany();
   }
 
   async findOne(id: string): Promise<Report> {
-    const report = await this.reportsRepository.findOne({
-      where: { id },
-      relations: ['child', 'generatedBy'],
-    });
+    let report: Report | null = null;
+    if (isUUID(id)) {
+      report = await this.reportsRepository.findOne({
+        where: { id },
+        relations: ['child', 'generatedBy'],
+      });
+    }
+    
     if (!report) throw new NotFoundException('Report not found');
     return report;
   }

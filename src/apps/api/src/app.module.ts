@@ -66,6 +66,8 @@ import { AppointmentsModule } from './appointments/appointments.module';
     TenantsModule,
     PracticesModule,
     ChildrenModule,
+    ReportsModule,
+    AppointmentsModule,
     MasterDataModule,
     VerificationsModule,
   ],

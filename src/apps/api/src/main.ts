@@ -1,11 +1,17 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 import * as cookieParser from 'cookie-parser';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+import { Request, Response } from 'express';
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.useStaticAssets(join(__dirname, '..', 'public'));
   app.use(cookieParser());
   app.enableCors({
     origin: [
@@ -18,6 +24,11 @@ async function bootstrap() {
     credentials: true,
   });
   app.setGlobalPrefix('v1');
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }));
 
   // Swagger Setup
   const config = new DocumentBuilder()
@@ -27,10 +38,12 @@ async function bootstrap() {
     .addTag('RaisingAtlantic')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('v1/docs', app, document);
+  SwaggerModule.setup('v1/docs', app, document, {
+    customfavIcon: '/favicon.ico',
+  });
 
   // Allow exporting the raw JSON
-  app.getHttpAdapter().get('/v1/api-json', (req, res) => {
+  app.getHttpAdapter().get('/v1/api-json', (req: Request, res: Response) => {
     res.json(document);
   });
 

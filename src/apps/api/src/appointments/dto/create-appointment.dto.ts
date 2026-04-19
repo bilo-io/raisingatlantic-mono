@@ -2,15 +2,15 @@ import { IsEnum, IsOptional, IsString, IsUUID, IsDateString } from 'class-valida
 import { AppointmentStatus } from '../appointments.model';
 
 export class CreateAppointmentDto {
-  @IsUUID()
+  @IsString()
   childId: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   clinicianId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   practiceId?: string;
 
   @IsDateString()

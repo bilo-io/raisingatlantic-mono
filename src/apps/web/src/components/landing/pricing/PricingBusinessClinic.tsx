@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Check, Building2, Users, UserCog, TrendingUp, ShieldCheck } from 'lucide-react';
+import { Check, Building2, Users, UserCog, TrendingUp, ShieldCheck, Code2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AnimatedGradientBackground } from '@/components/ui/animated-gradient-bg';
@@ -15,9 +15,7 @@ export function PricingBusinessClinic() {
     "Advanced Growth Velocity Tracking",
     "Multi-Practice Data Isolation",
     "Full Clinical Data Export",
-    "Custom Vaccine & Allergy Alerts",
-    "Audit Logs & Security Controls",
-    "SLA & Priority Support"
+    "Audit Logs & Security Controls"
   ];
 
   return (
@@ -49,7 +47,7 @@ export function PricingBusinessClinic() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-6xl mx-auto mb-16">
             {/* Left Column: Value Prop & Features */}
-            <div className="lg:col-span-7 space-y-8">
+            <div className="lg:col-span-7 space-y-4">
               <motion.div
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -167,6 +165,13 @@ export function PricingBusinessClinic() {
                         <span className="text-sm">Additional Admin</span>
                       </div>
                       <span className="font-bold">+R50</span>
+                    </div>
+                    <div className="flex items-center justify-between text-white/90">
+                      <div className="flex items-center gap-3">
+                        <Code2 className="h-4 w-4 text-cyan-400" />
+                        <span className="text-sm">API Access & Webhooks</span>
+                      </div>
+                      <span className="font-bold">+R150</span>
                     </div>
                   </div>
 

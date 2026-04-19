@@ -10,18 +10,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Languages } from "lucide-react";
+import { Languages, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface LanguageOption {
   code: string;
-  nameKey: string; 
-  shortCodeKey: string; 
+  label: string; 
 }
 
 const languages: LanguageOption[] = [
-  { code: "en", nameKey: "language", shortCodeKey: "languageCode" },
-  { code: "af", nameKey: "language", shortCodeKey: "languageCode" },
-  { code: "de", nameKey: "language", shortCodeKey: "languageCode" },
+  { code: "en", label: "English" },
+  { code: "af", label: "Afrikaans" },
+  { code: "de", label: "Deutsch" },
 ];
 
 export function LanguageSwitcher() {
@@ -30,6 +30,8 @@ export function LanguageSwitcher() {
   const changeLanguage = (langCode: string) => {
     i18n.changeLanguage(langCode);
   };
+
+  const currentLanguage = i18n.language || 'en';
 
   return (
     <DropdownMenu>
@@ -43,8 +45,15 @@ export function LanguageSwitcher() {
           <DropdownMenuItem 
             key={lang.code} 
             onSelect={() => changeLanguage(lang.code)}
+            className={cn(
+              "flex items-center justify-between gap-2 cursor-pointer",
+              currentLanguage.startsWith(lang.code) && "bg-accent font-medium"
+            )}
           >
-            {i18n.exists(`${lang.nameKey}`, {lng: lang.code}) ? i18n.t(`${lang.nameKey}`, {lng: lang.code}) : lang.code.toUpperCase()}
+            <span>{lang.label}</span>
+            {currentLanguage.startsWith(lang.code) && (
+              <Check className="h-4 w-4 opacity-70" />
+            )}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

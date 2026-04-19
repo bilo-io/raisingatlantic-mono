@@ -1,11 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { Appointment } from './appointments.model';
 import { CreateAppointmentDto, UpdateAppointmentDto } from './dto/create-appointment.dto';
 import { Child } from '../children/children.model';
 import { User } from '../users/users.model';
 import { Practice } from '../practices/practices.model';
+import { isUUID } from '../common/utils/id-validator';
 
 @Injectable()
 export class AppointmentsService {
@@ -21,17 +22,36 @@ export class AppointmentsService {
   ) {}
 
   async create(dto: CreateAppointmentDto): Promise<Appointment> {
-    const child = await this.childrenRepository.findOne({ where: { id: dto.childId } });
+    let child: Child | null = null;
+    if (isUUID(dto.childId)) {
+      child = await this.childrenRepository.findOne({ where: { id: dto.childId } });
+    } else {
+      child = await this.childrenRepository.findOne({ 
+        where: [
+          { name: ILike(dto.childId) },
+          { firstName: ILike(dto.childId) },
+          { name: ILike(dto.childId.replace(/-/g, ' ')) }
+        ] 
+      });
+    }
     if (!child) throw new NotFoundException('Child not found');
 
     let clinician: User | null = null;
     if (dto.clinicianId) {
-      clinician = await this.usersRepository.findOne({ where: { id: dto.clinicianId } });
+      if (isUUID(dto.clinicianId)) {
+        clinician = await this.usersRepository.findOne({ where: { id: dto.clinicianId } });
+      } else {
+        clinician = await this.usersRepository.findOne({ where: { name: ILike(dto.clinicianId) } });
+      }
     }
 
     let practice: Practice | null = null;
     if (dto.practiceId) {
-      practice = await this.practiceRepository.findOne({ where: { id: dto.practiceId } });
+      if (isUUID(dto.practiceId)) {
+        practice = await this.practiceRepository.findOne({ where: { id: dto.practiceId } });
+      } else {
+        practice = await this.practiceRepository.findOne({ where: { name: ILike(dto.practiceId) } });
+      }
     }
 
     const appointment = this.appointmentsRepository.create({
@@ -52,18 +72,42 @@ export class AppointmentsService {
       .leftJoinAndSelect('appointment.clinician', 'user')
       .leftJoinAndSelect('appointment.practice', 'practice');
 
-    if (filters.childId) query.andWhere('child.id = :childId', { childId: filters.childId });
-    if (filters.clinicianId) query.andWhere('user.id = :clinicianId', { clinicianId: filters.clinicianId });
-    if (filters.practiceId) query.andWhere('practice.id = :practiceId', { practiceId: filters.practiceId });
+    if (filters.childId) {
+      if (isUUID(filters.childId)) {
+        query.andWhere('child.id = :childId', { childId: filters.childId });
+      } else {
+        query.andWhere('(child.name ILIKE :cName OR child.firstName ILIKE :cName)', { cName: `%${filters.childId}%` });
+      }
+    }
+    
+    if (filters.clinicianId) {
+      if (isUUID(filters.clinicianId)) {
+        query.andWhere('user.id = :clinicianId', { clinicianId: filters.clinicianId });
+      } else {
+        query.andWhere('user.name ILIKE :uName', { uName: `%${filters.clinicianId}%` });
+      }
+    }
+    
+    if (filters.practiceId) {
+      if (isUUID(filters.practiceId)) {
+        query.andWhere('practice.id = :practiceId', { practiceId: filters.practiceId });
+      } else {
+        query.andWhere('practice.name ILIKE :pName', { pName: `%${filters.practiceId}%` });
+      }
+    }
 
     return query.getMany();
   }
 
   async findOne(id: string): Promise<Appointment> {
-    const appointment = await this.appointmentsRepository.findOne({
-      where: { id },
-      relations: ['child', 'clinician', 'practice'],
-    });
+    let appointment: Appointment | null = null;
+    if (isUUID(id)) {
+      appointment = await this.appointmentsRepository.findOne({
+        where: { id },
+        relations: ['child', 'clinician', 'practice'],
+      });
+    }
+    
     if (!appointment) throw new NotFoundException('Appointment not found');
     return appointment;
   }

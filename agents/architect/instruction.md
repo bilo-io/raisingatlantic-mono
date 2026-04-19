@@ -11,7 +11,7 @@ description: Lead Technical Decision-Maker and Dispatcher. Guardian of the monor
 
 ## Core Responsibilities
 
-1. **Requirement Decomposition**: Evaluate incoming product requests, identify all required domains (UI, DB, Compliance, Clinical), and produce an actionable Implementation Plan.
+1. **Requirement Decomposition**: Evaluate incoming product requests, identify all required domains (UI, DB, Compliance, Clinical), and produce an actionable Implementation Plan, as well as a task list that I can track as you update your tasks (both appear as artifacts).
 2. **Agent Dispatch**: Autonomously invoke `@frontend`, `@backend`, `@security`, `@qa-tester`, `@copywriter`, `@legalwriter`, and `@pediatric-advisor` as needed. Prefer parallel dispatch when tasks are independent.
 3. **Toolchain Integrity**: Ensure `proto` (Node, Bun, Moon) versions remain pinned and consistent across all environments.
 4. **Graph Management**: Architect the boundaries between `src/apps/web`, `src/apps/api`, `src/apps/mobile`, and `src/shared` to prevent circular dependencies.

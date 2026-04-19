@@ -56,6 +56,49 @@ function injectTests(items: any[]) {
       if (method === 'POST') expectedStatus = '201';
       else if (method === 'DELETE') expectedStatus = '204';
 
+      const isWriteMethod = ['POST', 'PUT', 'PATCH'].includes(method);
+
+      // Improve request body with Postman dynamic variables
+      if (isWriteMethod && item.request.body && item.request.body.raw) {
+        let body = item.request.body.raw;
+        // Replace example emails with random ones to avoid unique constraint violations
+        body = body.replace(/"email":\s*"[^"]*"/g, '"email": "{{$randomEmail}}"');
+        // Replace example names to make them more dynamic
+        body = body.replace(/"name":\s*"[^"]*"/g, '"name": "{{$randomFullName}}"');
+        // Replace phone numbers
+        body = body.replace(/"phone":\s*"[^"]*"/g, '"phone": "{{$randomPhoneNumber}}"');
+        
+        // Replace common foreign key examples with captured IDs
+        body = body.replace(/"tenantId":\s*"[^"]*"/g, '"tenantId": "{{tenantsId}}"');
+        body = body.replace(/"practiceId":\s*"[^"]*"/g, '"practiceId": "{{practicesId}}"');
+        body = body.replace(/"userId":\s*"[^"]*"/g, '"userId": "{{usersId}}"');
+        body = body.replace(/"parentId":\s*"[^"]*"/g, '"parentId": "{{usersId}}"');
+        body = body.replace(/"clinicianId":\s*"[^"]*"/g, '"clinicianId": "{{usersId}}"');
+        
+        // Handle first and last names in addition to full name
+        body = body.replace(/"firstName":\s*"[^"]*"/g, '"firstName": "{{$randomFirstName}}"');
+        body = body.replace(/"lastName":\s*"[^"]*"/g, '"lastName": "{{$randomLastName}}"');
+        
+        item.request.body.raw = body;
+      }
+
+      // Link path variables (like :id) to captured IDs
+      if (item.request.url && item.request.url.variable) {
+        const path = item.request.url.path;
+        // The entity name is usually the second to last segment before :id
+        // e.g. v1/users/:id -> entity is users
+        const idIndex = path.indexOf(':id');
+        if (idIndex > 0) {
+          const entityName = path[idIndex - 1];
+          item.request.url.variable.forEach((v: any) => {
+            if (v.key === 'id') {
+              v.value = `{{${entityName}Id}}`;
+              console.log(`Linked :id in ${item.name} to {{${entityName}Id}}`);
+            }
+          });
+        }
+      }
+
       const testScript = `
 // Standard status code test for ${method}
 pm.test("Status code is ${expectedStatus}", function () {

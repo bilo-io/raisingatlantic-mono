@@ -1,6 +1,4 @@
+import { PartialType } from '@nestjs/swagger';
 import { CreateExampleDto } from './create-example.dto';
 
-export class UpdateExampleDto implements Partial<CreateExampleDto> {
-  name?: string;
-  description?: string;
-}
+export class UpdateExampleDto extends PartialType(CreateExampleDto) {}

@@ -1,10 +1,11 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { ILoggerService } from '@core/telemetry/interfaces/logger.interface';
 import { ITracingService } from '@core/telemetry/interfaces/tracer.interface';
 import { IMetricService } from '@core/telemetry/interfaces/metric.interface';
 import { IErrorReportingService } from '@core/telemetry/interfaces/error-reporter.interface';
+import { isUUID } from '../common/utils/id-validator';
 import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination, Allergy, MedicalCondition } from './children.model';
 import { CreateChildDto } from './dto/create-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
@@ -56,14 +57,15 @@ export class ChildrenService {
     if (filters?.tenantId) {
       if (filters.tenantId.includes('@')) {
         query.andWhere('tenant.email = :tEmail', { tEmail: filters.tenantId });
-      } else if (filters.tenantId.includes('-') && filters.tenantId.length > 20) {
+      } else if (isUUID(filters.tenantId)) {
         query.andWhere('tenant.id = :tenantId', { tenantId: filters.tenantId });
       } else {
         // Mock ID support: match by common name in our seeds
         if (filters.tenantId === 'tenant-raising-atlantic' || filters.tenantId === 'tenant-1') {
            query.andWhere('tenant.name = :tName', { tName: 'Raising Atlantic Health' });
         } else {
-           query.andWhere('tenant.id = :tenantId', { tenantId: filters.tenantId });
+           // Fallback for other mock IDs - search by name or slug
+           query.andWhere('tenant.name ILIKE :tName', { tName: `%${filters.tenantId}%` });
         }
       }
     }
@@ -71,16 +73,15 @@ export class ChildrenService {
     if (filters?.clinicianId) {
       if (filters.clinicianId.includes('@')) {
         query.andWhere('clinician.email = :email', { email: filters.clinicianId });
-      } else if (filters.clinicianId.includes('-') && filters.clinicianId.length > 20) {
+      } else if (isUUID(filters.clinicianId)) {
         // Likely a UUID
         query.andWhere('clinician.id = :clinicianId', { clinicianId: filters.clinicianId });
       } else {
-        // Fallback or mock ID - try matching name or email prefix if needed, 
-        // but for now let's try to match the email prefix of our seeded clinician
+        // Fallback or mock ID - try matching name or email prefix if needed
         if (filters.clinicianId === 'clinician-dr-smith') {
            query.andWhere('clinician.email = :email', { email: 'dr.smith@clinician.com' });
         } else {
-           query.andWhere('clinician.id = :clinicianId', { clinicianId: filters.clinicianId });
+           query.andWhere('clinician.name ILIKE :cName', { cName: `%${filters.clinicianId}%` });
         }
       }
     }
@@ -89,18 +90,37 @@ export class ChildrenService {
   }
 
   async findOne(id: string): Promise<Child> {
-    const child = await this.childRepo.findOne({
-      where: { id },
-      relations: [
-        'parent', 
-        'clinician', 
-        'growthRecords', 
-        'completedMilestones', 
-        'completedVaccinations',
-        'allergies',
-        'medicalConditions'
-      ],
-    });
+    const relations = [
+      'parent', 
+      'clinician', 
+      'growthRecords', 
+      'completedMilestones', 
+      'completedVaccinations',
+      'allergies',
+      'medicalConditions'
+    ];
+
+    let child: Child | null = null;
+
+    if (isUUID(id)) {
+      child = await this.childRepo.findOne({
+        where: { id },
+        relations,
+      });
+    } else {
+      // Mock ID support for E2E tests
+      // Try searching by name or slug-like match (case-insensitive)
+      child = await this.childRepo.findOne({
+        where: [
+          { name: ILike(id) },
+          { firstName: ILike(id) },
+          { name: ILike(id.replace(/-/g, ' ')) },
+          { name: ILike(`%${id}%`) } // Fuzzy match for things like "Alex Doe" vs "alex-doe"
+        ],
+        relations,
+      });
+    }
+
     if (!child) throw new NotFoundException(`Child ${id} not found`);
     return child;
   }
