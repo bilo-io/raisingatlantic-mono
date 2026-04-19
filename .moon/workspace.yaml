@@ -15,6 +15,7 @@ projects:
   postman: 'src/test/postman'
   
   # Workspace Root Tasks
+  core: '.'
   tests: 'tests'
 
 vcs:
