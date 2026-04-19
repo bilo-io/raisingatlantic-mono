@@ -9,6 +9,7 @@ tasks:
     command: 'npm install --cache .npm-cache'
     inputs:
       - 'package.json'
+      - 'tsconfig.json'
     outputs:
       - 'node_modules'
 

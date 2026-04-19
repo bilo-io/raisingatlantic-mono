@@ -6,8 +6,8 @@ export default defineConfig({
       const environment = config.env.environment || 'local';
       const urls: Record<string, string> = {
         local: 'http://localhost:9002',
-        dev: 'https://rainsingatlantic-web-dev.vercel.app',
-        staging: 'https://rainsingatlantic-web-staging.vercel.app',
+        dev: 'https://raisingatlantic-web-dev.vercel.app',
+        staging: 'https://raisingatlantic-web-test.vercel.app',
         prod: 'https://raisingatlantic-web.vercel.app',
       };
 
@@ -19,4 +19,6 @@ export default defineConfig({
     specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     supportFile: false,
   },
+  // Explicitly point at our tsconfig so webpack/ts-loader doesn't error with TS18002
+  env: {},
 });
