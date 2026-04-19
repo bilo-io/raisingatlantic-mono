@@ -1,0 +1,14 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+project:
+  name: 'tests'
+  description: 'Workspace-level test orchestration'
+
+tasks:
+  test:
+    # Delegates to postman-tests for local API validation.
+    # Run individual suites via: moon run postman-tests:test-local etc.
+    command: 'echo "Run moon run postman-tests:test-local or cypress-tests:test-dev for full test suites"'
+
+  clean:
+    command: 'rm -rf node_modules'

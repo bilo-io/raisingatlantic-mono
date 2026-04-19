@@ -1,0 +1,18 @@
+{
+  "name": "cypress-tests",
+  "version": "1.0.0",
+  "description": "Cypress E2E tests",
+  "private": true,
+  "scripts": {
+    "open": "cypress open",
+    "test:local": "cypress run --env environment=local",
+    "test:dev": "cypress run --env environment=dev",
+    "test:staging": "cypress run --env environment=staging",
+    "test:prod": "cypress run --env environment=prod"
+  },
+  "devDependencies": {
+    "cypress": "^13.17.0",
+    "typescript": "^5.7.3",
+    "@types/node": "^22.10.7"
+  }
+}

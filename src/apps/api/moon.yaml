@@ -1,0 +1,49 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+project:
+  name: 'api'
+  description: 'Raising Atlantic API'
+
+tasks:
+  install:
+    command: 'npm install'
+
+  build:
+    command: 'npm run build'
+    inputs:
+      - 'src/**/*'
+      - 'tsconfig.json'
+      - 'tsconfig.build.json'
+    outputs:
+      - 'dist'
+
+  dev:
+    command: 'npm run dev'
+    options:
+      persistent: true
+
+  lint:
+    command: 'eslint .'
+    inputs:
+      - '**/*.{ts,js}'
+
+  test:
+    command: 'npm run test'
+    inputs:
+      - 'src/**/*'
+      - 'test/**/*'
+
+  db-start:
+    command: 'npm run db:start'
+
+  db-stop:
+    command: 'npm run db:stop'
+
+  db-migrate:
+    command: 'npm run db:migration:run'
+
+  db-seed:
+    command: 'npm run db:seed'
+
+  clean:
+    command: 'rm -rf dist node_modules'

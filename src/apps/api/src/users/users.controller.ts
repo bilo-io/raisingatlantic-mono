@@ -11,6 +11,11 @@ import { User } from './users.model';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get('clinicians/public')
+  async findCliniciansPublic(): Promise<User[]> {
+    return this.usersService.findCliniciansPublic();
+  }
+
   @Post()
   async create(@Body() dto: CreateUserDto): Promise<User> {
     return this.usersService.create(dto);

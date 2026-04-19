@@ -8,6 +8,8 @@ import { IErrorReportingService } from '@core/telemetry/interfaces/error-reporte
 import { User } from './users.model';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserRole } from './constants';
+import { maskEmail, maskPhone } from '../common/utils/masking.util';
 
 @Injectable()
 export class UsersService {
@@ -46,6 +48,25 @@ export class UsersService {
     this.logger.log('Fetching all users');
     try {
       return await this.usersRepository.find({ relations: ['clinicianProfile'] });
+    } finally {
+      this.tracer.endSpan(span);
+    }
+  }
+
+  async findCliniciansPublic(): Promise<User[]> {
+    const span = this.tracer.startSpan('UsersService.findCliniciansPublic');
+    this.logger.log('Fetching all clinicians for public directory');
+    try {
+      const clinicians = await this.usersRepository.find({
+        where: { role: UserRole.CLINICIAN },
+        relations: ['clinicianProfile', 'clinicianProfile.practices'],
+      });
+
+      return clinicians.map((user) => ({
+        ...user,
+        email: maskEmail(user.email),
+        phone: maskPhone(user.phone),
+      })) as User[];
     } finally {
       this.tracer.endSpan(span);
     }

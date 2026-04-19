@@ -25,7 +25,17 @@ export class CreatePracticeDto {
 
   @IsOptional()
   @IsString()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
   website?: string;
+
+  @IsOptional()
+  latitude?: number;
+
+  @IsOptional()
+  longitude?: number;
 
   @IsOptional()
   @IsEnum(ResourceStatus)

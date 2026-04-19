@@ -62,3 +62,42 @@ export async function getUnifiedRecords(childId: string): Promise<any[]> {
   // Return mock records filtered by child ID
   return dummyRecords.filter(r => r.childId === childId);
 }
+export async function createChild(data: Partial<Child>): Promise<Child> {
+  if (useApi()) {
+    const response = await apiClient.post('/v1/children', data);
+    return response.data;
+  }
+  const newChild = { 
+    ...data, 
+    id: `child-${Date.now()}`, 
+    progress: 0,
+    createdAt: new Date().toISOString(), 
+    updatedAt: new Date().toISOString() 
+  } as any;
+  childrenDetails.push(newChild);
+  return newChild;
+}
+
+export async function updateChild(id: string, data: Partial<Child>): Promise<Child> {
+  if (useApi()) {
+    const response = await apiClient.patch(`/v1/children/${id}`, data);
+    return response.data;
+  }
+  const index = childrenDetails.findIndex(c => c.id === id);
+  if (index !== -1) {
+    childrenDetails[index] = { ...childrenDetails[index], ...data, updatedAt: new Date().toISOString() } as any;
+    return childrenDetails[index] as any;
+  }
+  throw new Error('Child not found');
+}
+
+export async function deleteChild(id: string): Promise<void> {
+  if (useApi()) {
+    await apiClient.delete(`/v1/children/${id}`);
+    return;
+  }
+  const index = childrenDetails.findIndex(c => c.id === id);
+  if (index !== -1) {
+    childrenDetails.splice(index, 1);
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "postman-tests",
+  "version": "1.0.0",
+  "description": "Automated Postman API tests",
+  "private": true,
+  "scripts": {
+    "generate": "node generate.js",
+    "test:local": "newman run api_collection.json -e environments/local.env.json",
+    "test:dev": "newman run api_collection.json -e environments/dev.env.json",
+    "test:staging": "newman run api_collection.json -e environments/staging.env.json",
+    "test:prod": "newman run api_collection.json -e environments/prod.env.json"
+  },
+  "devDependencies": {
+    "newman": "^6.1.2",
+    "openapi-to-postmanv2": "latest",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3",
+    "@types/node": "^22.10.7",
+    "axios": "^1.7.9"
+  }
+}

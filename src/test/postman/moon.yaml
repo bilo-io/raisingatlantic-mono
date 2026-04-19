@@ -1,0 +1,46 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+project:
+  name: 'postman-tests'
+  description: 'Postman API test suite'
+
+tasks:
+  install:
+    command: 'npm install --cache .npm-cache'
+    inputs:
+      - 'package.json'
+    outputs:
+      - 'node_modules'
+
+  generate:
+    command: 'npm run generate'
+    deps:
+      - 'api:build'
+    inputs:
+      - 'generate.ts'
+    outputs:
+      - 'api_collection.json'
+
+  # Run tests against each environment.
+  # generate must complete first (same project, so use full ID).
+  test-local:
+    command: 'npm run test:local'
+    deps:
+      - 'postman-tests:generate'
+    options:
+      runInCI: false
+
+  test-dev:
+    command: 'npm run test:dev'
+    deps:
+      - 'postman-tests:generate'
+
+  test-staging:
+    command: 'npm run test:staging'
+    deps:
+      - 'postman-tests:generate'
+
+  test-prod:
+    command: 'npm run test:prod'
+    deps:
+      - 'postman-tests:generate'

@@ -2,6 +2,7 @@ import { PublicLayout } from "@/components/layout/PublicLayout";
 import { PricingTiers } from "@/components/landing/pricing/PricingTiers";
 import { PricingComparison } from "@/components/landing/pricing/PricingComparison";
 import { PricingFAQ } from "@/components/landing/pricing/PricingFAQ";
+import { PricingBusinessClinic } from "@/components/landing/pricing/PricingBusinessClinic";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -26,6 +27,7 @@ export default function PricingPage() {
         <PricingTiers />
         <PricingComparison />
         <PricingFAQ />
+        <PricingBusinessClinic />
       </div>
     </PublicLayout>
   );

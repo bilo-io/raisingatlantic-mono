@@ -61,6 +61,12 @@ export class Child {
   @OneToMany(() => CompletedVaccination, (v) => v.child)
   completedVaccinations: CompletedVaccination[];
 
+  @OneToMany(() => Allergy, (a) => a.child)
+  allergies: Allergy[];
+
+  @OneToMany(() => MedicalCondition, (c) => c.child)
+  medicalConditions: MedicalCondition[];
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -172,3 +178,67 @@ export class CompletedVaccination {
   @UpdateDateColumn()
   updatedAt: Date;
 }
+
+
+@Entity('allergies')
+export class Allergy {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => Child, (child) => child.allergies, { onDelete: 'CASCADE' })
+  child: Child;
+
+  @Column({ type: 'varchar', length: 255 })
+  allergen: string;
+
+  @Column({ type: 'enum', enum: ['mild', 'moderate', 'severe'], default: 'mild' })
+  severity: 'mild' | 'moderate' | 'severe';
+
+  @Column({ type: 'text', nullable: true })
+  notes?: string;
+
+  @Column({
+    type: 'enum',
+    enum: ResourceStatus,
+    default: ResourceStatus.ACTIVE,
+  })
+  status: ResourceStatus;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
+
+@Entity('medical_conditions')
+export class MedicalCondition {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => Child, (child) => child.medicalConditions, { onDelete: 'CASCADE' })
+  child: Child;
+
+  @Column({ type: 'varchar', length: 255 })
+  conditionName: string;
+
+  @Column({ type: 'date', nullable: true })
+  diagnosisDate?: Date;
+
+  @Column({ type: 'text', nullable: true })
+  notes?: string;
+
+  @Column({
+    type: 'enum',
+    enum: ResourceStatus,
+    default: ResourceStatus.ACTIVE,
+  })
+  status: ResourceStatus;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
+

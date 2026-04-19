@@ -1,0 +1,41 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+project:
+  name: 'raising-atlantic'
+  description: 'Raising Atlantic Web App'
+
+dependsOn:
+  - 'ui'
+
+tasks:
+  install:
+    command: 'npm install --legacy-peer-deps'
+
+  build:
+    command: 'npm run build'
+    deps:
+      - 'ui:build'
+    inputs:
+      - 'src/**/*'
+      - 'public/**/*'
+      - 'next.config.*'
+      - 'tsconfig.json'
+    outputs:
+      - '.next'
+
+  dev:
+    command: 'npm run dev'
+    options:
+      persistent: true
+
+  clean:
+    command: 'rm -rf .next node_modules'
+
+  lint:
+    command: 'eslint .'
+    inputs:
+      - '**/*.{js,ts,html}'
+
+  test:
+    # Tests not yet configured; placeholder prevents :test from failing graph resolution
+    command: 'echo "No tests configured for web"'

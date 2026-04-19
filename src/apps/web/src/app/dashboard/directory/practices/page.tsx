@@ -1,17 +1,19 @@
+
 "use client";
 
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { MoreHorizontal, Search, MapPin, ChevronLeft, ChevronRight, Eye, Edit3, PlusCircle, LayoutGrid, List, Building } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PlusCircle, MapPin, Building } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from '@/components/ui/badge';
 import { getPractices, type Practice } from '@/lib/api/adapters/practice.adapter';
 import { PracticeDetailModal } from '@/components/medical/PracticeDetailModal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Skeleton } from '@/components/ui/skeleton';
+import { DirectoryExplorerToolbar } from '@/components/directory/DirectoryExplorerToolbar';
+import { DirectoryPagination } from '@/components/directory/DirectoryPagination';
+import { PracticeGrid } from '@/components/directory/PracticeGrid';
+import { PracticeList } from '@/components/directory/PracticeList';
+import { PracticeSkeleton } from '@/components/directory/DirectorySkeletons';
+import Link from 'next/link';
 
 const ITEMS_PER_PAGE = 8;
 const VIEW_MODE_STORAGE_KEY = 'viewMode_practices';
@@ -53,11 +55,12 @@ export default function PracticesPage() {
   }, [viewMode, mounted]);
 
   const filteredPractices = useMemo(() => {
+    const lowerTerm = searchTerm.toLowerCase();
     return practices.filter(practice =>
-      practice.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      practice.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      practice.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (practice.manager && practice.manager.toLowerCase().includes(searchTerm.toLowerCase()))
+      practice.name.toLowerCase().includes(lowerTerm) ||
+      practice.address.toLowerCase().includes(lowerTerm) ||
+      practice.city.toLowerCase().includes(lowerTerm) ||
+      (practice.manager && practice.manager.toLowerCase().includes(lowerTerm))
     );
   }, [searchTerm, practices]);
 
@@ -76,80 +79,6 @@ export default function PracticesPage() {
     }
   };
 
-  const handlePreviousPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
-  const handleNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1);
-  };
-  
-  const renderGrid = () => (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {paginatedPractices.map(practice => (
-        <Card key={practice.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
-          <CardHeader>
-             <div className="flex items-start gap-4">
-                 <div className="p-3 bg-muted rounded-md">
-                    <Building className="h-6 w-6 text-primary" />
-                 </div>
-                 <div>
-                    <CardTitle className="font-headline text-lg">{practice.name}</CardTitle>
-                    <CardDescription>{practice.city}</CardDescription>
-                 </div>
-            </div>
-          </CardHeader>
-          <CardContent className="flex-grow text-sm">
-            <p className="text-muted-foreground line-clamp-2">{practice.address}</p>
-            <Badge variant={getStatusBadgeVariant(practice.status)} className="mt-3">{practice.status}</Badge>
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" size="sm" className="w-full" onClick={() => setSelectedPractice(practice)}>
-              View Details
-            </Button>
-          </CardFooter>
-        </Card>
-      ))}
-    </div>
-  );
-
-  const renderList = () => (
-     <Card>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead className="hidden md:table-cell">City</TableHead>
-            <TableHead className="hidden lg:table-cell">Phone</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead><span className="sr-only">Actions</span></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {paginatedPractices.map((practice) => (
-            <TableRow key={practice.id}>
-              <TableCell>
-                <button onClick={() => setSelectedPractice(practice)} className="font-medium hover:underline text-left">
-                  {practice.name}
-                </button>
-              </TableCell>
-              <TableCell className="hidden md:table-cell">{practice.city}</TableCell>
-              <TableCell className="hidden lg:table-cell">{practice.phone}</TableCell>
-              <TableCell>
-                <Badge variant={getStatusBadgeVariant(practice.status)}>{practice.status}</Badge>
-              </TableCell>
-              <TableCell>
-                 <Button variant="ghost" size="sm" onClick={() => setSelectedPractice(practice)}>
-                  View Details
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Card>
-  );
-
   return (
     <TooltipProvider>
       <div className="flex flex-col gap-6">
@@ -164,52 +93,22 @@ export default function PracticesPage() {
           </Tooltip>
           <h1 className="font-headline text-2xl font-bold tracking-tight">Practices</h1>
         </div>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="relative flex-1 md:flex-initial">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search practices..."
-              className="pl-8 w-full sm:w-[300px]"
-              value={searchTerm}
-              onChange={handleSearchChange}
-            />
-          </div>
-          <div className="flex items-center gap-1">
-            <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('list')} aria-label="List view">
-              <List className="h-4 w-4" />
-            </Button>
-            <Button variant={viewMode === 'grid' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('grid')} aria-label="Grid view">
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
+
+        <DirectoryExplorerToolbar
+          searchTerm={searchTerm}
+          onSearchChange={(val) => { setSearchTerm(val); setCurrentPage(1); }}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          actions={
             <Button size="icon"> 
               <PlusCircle className="h-4 w-4" />
               <span className="sr-only">Add Practice</span>
             </Button>
-          </div>
-        </div>
+          }
+        />
 
         {loading ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {[...Array(8)].map((_, i) => (
-              <Card key={i} className="flex flex-col">
-                <CardHeader>
-                  <div className="flex items-start gap-4">
-                    <Skeleton className="h-12 w-12 rounded-md" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-5 w-32" />
-                      <Skeleton className="h-4 w-24" />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-6 w-16 mt-2" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <PracticeSkeleton />
         ) : filteredPractices.length === 0 ? (
           <Card className="text-center py-12">
             <CardHeader>
@@ -228,22 +127,25 @@ export default function PracticesPage() {
           </Card>
         ) : (
           <>
-              {viewMode === 'grid' ? renderGrid() : renderList()}
-              {totalPages > 1 && (
-                  <div className="flex items-center justify-between pt-4">
-                  <span className="text-sm text-muted-foreground">
-                      Page {currentPage} of {totalPages}
-                  </span>
-                  <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={handlePreviousPage} disabled={currentPage === 1}>
-                      <ChevronLeft className="mr-1 h-4 w-4" /> Previous
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPage === totalPages}>
-                      Next <ChevronRight className="ml-1 h-4 w-4" />
-                      </Button>
-                  </div>
-                  </div>
-              )}
+            {viewMode === 'grid' ? (
+              <PracticeGrid 
+                practices={paginatedPractices} 
+                onSelect={setSelectedPractice} 
+                getStatusBadgeVariant={getStatusBadgeVariant} 
+              />
+            ) : (
+              <PracticeList 
+                practices={paginatedPractices} 
+                onSelect={setSelectedPractice} 
+                getStatusBadgeVariant={getStatusBadgeVariant} 
+              />
+            )}
+            
+            <DirectoryPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(dir) => setCurrentPage(prev => dir === 'next' ? prev + 1 : prev - 1)}
+            />
           </>
         )}
         

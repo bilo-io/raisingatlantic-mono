@@ -13,9 +13,13 @@ import { Tenant } from './tenants/tenants.model';
 import { PracticesModule } from './practices/practices.module';
 import { Practice } from './practices/practices.model';
 import { ChildrenModule } from './children/children.module';
-import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination } from './children/children.model';
+import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination, Allergy, MedicalCondition } from './children/children.model';
+import { Report } from './reports/reports.model';
+import { Appointment } from './appointments/appointments.model';
 import { MasterDataModule } from './master-data/master-data.module';
 import { VerificationsModule } from './verifications/verifications.module';
+import { ReportsModule } from './reports/reports.module';
+import { AppointmentsModule } from './appointments/appointments.module';
 
 @Module({
   imports: [
@@ -45,7 +49,11 @@ import { VerificationsModule } from './verifications/verifications.module';
           Child, 
           GrowthRecord, 
           CompletedMilestone, 
-          CompletedVaccination
+          CompletedVaccination,
+          Allergy,
+          MedicalCondition,
+          Report,
+          Appointment
         ],
         // auto-create / sync schema in dev — disable in production
         synchronize: config.get<string>('NODE_ENV') !== 'production',

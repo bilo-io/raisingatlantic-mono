@@ -1,0 +1,22 @@
+# .moon/workspace.yml
+$schema: 'https://moonrepo.dev/schemas/workspace.json'
+
+projects:
+  # Apps
+  api: 'src/apps/api'
+  web: 'src/apps/web'
+  mobile: 'src/apps/mobile'
+  
+  # Packages
+  ui: 'src/pkgs/ui'
+  
+  # Tests
+  cypress-tests: 'src/test/cypress'
+  postman-tests: 'src/test/postman'
+  
+  # Workspace Root Tasks
+  tests: 'tests'
+
+vcs:
+  defaultBranch: 'master'
+  provider: 'github'

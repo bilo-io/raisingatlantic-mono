@@ -7,9 +7,13 @@ export interface Practice {
   name: string;
   address: string;
   city: string;
+  state: string;
+  zip: string;
   phone: string;
   email?: string;
+  website?: string;
   manager?: string;
+  tenantId: string;
   status: 'Active' | 'Inactive' | 'Temporarily Closed';
   createdAt?: string;
   updatedAt?: string;
@@ -22,6 +26,19 @@ export const getPractices = async (): Promise<Practice[]> => {
       return response.data;
     } catch (error) {
       console.error('Failed to fetch practices from API, falling back to dummy data', error);
+      return dummyPractices as Practice[];
+    }
+  }
+  return dummyPractices as Practice[];
+};
+
+export const getPublicPractices = async (): Promise<Practice[]> => {
+  if (useApi()) {
+    try {
+      const response = await apiClient.get('/v1/practices/public');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch public practices from API, falling back to dummy data', error);
       return dummyPractices as Practice[];
     }
   }
@@ -43,4 +60,37 @@ export const getPracticeById = async (id: string): Promise<Practice> => {
   const dummy = dummyPractices.find(p => p.id === id);
   if (!dummy) throw new Error('Practice not found');
   return dummy as Practice;
+};
+export const createPractice = async (data: Partial<Practice>): Promise<Practice> => {
+  if (useApi()) {
+    const response = await apiClient.post('/v1/practices', data);
+    return response.data;
+  }
+  const newPractice = { ...data, id: `practice-${Date.now()}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as Practice;
+  dummyPractices.push(newPractice as any);
+  return newPractice;
+};
+
+export const updatePractice = async (id: string, data: Partial<Practice>): Promise<Practice> => {
+  if (useApi()) {
+    const response = await apiClient.patch(`/v1/practices/${id}`, data);
+    return response.data;
+  }
+  const index = dummyPractices.findIndex(p => p.id === id);
+  if (index !== -1) {
+    dummyPractices[index] = { ...dummyPractices[index], ...data, updatedAt: new Date().toISOString() } as any;
+    return dummyPractices[index] as any;
+  }
+  throw new Error('Practice not found');
+};
+
+export const deletePractice = async (id: string): Promise<void> => {
+  if (useApi()) {
+    await apiClient.delete(`/v1/practices/${id}`);
+    return;
+  }
+  const index = dummyPractices.findIndex(p => p.id === id);
+  if (index !== -1) {
+    dummyPractices.splice(index, 1);
+  }
 };

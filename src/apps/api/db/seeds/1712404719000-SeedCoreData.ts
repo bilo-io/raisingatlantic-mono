@@ -4,7 +4,9 @@ import { UserRole } from '../../src/users/constants';
 import { ClinicianProfile } from '../../src/users/clinician-profile.model';
 import { Tenant } from '../../src/tenants/tenants.model';
 import { Practice } from '../../src/practices/practices.model';
-import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination } from '../../src/children/children.model';
+import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination, Allergy, MedicalCondition } from '../../src/children/children.model';
+import { Report, ReportType } from '../../src/reports/reports.model';
+import { Appointment, AppointmentStatus } from '../../src/appointments/appointments.model';
 import { ResourceStatus } from '../../src/common/enums';
 
 /**
@@ -19,6 +21,10 @@ async function seed(): Promise<void> {
   const practiceRepo = AppDataSource.getRepository(Practice);
   const childRepo = AppDataSource.getRepository(Child);
   const clinicianProfileRepo = AppDataSource.getRepository(ClinicianProfile);
+  const reportRepo = AppDataSource.getRepository(Report);
+  const appointmentRepo = AppDataSource.getRepository(Appointment);
+  const allergyRepo = AppDataSource.getRepository(Allergy);
+  const conditionRepo = AppDataSource.getRepository(MedicalCondition);
 
   // 1. Seed Tenant
   let tenant = await tenantRepo.findOne({ where: { email: 'contact@raisingatlantic.com' } });
@@ -181,6 +187,43 @@ async function seed(): Promise<void> {
   ];
   await vaccineRepo.save(vaccineSeeds);
 
+  // 9. New Entities Data for Alex Doe
+  await allergyRepo.delete({ child: { id: child.id } });
+  await conditionRepo.delete({ child: { id: child.id } });
+  await reportRepo.delete({ child: { id: child.id } });
+  await appointmentRepo.delete({ child: { id: child.id } });
+
+  await allergyRepo.save([
+    { child, allergen: 'Peanuts', severity: 'severe', notes: 'Requires EpiPen' },
+    { child, allergen: 'Dust', severity: 'mild' }
+  ]);
+
+  await conditionRepo.save([
+    { child, conditionName: 'Eczema', diagnosisDate: new Date('2024-03-01'), status: ResourceStatus.ACTIVE }
+  ]);
+
+  await appointmentRepo.save([
+    { 
+      child, 
+      clinician, 
+      practice, 
+      scheduledAt: new Date(Date.now() + 86400000 * 7), // 7 days from now
+      status: AppointmentStatus.SCHEDULED,
+      notes: '9-month wellness checkup'
+    }
+  ]);
+
+  await reportRepo.save([
+    {
+      child,
+      type: ReportType.CRECHE_ADMISSION,
+      status: ResourceStatus.ACTIVE,
+      generatedBy: clinician,
+      content: { summary: 'Alex is fit for creche admission with clear immunization record.' }
+    }
+  ]);
+
+  console.log('✅ Seeded new entities (Allergies, Conditions, Appointments, Reports)');
   console.log('✅ Seeded/Updated Child (Alex Doe) and sub-data (including 3 for verification)');
   console.log('🏁 Seed completed successfully.');
   await AppDataSource.destroy();

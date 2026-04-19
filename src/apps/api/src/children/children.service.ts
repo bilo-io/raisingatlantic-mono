@@ -5,9 +5,11 @@ import { ILoggerService } from '@core/telemetry/interfaces/logger.interface';
 import { ITracingService } from '@core/telemetry/interfaces/tracer.interface';
 import { IMetricService } from '@core/telemetry/interfaces/metric.interface';
 import { IErrorReportingService } from '@core/telemetry/interfaces/error-reporter.interface';
-import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination } from './children.model';
+import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination, Allergy, MedicalCondition } from './children.model';
 import { CreateChildDto } from './dto/create-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
+import { CreateAllergyDto } from './dto/create-allergy.dto';
+import { CreateMedicalConditionDto } from './dto/create-medical-condition.dto';
 
 @Injectable()
 export class ChildrenService {
@@ -16,6 +18,8 @@ export class ChildrenService {
     @InjectRepository(GrowthRecord) private readonly growthRepo: Repository<GrowthRecord>,
     @InjectRepository(CompletedMilestone) private readonly milestoneRepo: Repository<CompletedMilestone>,
     @InjectRepository(CompletedVaccination) private readonly vaccineRepo: Repository<CompletedVaccination>,
+    @InjectRepository(Allergy) private readonly allergyRepo: Repository<Allergy>,
+    @InjectRepository(MedicalCondition) private readonly conditionRepo: Repository<MedicalCondition>,
     @Inject('ILoggerService') private readonly logger: ILoggerService,
     @Inject('ITracingService') private readonly tracer: ITracingService,
     @Inject('IMetricService') private readonly metric: IMetricService,
@@ -45,7 +49,9 @@ export class ChildrenService {
       .leftJoinAndSelect('practice.tenant', 'tenant')
       .leftJoinAndSelect('child.growthRecords', 'growthRecords')
       .leftJoinAndSelect('child.completedMilestones', 'completedMilestones')
-      .leftJoinAndSelect('child.completedVaccinations', 'completedVaccinations');
+      .leftJoinAndSelect('child.completedVaccinations', 'completedVaccinations')
+      .leftJoinAndSelect('child.allergies', 'allergies')
+      .leftJoinAndSelect('child.medicalConditions', 'medicalConditions');
 
     if (filters?.tenantId) {
       if (filters.tenantId.includes('@')) {
@@ -85,10 +91,36 @@ export class ChildrenService {
   async findOne(id: string): Promise<Child> {
     const child = await this.childRepo.findOne({
       where: { id },
-      relations: ['parent', 'clinician', 'growthRecords', 'completedMilestones', 'completedVaccinations'],
+      relations: [
+        'parent', 
+        'clinician', 
+        'growthRecords', 
+        'completedMilestones', 
+        'completedVaccinations',
+        'allergies',
+        'medicalConditions'
+      ],
     });
     if (!child) throw new NotFoundException(`Child ${id} not found`);
     return child;
+  }
+
+  // Allergy Methods
+  async addAllergy(childId: string, dto: CreateAllergyDto): Promise<Allergy> {
+    const child = await this.findOne(childId);
+    const allergy = this.allergyRepo.create({ ...dto, child });
+    return await this.allergyRepo.save(allergy);
+  }
+
+  // Medical Condition Methods
+  async addMedicalCondition(childId: string, dto: CreateMedicalConditionDto): Promise<MedicalCondition> {
+    const child = await this.findOne(childId);
+    const condition = this.conditionRepo.create({ 
+      ...dto, 
+      child,
+      diagnosisDate: dto.diagnosisDate ? new Date(dto.diagnosisDate) : undefined 
+    });
+    return await this.conditionRepo.save(condition);
   }
 
   async update(id: string, dto: UpdateChildDto): Promise<Child> {
@@ -109,9 +141,11 @@ export class ChildrenService {
       ...child.growthRecords.map(r => ({ ...r, type: 'Growth' })),
       ...child.completedMilestones.map(r => ({ ...r, type: 'Milestone' })),
       ...child.completedVaccinations.map(r => ({ ...r, type: 'Vaccination' })),
+      ...child.allergies.map(r => ({ ...r, type: 'Allergy' })),
+      ...child.medicalConditions.map(r => ({ ...r, type: 'Condition' })),
     ].sort((a: any, b: any) => {
-      const dateA = new Date(a.date || a.dateAchieved || a.dateAdministered).getTime();
-      const dateB = new Date(b.date || b.dateAchieved || b.dateAdministered).getTime();
+      const dateA = new Date(a.date || a.dateAchieved || a.dateAdministered || (a as any).createdAt).getTime();
+      const dateB = new Date(b.date || b.dateAchieved || b.dateAdministered || (b as any).createdAt).getTime();
       return dateB - dateA;
     });
   }

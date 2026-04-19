@@ -8,6 +8,7 @@ import { IErrorReportingService } from '@core/telemetry/interfaces/error-reporte
 import { Practice } from './practices.model';
 import { CreatePracticeDto } from './dto/create-practice.dto';
 import { UpdatePracticeDto } from './dto/update-practice.dto';
+import { ResourceStatus } from '../common/enums';
 
 @Injectable()
 export class PracticesService {
@@ -34,6 +35,24 @@ export class PracticesService {
     const span = this.tracer.startSpan('PracticesService.findAll');
     try {
       return await this.practicesRepository.find({ relations: ['tenant', 'clinicians', 'clinicians.user'] });
+    } finally {
+      this.tracer.endSpan(span);
+    }
+  }
+
+  async findAllPublic(): Promise<Practice[]> {
+    const span = this.tracer.startSpan('PracticesService.findAllPublic');
+    try {
+      const practices = await this.practicesRepository.find({
+        where: { status: ResourceStatus.ACTIVE },
+        relations: ['clinicians', 'clinicians.user'],
+      });
+
+      return practices.map((practice) => ({
+        ...practice,
+        manager: 'Restricted Access',
+        email: 'Restricted Access',
+      })) as Practice[];
     } finally {
       this.tracer.endSpan(span);
     }

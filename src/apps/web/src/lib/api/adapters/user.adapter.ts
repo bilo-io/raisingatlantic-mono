@@ -28,6 +28,19 @@ export async function getClinicians(): Promise<any[]> {
   return dummyClinicians;
 }
 
+export async function getPublicClinicians(): Promise<any[]> {
+  if (useApi()) {
+    try {
+      const response = await apiClient.get('/v1/users/clinicians/public');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch public clinicians from API, falling back to dummy data', error);
+      return dummyClinicians;
+    }
+  }
+  return dummyClinicians;
+}
+
 export async function createUser(data: any): Promise<any> {
   if (useApi()) {
     const response = await apiClient.post('/v1/users', data);

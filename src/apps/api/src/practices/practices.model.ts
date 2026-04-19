@@ -39,7 +39,16 @@ export class Practice {
   phone: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
+  email?: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
   website?: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  latitude?: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  longitude?: number;
 
   @Column({
     type: 'enum',
