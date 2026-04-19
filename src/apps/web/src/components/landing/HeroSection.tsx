@@ -32,8 +32,8 @@ export function HeroSection() {
         <div className="mb-10 w-[350px] md:w-[600px] animate-in fade-in zoom-in duration-1000">
           <Image
             src={resolvedTheme === 'dark'
-              ? '/assets/images/app-branding-gradient.svg'
-              : '/assets/images/app-branding-gradient.svg'}
+              ? '/assets/images/app-branding-dark.svg'
+              : '/assets/images/app-branding-light.svg'}
             alt="Raising Atlantic"
             width={600}
             height={150}
