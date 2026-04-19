@@ -1,7 +1,7 @@
 $schema: 'https://moonrepo.dev/schemas/project.json'
 
 project:
-  name: 'postman-tests'
+  name: 'postman'
   description: 'Postman API test suite'
 
 tasks:
@@ -26,21 +26,27 @@ tasks:
   test-local:
     command: 'npm run test:local'
     deps:
-      - 'postman-tests:generate'
+      - 'postman:generate'
     options:
       runInCI: false
 
   test-dev:
     command: 'npm run test:dev'
     deps:
-      - 'postman-tests:generate'
+      - 'postman:generate'
 
   test-staging:
     command: 'npm run test:staging'
     deps:
-      - 'postman-tests:generate'
+      - 'postman:generate'
 
   test-prod:
     command: 'npm run test:prod'
     deps:
-      - 'postman-tests:generate'
+      - 'postman:generate'
+
+  test:
+    deps:
+      - 'postman:test-local'
+    options:
+      runInCI: false

@@ -5,9 +5,10 @@
   "private": true,
   "scripts": {
     "open": "cypress open",
+    "test": "npm run test:prod",
     "test:local": "cypress run --env environment=local",
     "test:dev": "cypress run --env environment=dev",
-    "test:staging": "cypress run --env environment=staging",
+    "test:test": "cypress run --env environment=staging",
     "test:prod": "cypress run --env environment=prod"
   },
   "devDependencies": {

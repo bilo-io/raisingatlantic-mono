@@ -51,21 +51,46 @@ function injectTests(items: any[]) {
       // It's a request, add tests
       if (!item.event) item.event = [];
       
+      const method = item.request.method || 'GET';
+      let expectedStatus = '200';
+      if (method === 'POST') expectedStatus = '201';
+      else if (method === 'DELETE') expectedStatus = '204';
+
       const testScript = `
-// Standard status code test
-pm.test("Status code is 200 or 201", function () {
-    pm.expect(pm.response.code).to.be.oneOf([200, 201]);
+// Standard status code test for ${method}
+pm.test("Status code is ${expectedStatus}", function () {
+    pm.response.to.have.status(${expectedStatus});
 });
 
 // Standard schema validation (if response body is JSON)
 pm.test("Response is valid JSON", function () {
-    pm.response.to.be.withBody;
-    pm.response.to.be.json;
+    if (pm.response.code !== 204) {
+        const contentType = pm.response.headers.get("Content-Type");
+        if (contentType && contentType.includes("application/json")) {
+            pm.response.to.be.withBody;
+            pm.response.to.be.json;
+        } else {
+            // Optional: log if we skipped JSON validation
+            console.log("Skipping JSON validation for content-type: " + contentType);
+        }
+    }
 });
 
 pm.test("Response time is less than 500ms", function () {
     pm.expect(pm.response.responseTime).to.be.below(500);
 });
+
+// Capture ID for subsequent requests if it's a creation
+if (pm.response.code === 201) {
+    const jsonData = pm.response.json();
+    if (jsonData && jsonData.id) {
+        // Try to determine the entity name from the URL
+        const path = pm.request.url.path;
+        const entityName = path[path.length - 1] || 'last';
+        pm.collectionVariables.set(entityName + "Id", jsonData.id);
+        console.log("Captured ID for environment: " + entityName + "Id = " + jsonData.id);
+    }
+}
       `.trim();
 
       item.event.push({

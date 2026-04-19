@@ -8,8 +8,8 @@ tasks:
       - 'web:install'
       - 'ui:install'
       - 'mobile:install'
-      - 'cypress-tests:install'
-      - 'postman-tests:install'
+      - 'cypress:install'
+      - 'postman:install'
 
   build:
     deps:
@@ -38,7 +38,7 @@ tasks:
       - 'web:test'
       - 'mobile:test'
       - 'tests:test'
-      - 'cypress-tests:test'
+      - 'cypress:test'
 
   clean:
     deps:

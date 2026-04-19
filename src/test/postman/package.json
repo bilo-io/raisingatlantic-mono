@@ -4,10 +4,11 @@
   "description": "Automated Postman API tests",
   "private": true,
   "scripts": {
-    "generate": "node generate.js",
+    "generate": "npx tsx generate.ts",
+    "test": "npm run test:local",
     "test:local": "newman run api_collection.json -e environments/local.env.json",
     "test:dev": "newman run api_collection.json -e environments/dev.env.json",
-    "test:staging": "newman run api_collection.json -e environments/staging.env.json",
+    "test:test": "newman run api_collection.json -e environments/test.env.json",
     "test:prod": "newman run api_collection.json -e environments/prod.env.json"
   },
   "devDependencies": {

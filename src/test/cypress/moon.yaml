@@ -1,7 +1,7 @@
 $schema: 'https://moonrepo.dev/schemas/project.json'
 
 project:
-  name: 'cypress-tests'
+  name: 'cypress'
   description: 'Cypress end-to-end test suite'
 
 tasks:
@@ -16,7 +16,7 @@ tasks:
   open:
     command: 'npm run open'
     deps:
-      - 'cypress-tests:install'
+      - 'cypress:install'
     options:
       runInCI: false
 
@@ -24,28 +24,28 @@ tasks:
   test:
     command: 'npm run test:prod'
     deps:
-      - 'cypress-tests:install'
+      - 'cypress:install'
 
   # NOTE: test-local requires the web dev server to already be running.
   # Moon v2 disallows depending on persistent tasks, so start web:dev manually first.
   test-local:
     command: 'npm run test:local'
     deps:
-      - 'cypress-tests:install'
+      - 'cypress:install'
     options:
       runInCI: false
 
   test-dev:
     command: 'npm run test:dev'
     deps:
-      - 'cypress-tests:install'
+      - 'cypress:install'
 
-  test-staging:
-    command: 'npm run test:staging'
+  test-test:
+    command: 'npm run test:test'
     deps:
-      - 'cypress-tests:install'
+      - 'cypress:install'
 
   test-prod:
     command: 'npm run test:prod'
     deps:
-      - 'cypress-tests:install'
+      - 'cypress:install'

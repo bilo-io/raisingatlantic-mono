@@ -18,10 +18,32 @@ const ptSans = PT_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: 'RaisingAtlantic',
+    default: 'Raising Atlantic | The Digital Road to Health Platform',
     template: 'RaisingAtlantic | %s',
   },
-  description: 'Supporting Child Development Together',
+  description: 'Empowering parents and clinicians with a secure, collaborative SaaS application to seamlessly track early childhood development, growth velocity, and EPI vaccination schedules.',
+  openGraph: {
+    title: 'Raising Atlantic | The Digital Road to Health Platform',
+    description: 'Empowering parents and clinicians with a secure, collaborative SaaS application to seamlessly track early childhood development, growth velocity, and EPI vaccination schedules.',
+    url: 'https://raisingatlantic.com',
+    siteName: 'Raising Atlantic',
+    images: [
+      {
+        url: '/assets/images/Branding/ra-opengraph.png',
+        width: 1200,
+        height: 630,
+        alt: 'Raising Atlantic - Your Local Connection',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Raising Atlantic | The Digital Road to Health Platform',
+    description: 'Empowering parents and clinicians with a secure, collaborative SaaS application to seamlessly track early childhood development, growth velocity, and EPI vaccination schedules.',
+    images: ['/assets/images/Branding/ra-opengraph.png'],
+  },
   icons: {
     icon: [
       { url: '/favicon.ico' },

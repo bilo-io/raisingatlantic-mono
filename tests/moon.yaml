@@ -8,7 +8,7 @@ tasks:
   test:
     # Delegates to postman-tests for local API validation.
     # Run individual suites via: moon run postman-tests:test-local etc.
-    command: 'echo "Run moon run postman-tests:test-local or cypress-tests:test-dev for full test suites"'
+    command: 'echo "Run moon run postman:test-local or cypress:test-dev for full test suites"'
 
   clean:
     command: 'rm -rf node_modules'

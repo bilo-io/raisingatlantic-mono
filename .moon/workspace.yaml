@@ -11,8 +11,8 @@ projects:
   ui: 'src/pkgs/ui'
   
   # Tests
-  cypress-tests: 'src/test/cypress'
-  postman-tests: 'src/test/postman'
+  cypress: 'src/test/cypress'
+  postman: 'src/test/postman'
   
   # Workspace Root Tasks
   tests: 'tests'
