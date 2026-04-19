@@ -111,7 +111,7 @@ export function PricingTiers() {
                 className={cn(
                   "relative flex flex-col w-full h-full transition-all duration-300 border-2 group rounded-xl",
                   tier.theme === 'dark' && "bg-card text-card-foreground border-border",
-                  tier.theme === 'gradient' && "bg-primary text-primary-foreground border-transparent shadow-xl scale-105 z-10",
+                  tier.theme === 'gradient' && "bg-primary text-primary-foreground border-transparent shadow-xl",
                   tier.theme === 'light' && "bg-white text-gray-900 border-gray-200",
                   tier.theme === 'glass-dark' && "bg-slate-900/90 backdrop-blur-xl text-white border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)]",
                   tier.theme === 'enterprise' && "bg-white text-gray-900 border-primary/20 shadow-xl"

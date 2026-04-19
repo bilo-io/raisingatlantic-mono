@@ -74,6 +74,11 @@ function injectTests(items: any[]) {
         body = body.replace(/"userId":\s*"[^"]*"/g, '"userId": "{{usersId}}"');
         body = body.replace(/"parentId":\s*"[^"]*"/g, '"parentId": "{{usersId}}"');
         body = body.replace(/"clinicianId":\s*"[^"]*"/g, '"clinicianId": "{{usersId}}"');
+        body = body.replace(/"generatedById":\s*"[^"]*"/g, '"generatedById": "{{usersId}}"');
+        body = body.replace(/"childId":\s*"[^"]*"/g, '"childId": "{{childrenId}}"');
+        
+        // Handle dates and status
+        body = body.replace(/"scheduledAt":\s*"[^"]*"/g, '"scheduledAt": "{{$isoTimestamp}}"');
         
         // Handle first and last names in addition to full name
         body = body.replace(/"firstName":\s*"[^"]*"/g, '"firstName": "{{$randomFirstName}}"');

@@ -48,8 +48,8 @@ export function PricingComparison() {
           </p>
         </div>
 
-        <div className="rounded-xl border bg-card overflow-hidden shadow-2xl">
-          <Table>
+        <div className="rounded-xl border bg-card overflow-x-auto shadow-2xl">
+          <Table className="min-w-[800px] lg:min-w-full">
             <TableHeader className="bg-muted/50">
               <TableRow>
                 <TableHead className="w-[300px] text-lg font-bold py-6 px-8">Feature</TableHead>

@@ -44,16 +44,6 @@ export const metadata: Metadata = {
     description: 'Empowering parents and clinicians with a secure, collaborative SaaS application to seamlessly track early childhood development, growth velocity, and EPI vaccination schedules.',
     images: ['/assets/images/Branding/ra-opengraph.png'],
   },
-  icons: {
-    icon: [
-      { url: '/favicon.ico' },
-      { url: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
-    ],
-    apple: [
-      { url: '/apple-touch-icon.png' },
-    ],
-  },
   manifest: '/manifest.webmanifest',
 };
 

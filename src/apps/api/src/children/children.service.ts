@@ -7,6 +7,7 @@ import { IMetricService } from '@core/telemetry/interfaces/metric.interface';
 import { IErrorReportingService } from '@core/telemetry/interfaces/error-reporter.interface';
 import { isUUID } from '../common/utils/id-validator';
 import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination, Allergy, MedicalCondition } from './children.model';
+import { User } from '../users/users.model';
 import { CreateChildDto } from './dto/create-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
 import { CreateAllergyDto } from './dto/create-allergy.dto';
@@ -21,6 +22,7 @@ export class ChildrenService {
     @InjectRepository(CompletedVaccination) private readonly vaccineRepo: Repository<CompletedVaccination>,
     @InjectRepository(Allergy) private readonly allergyRepo: Repository<Allergy>,
     @InjectRepository(MedicalCondition) private readonly conditionRepo: Repository<MedicalCondition>,
+    @InjectRepository(User) private readonly userRepo: Repository<User>,
     @Inject('ILoggerService') private readonly logger: ILoggerService,
     @Inject('ITracingService') private readonly tracer: ITracingService,
     @Inject('IMetricService') private readonly metric: IMetricService,
@@ -30,10 +32,43 @@ export class ChildrenService {
   async create(dto: CreateChildDto): Promise<Child> {
     const span = this.tracer.startSpan('ChildrenService.create');
     try {
+      // Resolve Parent
+      let parent: User | null = null;
+      if (isUUID(dto.parentId)) {
+        parent = await this.userRepo.findOne({ where: { id: dto.parentId } });
+      } else {
+        // Mock ID support: match by name/email in user table
+        const nameMatch = dto.parentId.replace('parent-', '').replace(/-/g, ' ');
+        parent = await this.userRepo.findOne({
+          where: [
+            { email: ILike(`%${dto.parentId}%`) },
+            { name: ILike(`%${nameMatch}%`) }
+          ]
+        });
+      }
+      if (!parent) throw new NotFoundException(`Parent with ID ${dto.parentId} not found`);
+
+      // Resolve Clinician (Optional)
+      let clinician: User | undefined = undefined;
+      if (dto.clinicianId) {
+        if (isUUID(dto.clinicianId)) {
+          clinician = await this.userRepo.findOne({ where: { id: dto.clinicianId } }) || undefined;
+        } else {
+          // Mock ID support for clinician
+          const nameMatch = dto.clinicianId.replace('clinician-', '').replace(/-/g, ' ');
+          clinician = await this.userRepo.findOne({
+            where: [
+              { email: ILike(`%${dto.clinicianId}%`) },
+              { name: ILike(`%${nameMatch}%`) }
+            ]
+          }) || undefined;
+        }
+      }
+
       const child = this.childRepo.create({
         ...dto,
-        parent: { id: dto.parentId } as any,
-        clinician: dto.clinicianId ? ({ id: dto.clinicianId } as any) : undefined,
+        parent,
+        clinician,
       });
       return await this.childRepo.save(child);
     } finally {

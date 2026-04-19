@@ -23,10 +23,11 @@ export class ReportsService {
     if (isUUID(dto.childId)) {
       child = await this.childrenRepository.findOne({ where: { id: dto.childId } });
     } else {
+      const nameMatch = dto.childId.replace('child-', '').replace(/-/g, ' ');
       child = await this.childrenRepository.findOne({ 
         where: [
-          { name: ILike(dto.childId) },
-          { firstName: ILike(dto.childId) },
+          { name: ILike(`%${nameMatch}%`) },
+          { firstName: ILike(`%${nameMatch}%`) },
           { name: ILike(dto.childId.replace(/-/g, ' ')) }
         ] 
       });
@@ -36,7 +37,17 @@ export class ReportsService {
 
     let generatedBy: User | null = null;
     if (dto.generatedById) {
-      generatedBy = await this.usersRepository.findOne({ where: { id: dto.generatedById } });
+      if (isUUID(dto.generatedById)) {
+        generatedBy = await this.usersRepository.findOne({ where: { id: dto.generatedById } });
+      } else {
+        const nameMatch = dto.generatedById.replace('clinician-', '').replace(/-/g, ' ');
+        generatedBy = await this.usersRepository.findOne({
+          where: [
+            { email: ILike(`%${dto.generatedById}%`) },
+            { name: ILike(`%${nameMatch}%`) }
+          ]
+        });
+      }
     }
 
     const reportData = {
@@ -49,7 +60,7 @@ export class ReportsService {
 
     const report = this.reportsRepository.create(reportData);
 
-    return this.reportsRepository.save(report);
+    return await this.reportsRepository.save(report);
   }
 
   async findAll(filters: { childId?: string }): Promise<Report[]> {

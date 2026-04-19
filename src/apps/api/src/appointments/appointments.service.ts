@@ -26,10 +26,11 @@ export class AppointmentsService {
     if (isUUID(dto.childId)) {
       child = await this.childrenRepository.findOne({ where: { id: dto.childId } });
     } else {
+      const nameMatch = dto.childId.replace('child-', '').replace(/-/g, ' ');
       child = await this.childrenRepository.findOne({ 
         where: [
-          { name: ILike(dto.childId) },
-          { firstName: ILike(dto.childId) },
+          { name: ILike(`%${nameMatch}%`) },
+          { firstName: ILike(`%${nameMatch}%`) },
           { name: ILike(dto.childId.replace(/-/g, ' ')) }
         ] 
       });
@@ -41,7 +42,13 @@ export class AppointmentsService {
       if (isUUID(dto.clinicianId)) {
         clinician = await this.usersRepository.findOne({ where: { id: dto.clinicianId } });
       } else {
-        clinician = await this.usersRepository.findOne({ where: { name: ILike(dto.clinicianId) } });
+        const nameMatch = dto.clinicianId.replace('clinician-', '').replace(/-/g, ' ');
+        clinician = await this.usersRepository.findOne({
+          where: [
+            { email: ILike(`%${dto.clinicianId}%`) },
+            { name: ILike(`%${nameMatch}%`) }
+          ]
+        });
       }
     }
 
@@ -50,7 +57,13 @@ export class AppointmentsService {
       if (isUUID(dto.practiceId)) {
         practice = await this.practiceRepository.findOne({ where: { id: dto.practiceId } });
       } else {
-        practice = await this.practiceRepository.findOne({ where: { name: ILike(dto.practiceId) } });
+        const nameMatch = dto.practiceId.replace('practice-', '').replace(/-/g, ' ');
+        practice = await this.practiceRepository.findOne({
+          where: [
+            { name: ILike(`%${nameMatch}%`) },
+            { name: ILike(`%${dto.practiceId}%`) }
+          ]
+        });
       }
     }
 
@@ -63,7 +76,7 @@ export class AppointmentsService {
       practice: practice || undefined,
     });
 
-    return this.appointmentsRepository.save(appointment);
+    return await this.appointmentsRepository.save(appointment);
   }
 
   async findAll(filters: { childId?: string; clinicianId?: string; practiceId?: string }): Promise<Appointment[]> {

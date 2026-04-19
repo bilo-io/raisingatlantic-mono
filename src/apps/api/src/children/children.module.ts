@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination, Allergy, MedicalCondition } from './children.model';
+import { User } from '../users/users.model';
 import { GcpLoggerService } from '@core/telemetry/gcp/logger.service';
 import { GcpTracingService } from '@core/telemetry/gcp/tracer.service';
 import { GcpMetricService } from '@core/telemetry/gcp/metric.service';
@@ -15,7 +16,8 @@ import { ChildrenController } from './children.controller';
     CompletedMilestone, 
     CompletedVaccination,
     Allergy,
-    MedicalCondition
+    MedicalCondition,
+    User
   ])],
   controllers: [ChildrenController],
   providers: [

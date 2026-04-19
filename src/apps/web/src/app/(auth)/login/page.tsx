@@ -63,7 +63,7 @@ export default function LoginPage() {
   return (
     <PublicLayout>
       <div className="flex flex-1 items-center justify-center p-4 min-h-[80vh]">
-        <Card className="w-full max-w-md shadow-2xl overflow-hidden border-white/5">
+        <Card className="w-full max-w-md shadow-2xl overflow-hidden border-border/50">
           <CardHeader className="text-center pb-2">
             <Link href="/" className="mb-8 block">
               <div className="flex justify-center h-24">
@@ -85,7 +85,7 @@ export default function LoginPage() {
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-background/50 border-white/10"
+                  className="bg-background/50 border-border"
                 />
               </div>
               <div className="space-y-2">
@@ -101,7 +101,7 @@ export default function LoginPage() {
                   required 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-background/50 border-white/10"
+                  className="bg-background/50 border-border"
                 />
               </div>
               <Button type="submit" className="w-full h-12 text-white font-bold" disabled={isLoading}>
@@ -111,10 +111,10 @@ export default function LoginPage() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-white/10" />
+                <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-[#181D22] dark:bg-card px-2 text-muted-foreground font-medium">Or continue with</span>
+                <span className="bg-card px-2 text-muted-foreground font-medium">Or continue with</span>
               </div>
             </div>
 
@@ -128,7 +128,7 @@ export default function LoginPage() {
               </button>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4 border-t border-white/10 pt-6 text-center text-sm">
+          <CardFooter className="flex flex-col space-y-4 border-t border-border pt-6 text-center text-sm">
             <p className="text-muted-foreground">
               Don't have an account?{" "}
               <Link href="/signup" className="text-primary font-semibold hover:underline">

@@ -2,12 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ChildrenService } from './children.service';
 import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination, Allergy, MedicalCondition } from './children.model';
+import { User } from '../users/users.model';
 import { NotFoundException } from '@nestjs/common';
 import { createMockRepository, createMockLogger, createMockTracer, createMockMetrics, createMockErrorReporter } from '../common/test/test-utils';
 
 describe('ChildrenService', () => {
   let service: ChildrenService;
   let childRepo: any;
+  let userRepo: any;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,6 +21,7 @@ describe('ChildrenService', () => {
         { provide: getRepositoryToken(CompletedVaccination), useValue: createMockRepository() },
         { provide: getRepositoryToken(Allergy), useValue: createMockRepository() },
         { provide: getRepositoryToken(MedicalCondition), useValue: createMockRepository() },
+        { provide: getRepositoryToken(User), useValue: createMockRepository() },
         { provide: 'ILoggerService', useValue: createMockLogger() },
         { provide: 'ITracingService', useValue: createMockTracer() },
         { provide: 'IMetricService', useValue: createMockMetrics() },
@@ -28,6 +31,7 @@ describe('ChildrenService', () => {
 
     service = module.get<ChildrenService>(ChildrenService);
     childRepo = module.get(getRepositoryToken(Child));
+    userRepo = module.get(getRepositoryToken(User));
   });
 
   it('should be defined', () => {
@@ -37,6 +41,7 @@ describe('ChildrenService', () => {
   describe('create', () => {
     it('should create a child', async () => {
       const dto = { firstName: 'Jane', lastName: 'Doe', parentId: 'p1' };
+      userRepo.findOne.mockResolvedValue({ id: 'p1', name: 'Parent One' });
       childRepo.create.mockReturnValue(dto);
       childRepo.save.mockResolvedValue({ id: 'c1', ...dto });
 

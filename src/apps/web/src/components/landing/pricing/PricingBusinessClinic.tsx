@@ -198,7 +198,7 @@ export function PricingBusinessClinic() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.6 }}
-              className="bg-slate-900/60 backdrop-blur-2xl border border-white/10 p-10 rounded-[2.5rem] shadow-3xl text-center md:text-left md:flex items-center justify-between gap-10"
+              className="bg-slate-900/60 backdrop-blur-2xl border border-white/10 p-6 md:p-10 rounded-2xl md:rounded-[2.5rem] shadow-3xl text-center md:text-left md:flex items-center justify-between gap-10"
             >
               <div className="mb-6 md:mb-0">
                 <h3 className="text-2xl font-headline font-bold text-white mb-3 flex items-center gap-3 justify-center md:justify-start">

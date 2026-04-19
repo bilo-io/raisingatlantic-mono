@@ -41,6 +41,11 @@ export function LoginPromptModal({ isOpen, onClose }: LoginPromptModalProps) {
               Sign In to View
             </Link>
           </Button>
+          <Button asChild variant="outline" className="flex-1 order-1 sm:order-2">
+            <Link href="/login/test" className="flex items-center justify-center">
+              Login Test
+            </Link>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

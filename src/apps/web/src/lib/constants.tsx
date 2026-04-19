@@ -27,6 +27,7 @@ export const LANDING_NAV_LINKS: NavLinkItem[] = [
   { href: '/directory', label: 'navDirectory', icon: Search, isPublic: true },
   { href: '/pricing', label: 'navPricing', icon: Tag, isPublic: true },
   { href: '/login', label: 'navLogin', icon: LogIn, isAuthLink: true, isPublic: true },
+  { href: '/login/test', label: 'navLoginTest', icon: Fingerprint, isAuthLink: true, isPublic: true },
   { href: '/signup', label: 'navSignUp', icon: UserPlus, isAuthLink: true, isPublic: true },
 ];
 
