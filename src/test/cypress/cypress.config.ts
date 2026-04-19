@@ -3,7 +3,7 @@ import { defineConfig } from 'cypress';
 export default defineConfig({
   e2e: {
     setupNodeEvents(on, config) {
-      const environment = config.env.environment || 'local';
+      const environment = config.env.environment || 'prod';
       const urls: Record<string, string> = {
         local: 'http://localhost:9002',
         dev: 'https://raisingatlantic-web-dev.vercel.app',

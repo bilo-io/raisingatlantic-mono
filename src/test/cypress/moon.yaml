@@ -20,9 +20,9 @@ tasks:
     options:
       runInCI: false
 
-  # Default CI task — runs headlessly against the dev environment (no local server needed)
+  # Default CI task — runs headlessly against the production environment
   test:
-    command: 'npm run test:dev'
+    command: 'npm run test:prod'
     deps:
       - 'cypress-tests:install'
 
