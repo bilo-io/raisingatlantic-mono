@@ -19,6 +19,7 @@
     "db:seed": "ts-node -r tsconfig-paths/register db/seeds/1712404718000-SeedExamples.ts",
     "db:seed:core": "ts-node -r tsconfig-paths/register db/seeds/1712404719000-SeedCoreData.ts",
     "db:seed:hospitals": "ts-node -r tsconfig-paths/register db/seeds/1713483879000-SeedHospitals.ts",
+    "db:seed:blog": "ts-node -r tsconfig-paths/register db/seeds/1713531001000-SeedBlogPosts.ts",
     "db:migration:revert": "ts-node -r tsconfig-paths/register node_modules/typeorm/cli.js -d db/data-source.ts migration:revert",
     "db:migration:generate": "ts-node -r tsconfig-paths/register node_modules/typeorm/cli.js -d db/data-source.ts migration:generate",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",

@@ -42,12 +42,19 @@ export default function LoginPage() {
   }, [isApiEnabled]);
 
   const activeUsers = useMemo(() => {
-    return isApiEnabled && apiUsers.length > 0 ? apiUsers : dummyUsers;
-  }, [isApiEnabled, apiUsers]);
+    // Merge API users and dummy users to ensure test-specific users like Bilo always appear
+    // even if the API is active. We filter out duplicates by ID.
+    const combined = [...apiUsers, ...dummyUsers];
+    const unique = Array.from(new Map(combined.map(u => [u.id, u])).values());
+    return unique;
+  }, [apiUsers, dummyUsers]);
 
   const usersForRole = useMemo(() => {
     if (!selectedRole) return [];
-    return activeUsers.filter((user: any) => user.role.toLowerCase() === selectedRole.toLowerCase());
+    return activeUsers.filter((user: any) => {
+      if (!user.role) return false;
+      return user.role.toLowerCase() === selectedRole.toLowerCase();
+    });
   }, [selectedRole, activeUsers]);
 
   const selectedUser = useMemo(() => {
@@ -139,7 +146,13 @@ export default function LoginPage() {
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.values(UserRole).filter(role => role !== UserRole.SUPER_ADMIN).map(role => (
+                    {Object.values(UserRole).filter(role => {
+                      // Only show Super Admin on localhost
+                      if (role === UserRole.SUPER_ADMIN) {
+                        return typeof window !== 'undefined' && window.location.hostname === 'localhost';
+                      }
+                      return true;
+                    }).map(role => (
                       <SelectItem key={role} value={role}>
                         {role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                       </SelectItem>

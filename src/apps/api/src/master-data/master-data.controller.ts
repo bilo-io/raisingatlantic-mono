@@ -14,4 +14,19 @@ export class MasterDataController {
   findAllVaccinations(): Vaccination[] {
     return this.masterDataService.findAllVaccinations();
   }
+
+  @Get('growth')
+  findAllGrowthRecords() {
+    return this.masterDataService.findAllGrowthRecords();
+  }
+
+  @Get('milestones/all')
+  findAllCompletedMilestones() {
+    return this.masterDataService.findAllCompletedMilestones();
+  }
+
+  @Get('vaccinations/all')
+  findAllCompletedVaccinations() {
+    return this.masterDataService.findAllCompletedVaccinations();
+  }
 }

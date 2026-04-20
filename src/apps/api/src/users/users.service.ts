@@ -76,6 +76,13 @@ export class UsersService {
     const span = this.tracer.startSpan('UsersService.findOne');
     this.logger.log(`Fetching user with ID: ${id}`);
     try {
+      // Basic UUID format check to avoid 500 error from TypeORM/Postgres
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        this.logger.warn(`Invalid UUID format provided: ${id}`);
+        throw new NotFoundException(`User with ID: ${id} not found`);
+      }
+
       const user = await this.usersRepository.findOne({
         where: { id },
         relations: ['clinicianProfile'],
@@ -85,6 +92,12 @@ export class UsersService {
         throw new NotFoundException(`User with ID: ${id} not found`);
       }
       return user;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(`Error fetching user ${id}: ${error.message}`);
+      throw error;
     } finally {
       this.tracer.endSpan(span);
     }

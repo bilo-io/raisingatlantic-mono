@@ -26,6 +26,7 @@ export const LANDING_NAV_LINKS: NavLinkItem[] = [
   { href: '/contact', label: 'navContact', icon: Mail, isPublic: true },
   { href: '/directory', label: 'navDirectory', icon: Search, isPublic: true },
   { href: '/pricing', label: 'navPricing', icon: Tag, isPublic: true },
+  { href: '/blog', label: 'navBlogLink', icon: Newspaper, isPublic: true },
   { href: '/login', label: 'navLogin', icon: LogIn, isAuthLink: true, isPublic: true },
   { href: '/login/test', label: 'navLoginTest', icon: Fingerprint, isAuthLink: true, isPublic: true },
   { href: '/signup', label: 'navSignUp', icon: UserPlus, isAuthLink: true, isPublic: true },
@@ -102,6 +103,7 @@ export const DASHBOARD_NAV_LINKS: NavLinkItem[] = [
     roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
     children: [
       { href: '/dashboard/admin/users', label: 'User Management', icon: Users },
+      { href: '/dashboard/admin/blog', label: 'Blog Management', icon: Newspaper, roles: [UserRole.SUPER_ADMIN] },
       { href: '/dashboard/admin/system', label: 'System Settings', icon: Settings },
     ]
   },

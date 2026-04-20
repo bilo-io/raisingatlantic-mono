@@ -1,5 +1,6 @@
 {
   "siteName": "Raising Atlantic",
+  "navBlogLink": "Blog",
   "navAbout": "Über uns",
   "navContact": "Kontakt",
   "navDirectory": "Suche",
@@ -99,5 +100,10 @@
   "contactFormSuccessTitle": "Nachricht gesendet!",
   "contactFormSuccessDescription": "Vielen Dank, {{name}}! Wir haben Ihre Nachricht erhalten und werden uns in Kürze bei Ihnen melden.",
   "directoryPageTitle": "Verzeichnis",
-  "directoryPageContent": "Unser Verzeichnis von Klinikern und Praxen befindet sich derzeit im Aufbau. Bitte schauen Sie bald wieder vorbei, um vertrauenswürdige Fachleute in Ihrer Nähe zu finden, die Teil des Raising Atlantic-Netzwerks sind."
+  "directoryPageContent": "Unser Verzeichnis von Klinikern und Praxen befindet sich derzeit im Aufbau. Bitte schauen Sie bald wieder vorbei, um vertrauenswürdige Fachleute in Ihrer Nähe zu finden, die Teil des Raising Atlantic-Netzwerks sind.",
+  "legalDocuments": "Rechtliche Dokumente",
+  "privacyPolicy": "Datenschutzerklärung",
+  "termsOfService": "Nutzungsbedingungen",
+  "eula": "EULA",
+  "cookiePolicy": "Cookie-Richtlinie"
 }

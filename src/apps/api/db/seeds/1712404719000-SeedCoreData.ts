@@ -109,6 +109,18 @@ async function seed(): Promise<void> {
     console.log('✅ Seeded Admin User');
   }
 
+  let superAdminBilo = await userRepo.findOne({ where: { email: 'bilo.lwabona@gmail.com' } });
+  if (!superAdminBilo) {
+    superAdminBilo = userRepo.create({
+      name: 'Bilo Lwabona',
+      email: 'bilo.lwabona@gmail.com',
+      phone: '(021) 000-0000',
+      role: UserRole.SUPER_ADMIN,
+    });
+    await userRepo.save(superAdminBilo);
+    console.log('✅ Seeded Super Admin User (Bilo)');
+  }
+
   let superAdmin = await userRepo.findOne({ where: { email: 'super@raisingatlantic.com' } });
   if (!superAdmin) {
     superAdmin = userRepo.create({

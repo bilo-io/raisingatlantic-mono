@@ -86,6 +86,17 @@ export const dummyUsers: User[] = [
     tenantId: 'tenant-1',
     createdAt: "2020-01-01T00:00:00Z",
     updatedAt: "2020-01-01T00:00:00Z"
+  },
+  {
+    id: "super-admin-bilo",
+    name: "Bilo Lwabona",
+    email: "bilo.lwabona@gmail.com",
+    phone: "(021) 000-0000",
+    imageUrl: "",
+    role: UserRole.SUPER_ADMIN,
+    tenantId: 'tenant-1',
+    createdAt: "2020-01-01T00:00:00Z",
+    updatedAt: "2020-01-01T00:00:00Z"
   }
 ];
 

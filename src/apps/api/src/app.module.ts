@@ -20,6 +20,8 @@ import { MasterDataModule } from './master-data/master-data.module';
 import { VerificationsModule } from './verifications/verifications.module';
 import { ReportsModule } from './reports/reports.module';
 import { AppointmentsModule } from './appointments/appointments.module';
+import { BlogModule } from './blog/blog.module';
+import { BlogPost } from './blog/blog.model';
 
 @Module({
   imports: [
@@ -53,7 +55,8 @@ import { AppointmentsModule } from './appointments/appointments.module';
           Allergy,
           MedicalCondition,
           Report,
-          Appointment
+          Appointment,
+          BlogPost
         ],
         // auto-create / sync schema in dev — disable in production
         synchronize: config.get<string>('NODE_ENV') !== 'production',
@@ -70,6 +73,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
     AppointmentsModule,
     MasterDataModule,
     VerificationsModule,
+    BlogModule,
   ],
   controllers: [AppController],
   providers: [AppService],

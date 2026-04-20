@@ -45,5 +45,8 @@ tasks:
   db-seed:
     command: 'npm run db:seed'
 
+  db-seed-blog:
+    command: 'npm run db:seed:blog'
+
   clean:
     command: 'rm -rf dist node_modules'

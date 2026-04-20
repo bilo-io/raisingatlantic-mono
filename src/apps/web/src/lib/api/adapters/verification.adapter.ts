@@ -4,7 +4,7 @@ import { cliniciansToVerify, recordsToVerify } from '@/data/verifications';
 
 export async function getCliniciansForVerification(): Promise<any[]> {
   if (useApi()) {
-    const response = await apiClient.get('/v1/verifications/clinicians');
+    const response = await apiClient.get('/verifications/clinicians');
     return response.data;
   }
   return cliniciansToVerify;
@@ -12,7 +12,7 @@ export async function getCliniciansForVerification(): Promise<any[]> {
 
 export async function getRecordsForVerification(): Promise<any[]> {
   if (useApi()) {
-    const response = await apiClient.get('/v1/verifications/records');
+    const response = await apiClient.get('/verifications/records');
     return response.data.map((r: any) => ({
       ...r,
       childName: r.child?.name || 'Unknown Child',

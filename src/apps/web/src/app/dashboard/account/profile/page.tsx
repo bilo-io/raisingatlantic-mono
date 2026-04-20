@@ -39,7 +39,7 @@ export default function UserProfilePage() {
       try {
         setLoading(true);
         // In a real app, we'd get the current user ID from auth context
-        const currentUserId = localStorage.getItem('currentUserId') || 'user-1';
+        const currentUserId = localStorage.getItem('currentUserId') || 'parent-jane-doe';
         const userData = await getUserById(currentUserId);
         setUser(userData);
       } catch (error) {

@@ -22,7 +22,7 @@ export interface Practice {
 export const getPractices = async (): Promise<Practice[]> => {
   if (useApi()) {
     try {
-      const response = await apiClient.get('/v1/practices');
+      const response = await apiClient.get('/practices');
       return response.data;
     } catch (error) {
       console.error('Failed to fetch practices from API, falling back to dummy data', error);
@@ -35,7 +35,7 @@ export const getPractices = async (): Promise<Practice[]> => {
 export const getPublicPractices = async (): Promise<Practice[]> => {
   if (useApi()) {
     try {
-      const response = await apiClient.get('/v1/practices/public');
+      const response = await apiClient.get('/practices/public');
       return response.data;
     } catch (error) {
       console.error('Failed to fetch public practices from API, falling back to dummy data', error);
@@ -48,7 +48,7 @@ export const getPublicPractices = async (): Promise<Practice[]> => {
 export const getPracticeById = async (id: string): Promise<Practice> => {
   if (useApi()) {
     try {
-      const response = await apiClient.get(`/v1/practices/${id}`);
+      const response = await apiClient.get(`/practices/${id}`);
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch practice ${id} from API, falling back to dummy data`, error);
@@ -63,7 +63,7 @@ export const getPracticeById = async (id: string): Promise<Practice> => {
 };
 export const createPractice = async (data: Partial<Practice>): Promise<Practice> => {
   if (useApi()) {
-    const response = await apiClient.post('/v1/practices', data);
+    const response = await apiClient.post('/practices', data);
     return response.data;
   }
   const newPractice = { ...data, id: `practice-${Date.now()}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as Practice;
@@ -73,7 +73,7 @@ export const createPractice = async (data: Partial<Practice>): Promise<Practice>
 
 export const updatePractice = async (id: string, data: Partial<Practice>): Promise<Practice> => {
   if (useApi()) {
-    const response = await apiClient.patch(`/v1/practices/${id}`, data);
+    const response = await apiClient.patch(`/practices/${id}`, data);
     return response.data;
   }
   const index = dummyPractices.findIndex(p => p.id === id);
@@ -86,7 +86,7 @@ export const updatePractice = async (id: string, data: Partial<Practice>): Promi
 
 export const deletePractice = async (id: string): Promise<void> => {
   if (useApi()) {
-    await apiClient.delete(`/v1/practices/${id}`);
+    await apiClient.delete(`/practices/${id}`);
     return;
   }
   const index = dummyPractices.findIndex(p => p.id === id);

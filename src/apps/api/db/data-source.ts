@@ -9,6 +9,7 @@ import { Practice } from '../src/practices/practices.model';
 import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination, Allergy, MedicalCondition } from '../src/children/children.model';
 import { Report } from '../src/reports/reports.model';
 import { Appointment } from '../src/appointments/appointments.model';
+import { BlogPost } from '../src/blog/blog.model';
 
 dotenv.config({ path: '.env' });
 
@@ -41,7 +42,8 @@ export const AppDataSource = new DataSource({
     Allergy,
     MedicalCondition,
     Report,
-    Appointment
+    Appointment,
+    BlogPost
   ],
   migrations: ['db/migrations/*.ts'],
   synchronize: false, // always false when using migrations

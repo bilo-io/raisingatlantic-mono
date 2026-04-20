@@ -4,12 +4,14 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { notFound } from 'next/navigation';
 import { formatDatePretty } from '@/utils/date';
+import { getServerLocale, isValidLocale } from '@/utils/locale';
 
-async function getLegalDocumentContent(slug: string): Promise<string | null> {
+async function getLegalDocumentContent(slug: string, locale: string = 'en'): Promise<string | null> {
   const validSlugs: { [key: string]: string } = {
     'privacy-policy': 'privacy-policy.md',
     'terms-of-service': 'terms-of-service.md',
     'eula': 'eula.md',
+    'cookie-policy': 'cookie-policy.md',
   };
 
   const filename = validSlugs[slug];
@@ -17,14 +19,30 @@ async function getLegalDocumentContent(slug: string): Promise<string | null> {
     return null;
   }
 
+  // Use the provided locale if valid, otherwise fallback to 'en'
+  const targetLocale = isValidLocale(locale) ? locale : 'en';
+
   try {
-    const filePath = path.join(process.cwd(), 'src', 'content', 'legal', filename);
-    let content = await fs.readFile(filePath, 'utf8');
+    const filePath = path.join(process.cwd(), 'src', 'content', 'legal', targetLocale, filename);
+    
+    // Check if the file exists for the target locale, if not, fallback to 'en'
+    let finalPath = filePath;
+    try {
+      await fs.access(filePath);
+    } catch {
+      if (targetLocale !== 'en') {
+        finalPath = path.join(process.cwd(), 'src', 'content', 'legal', 'en', filename);
+      } else {
+        return null;
+      }
+    }
+
+    let content = await fs.readFile(finalPath, 'utf8');
     // Replace placeholder for current date
     content = content.replace(/{{CURRENT_DATE}}/g, formatDatePretty(new Date()));
     return content;
   } catch (error) {
-    console.error(`Error reading legal document ${filename}:`, error);
+    console.error(`Error reading legal document ${filename} for locale ${targetLocale}:`, error);
     return null;
   }
 }
@@ -61,7 +79,8 @@ const MarkdownDisplay = ({ markdownContent }: { markdownContent: string }) => {
 
 export default async function LegalDocumentPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
-  const content = await getLegalDocumentContent(slug);
+  const locale = await getServerLocale();
+  const content = await getLegalDocumentContent(slug, locale);
 
   if (!content) {
     notFound();
@@ -77,13 +96,14 @@ export default async function LegalDocumentPage({ params }: { params: { slug: st
 }
 
 export async function generateStaticParams() {
-  const legalSlugs = ['privacy-policy', 'terms-of-service', 'eula'];
+  const legalSlugs = ['privacy-policy', 'terms-of-service', 'eula', 'cookie-policy'];
   return legalSlugs.map(slug => ({ slug }));
 }
 
 // Generate metadata for each legal page
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const content = await getLegalDocumentContent(params.slug);
+  const locale = await getServerLocale();
+  const content = await getLegalDocumentContent(params.slug, locale);
   
   let title = "Legal Document";
   if (content) {

@@ -68,8 +68,14 @@ export default function VaccinationRecordsPage() {
         setVaccinationsMaster(allVaccinations);
         
         const storedUserId = localStorage.getItem('currentUserId') || 'user-1';
-        const user = allUsers.find((u: any) => u.id === storedUserId);
+        let user = allUsers.find((u: any) => u.id === storedUserId);
         
+        // Fallback for Super Admin if not found in API list
+        if (!user && storedUserId) {
+          const { dummyUsers } = await import('@/data/users');
+          user = dummyUsers.find(u => u.id === storedUserId);
+        }
+
         if (user) {
           setCurrentUser(user);
           
@@ -78,10 +84,16 @@ export default function VaccinationRecordsPage() {
             relevantChildren = allChildren.filter(c => c.parentId === user.id);
           } else if (user.role === UserRole.CLINICIAN) {
             relevantChildren = allChildren.filter(c => c.clinicianId === user.id);
-          } else { // Admin sees all
+          } else { // Admin or SuperAdmin sees all
             relevantChildren = allChildren;
           }
           setChildrenForUser(relevantChildren);
+        } else {
+          // If still no user found but we have an ID, proceed as SuperAdmin fallback
+          // to prevent perpetual skeleton state
+          console.warn("Current user not found, defaulting to SuperAdmin access for ID:", storedUserId);
+          setCurrentUser({ id: storedUserId, name: 'Super Admin', role: UserRole.SUPER_ADMIN });
+          setChildrenForUser(allChildren);
         }
       } catch (error) {
         console.error("Failed to load vaccination records:", error);

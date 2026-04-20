@@ -29,7 +29,7 @@ export async function getChildren(filters?: { tenantId?: string; clinicianId?: s
     if (filters?.tenantId) params.append('tenantId', filters.tenantId);
     if (filters?.clinicianId) params.append('clinicianId', filters.clinicianId);
     
-    const response = await apiClient.get(`/v1/children?${params.toString()}`);
+    const response = await apiClient.get(`/children?${params.toString()}`);
     return response.data.map((child: any) => ({
       ...child,
       parentId: child.parent?.id,
@@ -41,7 +41,7 @@ export async function getChildren(filters?: { tenantId?: string; clinicianId?: s
 
 export async function getChildById(id: string): Promise<Child> {
   if (useApi()) {
-    const response = await apiClient.get(`/v1/children/${id}`);
+    const response = await apiClient.get(`/children/${id}`);
     const child = response.data;
     return {
       ...child,
@@ -56,7 +56,7 @@ export async function getChildById(id: string): Promise<Child> {
 
 export async function getUnifiedRecords(childId: string): Promise<any[]> {
   if (useApi()) {
-    const response = await apiClient.get(`/v1/children/${childId}/records`);
+    const response = await apiClient.get(`/children/${childId}/records`);
     return response.data;
   }
   // Return mock records filtered by child ID
@@ -64,7 +64,7 @@ export async function getUnifiedRecords(childId: string): Promise<any[]> {
 }
 export async function createChild(data: Partial<Child>): Promise<Child> {
   if (useApi()) {
-    const response = await apiClient.post('/v1/children', data);
+    const response = await apiClient.post('/children', data);
     return response.data;
   }
   const newChild = { 
@@ -80,7 +80,7 @@ export async function createChild(data: Partial<Child>): Promise<Child> {
 
 export async function updateChild(id: string, data: Partial<Child>): Promise<Child> {
   if (useApi()) {
-    const response = await apiClient.patch(`/v1/children/${id}`, data);
+    const response = await apiClient.patch(`/children/${id}`, data);
     return response.data;
   }
   const index = childrenDetails.findIndex(c => c.id === id);
@@ -93,7 +93,7 @@ export async function updateChild(id: string, data: Partial<Child>): Promise<Chi
 
 export async function deleteChild(id: string): Promise<void> {
   if (useApi()) {
-    await apiClient.delete(`/v1/children/${id}`);
+    await apiClient.delete(`/children/${id}`);
     return;
   }
   const index = childrenDetails.findIndex(c => c.id === id);

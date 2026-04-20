@@ -5,7 +5,7 @@ import { dummyTenants, type Tenant } from '@/data/tenants';
 export async function getTenants(): Promise<Tenant[]> {
   if (useApi()) {
     try {
-      const response = await apiClient.get('/v1/tenants');
+      const response = await apiClient.get('/tenants');
       return response.data;
     } catch (error) {
       console.error('Failed to fetch tenants from API, falling back to dummy data', error);
@@ -18,7 +18,7 @@ export async function getTenants(): Promise<Tenant[]> {
 export async function getTenantById(id: string): Promise<Tenant | null> {
   if (useApi()) {
     try {
-      const response = await apiClient.get(`/v1/tenants/${id}`);
+      const response = await apiClient.get(`/tenants/${id}`);
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch tenant ${id} from API, falling back to dummy data`, error);
@@ -30,7 +30,7 @@ export async function getTenantById(id: string): Promise<Tenant | null> {
 
 export async function createTenant(tenantData: Partial<Tenant>): Promise<Tenant> {
   if (useApi()) {
-    const response = await apiClient.post('/v1/tenants', tenantData);
+    const response = await apiClient.post('/tenants', tenantData);
     return response.data;
   }
   const newTenant = {
@@ -44,7 +44,7 @@ export async function createTenant(tenantData: Partial<Tenant>): Promise<Tenant>
 
 export async function updateTenant(id: string, tenantData: Partial<Tenant>): Promise<Tenant> {
   if (useApi()) {
-    const response = await apiClient.patch(`/v1/tenants/${id}`, tenantData);
+    const response = await apiClient.patch(`/tenants/${id}`, tenantData);
     return response.data;
   }
   return { ...tenantData, id, updatedAt: new Date().toISOString() } as Tenant;

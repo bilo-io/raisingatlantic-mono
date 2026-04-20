@@ -1,5 +1,6 @@
 {
   "siteName": "Raising Atlantic",
+  "navBlogLink": "Blog",
   "navAbout": "Oor Ons",
   "navContact": "Kontak",
   "navDirectory": "Soek",
@@ -99,5 +100,10 @@
   "contactFormSuccessTitle": "Boodskap Gestuur!",
   "contactFormSuccessDescription": "Dankie, {{name}}! Ons het u boodskap ontvang en sal binnekort na u terugkom.",
   "directoryPageTitle": "Gids",
-  "directoryPageContent": "Ons gids van klinici en praktyke word tans opgebou. Kom kyk asseblief binnekort weer om betroubare professionele persone in u omgewing te vind wat deel is van die Raising Atlantic-netwerk."
+  "directoryPageContent": "Ons gids van klinici en praktyke word tans opgebou. Kom kyk asseblief binnekort weer om betroubare professionele persone in u omgewing te vind wat deel is van die Raising Atlantic-netwerk.",
+  "legalDocuments": "Regsdokumente",
+  "privacyPolicy": "Privaatheidsbeleid",
+  "termsOfService": "Diensbepalings",
+  "eula": "EULA",
+  "cookiePolicy": "Koekiebeleid"
 }

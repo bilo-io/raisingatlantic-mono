@@ -5,7 +5,7 @@ import { standardVaccinationSchedule } from '@/data/vaccinations';
 
 export async function getMilestones(): Promise<any[]> {
   if (useApi()) {
-    const response = await apiClient.get('/v1/records/milestones');
+    const response = await apiClient.get('/records/milestones');
     return response.data;
   }
   return standardMilestonesByAge;
@@ -13,7 +13,7 @@ export async function getMilestones(): Promise<any[]> {
 
 export async function getVaccinationSchedule(): Promise<any[]> {
   if (useApi()) {
-    const response = await apiClient.get('/v1/records/vaccinations');
+    const response = await apiClient.get('/records/vaccinations');
     return response.data;
   }
   return standardVaccinationSchedule;
