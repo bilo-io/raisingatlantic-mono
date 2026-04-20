@@ -105,6 +105,7 @@ export const DASHBOARD_NAV_LINKS: NavLinkItem[] = [
       { href: '/dashboard/admin/users', label: 'User Management', icon: Users },
       { href: '/dashboard/admin/blog', label: 'Blog Management', icon: Newspaper, roles: [UserRole.SUPER_ADMIN] },
       { href: '/dashboard/admin/system', label: 'System Settings', icon: Settings },
+      { href: '/dashboard/admin/logs', label: 'System Logs', icon: ClipboardList },
     ]
   },
   {

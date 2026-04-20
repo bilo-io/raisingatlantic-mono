@@ -21,7 +21,7 @@ tasks:
       runInCI: false
 
   # Default CI task — runs headlessly against the production environment
-  test:
+  test-e2e:
     command: 'npm run test:prod'
     deps:
       - 'cypress:install'

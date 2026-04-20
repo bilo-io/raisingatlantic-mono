@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ExamplesModule } from './examples/examples.module';
@@ -22,6 +23,9 @@ import { ReportsModule } from './reports/reports.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { BlogModule } from './blog/blog.module';
 import { BlogPost } from './blog/blog.model';
+import { LeadsModule } from './leads/leads.module';
+import { SystemLogsModule } from './system-logs/system-logs.module';
+import { SystemLog } from './common/models/system-log.model';
 
 @Module({
   imports: [
@@ -30,6 +34,12 @@ import { BlogPost } from './blog/blog.model';
       isGlobal: true,
       envFilePath: '.env',
     }),
+
+    // Rate limiting configuration (1 request per minute by default for tagged endpoints)
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 1,
+    }]),
 
     // TypeORM configured from .env via ConfigService
     TypeOrmModule.forRootAsync({
@@ -56,8 +66,12 @@ import { BlogPost } from './blog/blog.model';
           MedicalCondition,
           Report,
           Appointment,
-          BlogPost
+          BlogPost,
+          SystemLog
         ],
+        // retry connection on startup
+        retryAttempts: 10,
+        retryDelay: 3000,
         // auto-create / sync schema in dev — disable in production
         synchronize: config.get<string>('NODE_ENV') !== 'production',
         logging: config.get<string>('NODE_ENV') !== 'production',
@@ -74,6 +88,8 @@ import { BlogPost } from './blog/blog.model';
     MasterDataModule,
     VerificationsModule,
     BlogModule,
+    LeadsModule,
+    SystemLogsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

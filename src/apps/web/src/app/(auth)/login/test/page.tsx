@@ -42,7 +42,7 @@ export default function LoginPage() {
   }, [isApiEnabled]);
 
   const activeUsers = useMemo(() => {
-    // Merge API users and dummy users to ensure test-specific users like Bilo always appear
+    // Merge API users and dummy users to ensure administrative test accounts always appear
     // even if the API is active. We filter out duplicates by ID.
     const combined = [...apiUsers, ...dummyUsers];
     const unique = Array.from(new Map(combined.map(u => [u.id, u])).values());
@@ -89,7 +89,7 @@ export default function LoginPage() {
         <Card className="w-full max-w-md shadow-2xl">
           <CardHeader className="space-y-1 text-center">
             <Link href="/" className="mb-4 inline-block">
-              <SiteLogo className="mx-auto" />
+              <SiteLogo className="mx-auto" width={294} height={68} />
             </Link>
             <CardTitle className="font-headline text-3xl">Login</CardTitle>
             <CardDescription>Enter your credentials to access your account</CardDescription>

@@ -32,7 +32,7 @@ Get up and running in minutes:
 
 The API will be available at `http://localhost:3000/v1/`.
 The Frontend will be available at `http://localhost:9002/`.
-The Mobile app will launch its Expo server dynamically (check terminal for QR code).
+The Mobile app will launch its Expo Metro server (see [Mobile Development](#-mobile-development) below for iOS/Android instructions).
 
 ---
 
@@ -50,6 +50,45 @@ All database commands are unified across the monorepo root:
 ### 🏗 API & Development
 - `moon run :build`: Builds all applications (API, Web, Mobile, etc.).
 - `moon run :dev`: Starts the API, Web, and Mobile watchers simultaneously.
+
+---
+
+## 📱 Mobile Development
+
+The mobile app is a **React Native (Expo)** app. See the full guide at [`src/apps/mobile/README.md`](./src/apps/mobile/README.md).
+
+### Prerequisites
+- **iOS:** macOS + Xcode 15+ (for iOS Simulator)
+- **Android:** Android Studio + an AVD configured in Device Manager
+- **Physical device:** Install [Expo Go](https://expo.dev/go) on your iOS or Android device
+
+### Running on iOS or Android
+
+**Step 1 — Start the Metro bundler (Expo dev server):**
+```bash
+moon run mobile:dev
+# or: cd src/apps/mobile && npm run dev
+```
+
+**Step 2 — Open on your target platform** (from the interactive terminal menu):
+
+| Key | Action |
+|-----|--------|
+| `i` | Open iOS Simulator |
+| `a` | Open Android Emulator |
+| Scan QR | Open in Expo Go on a physical device |
+
+**One-step shortcuts** (start Metro + open platform automatically):
+```bash
+moon run mobile:ios      # iOS Simulator (macOS only)
+moon run mobile:android  # Android Emulator
+```
+
+### Troubleshooting
+- **iOS Simulator missing:** Run `xcode-select --install`
+- **Android emulator not detected:** Ensure `ANDROID_HOME` is set and an AVD is started from Android Studio → Device Manager
+- **Clear Expo cache:** `npx expo start --clear` inside `src/apps/mobile/`
+- **Dependency errors:** `npm install --legacy-peer-deps` (required for React 19 peer deps)
 
 ---
 

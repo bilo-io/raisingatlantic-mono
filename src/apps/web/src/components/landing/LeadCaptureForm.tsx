@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/useToast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from 'react-i18next';
+import { submitLead } from '@/lib/api/adapters/lead.adapter';
+import { Loader2 } from 'lucide-react';
 
 export function LeadCaptureForm() {
   const { t } = useTranslation();
@@ -15,22 +17,42 @@ export function LeadCaptureForm() {
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // In a real app, you'd send this to a backend or email service
-    console.log("Lead captured:", { email, message });
-    addToast({
-      title: t('leadFormSuccessTitle'),
-      description: t('leadFormSuccessDescription', { email }),
-      type: 'success',
-    });
-    setEmail('');
-    setMessage('');
+    setIsLoading(true);
+
+    try {
+      await submitLead({ email, message });
+      
+      addToast({
+        title: t('leadFormSuccessTitle'),
+        description: t('leadFormSuccessDescription', { email }),
+        type: 'success',
+      });
+      
+      setEmail('');
+      setMessage('');
+    } catch (error: any) {
+      console.error("Lead capture failed:", error);
+      
+      const isRateLimited = error.message && error.message.includes('ThrottlerException');
+      
+      addToast({
+        title: isRateLimited ? t('leadFormRateLimitTitle', 'Please wait') : t('leadFormErrorTitle', 'Submission failed'),
+        description: isRateLimited 
+          ? t('leadFormRateLimitDescription', 'You can only send one message per minute. Please try again later.')
+          : (error.message || t('leadFormErrorDescription', 'Something went wrong. Please try again.')),
+        type: 'error',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!mounted) {
@@ -54,6 +76,7 @@ export function LeadCaptureForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          disabled={isLoading}
           className="bg-background/80 border-white/20 h-12"
         />
       </div>
@@ -64,15 +87,25 @@ export function LeadCaptureForm() {
           placeholder={t('leadFormMessagePlaceholder')}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          required
+          disabled={isLoading}
           className="bg-background/80 border-white/20 min-h-[100px]"
         />
       </div>
       <Button 
         type="submit" 
         size="lg" 
-        className="w-full bg-[#181D22] text-[#E5E0D8] dark:bg-white dark:text-[#181D22] hover:opacity-90 transition-all font-bold rounded-xl h-14 shadow-md"
+        disabled={isLoading}
+        className="w-full bg-[#181D22] text-[#E5E0D8] dark:bg-white dark:text-[#181D22] hover:opacity-90 transition-all font-bold rounded-xl h-14 shadow-md disabled:opacity-70"
       >
-        {t('leadFormSubmitButton')}
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {t('leadFormSubmittingLabel', 'Sending...')}
+          </>
+        ) : (
+          t('leadFormSubmitButton')
+        )}
       </Button>
     </form>
   );

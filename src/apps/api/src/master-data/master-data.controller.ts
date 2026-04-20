@@ -20,12 +20,12 @@ export class MasterDataController {
     return this.masterDataService.findAllGrowthRecords();
   }
 
-  @Get('milestones/all')
+  @Get('milestones/completed')
   findAllCompletedMilestones() {
     return this.masterDataService.findAllCompletedMilestones();
   }
 
-  @Get('vaccinations/all')
+  @Get('vaccinations/completed')
   findAllCompletedVaccinations() {
     return this.masterDataService.findAllCompletedVaccinations();
   }

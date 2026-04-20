@@ -66,7 +66,7 @@ export default function LoginPage() {
         <Card className="w-full max-w-md shadow-2xl overflow-hidden border-border/50">
           <CardHeader className="text-center pb-2">
             <Link href="/" className="mb-8 block">
-              <div className="flex justify-center h-24">
+              <div className="flex justify-center h-[162px]">
                 <img src="/assets/images/app-branding-light.svg" alt="Raising Atlantic" className="h-full dark:hidden" />
                 <img src="/assets/images/app-branding-dark.svg" alt="Raising Atlantic" className="h-full hidden dark:block" />
               </div>

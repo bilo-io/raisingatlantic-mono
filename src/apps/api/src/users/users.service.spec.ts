@@ -50,10 +50,11 @@ describe('UsersService', () => {
 
   describe('findOne', () => {
     it('should return a user if found', async () => {
-      const user = { id: 'uuid', email: 'test@example.com' };
+      const validUuid = '550e8400-e29b-41d4-a716-446655440000';
+      const user = { id: validUuid, email: 'test@example.com' };
       repository.findOne.mockResolvedValue(user);
 
-      const result = await service.findOne('uuid');
+      const result = await service.findOne(validUuid);
 
       expect(result).toEqual(user);
     });

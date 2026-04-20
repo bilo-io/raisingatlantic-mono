@@ -34,4 +34,13 @@ export class AppController {
       // In a real scenario, this would dynamically determine role and return correct stats.
     };
   }
+  
+  @Get('health')
+  getHealth() {
+    return { 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    };
+  }
 }

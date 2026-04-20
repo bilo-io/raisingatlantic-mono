@@ -23,6 +23,9 @@ import {
 import { 
   getUsers, 
 } from "@/lib/api/adapters/user.adapter";
+import { 
+  getGrowthRecords,
+} from "@/lib/api/adapters/master-data.adapter";
 import { formatDateStandard } from '@/utils/date';
 import { GrowthRecordFormModal } from '@/components/records/GrowthRecordFormModal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -49,6 +52,7 @@ export default function GrowthRecordsPage() {
   const [error, setError] = useState<Error | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [childrenForUser, setChildrenForUser] = useState<any[]>([]);
+  const [allRecordsFlat, setAllRecordsFlat] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -74,20 +78,32 @@ export default function GrowthRecordsPage() {
         if (user) {
           setCurrentUser(user);
           
-          let relevantChildren: any[];
-          if (user.role === UserRole.PARENT) {
-            relevantChildren = allChildren.filter(c => c.parentId === user.id);
-          } else if (user.role === UserRole.CLINICIAN) {
-            relevantChildren = allChildren.filter(c => c.clinicianId === user.id);
-          } else { // Admin or SuperAdmin sees all
-            relevantChildren = allChildren;
+          if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN) {
+            const records = await getGrowthRecords();
+            setAllRecordsFlat(records);
+            setChildrenForUser(allChildren);
+          } else {
+            let relevantChildren: any[];
+            if (user.role === UserRole.PARENT) {
+              relevantChildren = allChildren.filter(c => c.parentId === user.id);
+            } else {
+              relevantChildren = allChildren.filter(c => c.clinicianId === user.id);
+            }
+            setChildrenForUser(relevantChildren);
+
+            // Map records from children for non-admins
+            const localRecords: any[] = [];
+            relevantChildren.forEach(child => {
+              (child.growthRecords || []).forEach((r: any) => {
+                localRecords.push({ ...r, child });
+              });
+            });
+            setAllRecordsFlat(localRecords);
           }
-          setChildrenForUser(relevantChildren);
         } else {
-          // If still no user found but we have an ID, proceed as SuperAdmin fallback
-          // to prevent perpetual skeleton state
-          console.warn("Current user not found, defaulting to SuperAdmin access for ID:", storedUserId);
           setCurrentUser({ id: storedUserId, name: 'Super Admin', role: UserRole.SUPER_ADMIN });
+          const records = await getGrowthRecords();
+          setAllRecordsFlat(records);
           setChildrenForUser(allChildren);
         }
       } catch (err: any) {
@@ -104,28 +120,32 @@ export default function GrowthRecordsPage() {
   const allGrowthRecords = useMemo(() => {
     if (!currentUser) return [];
 
-    const formattedRecords: FormattedGrowthRecord[] = [];
-    childrenForUser.forEach(child => {
-      (child.growthRecords || []).forEach((record: any, index: number) => {
-        const parts: string[] = [];
-        if (record.data.height) parts.push(`Height: ${record.data.height}`);
-        if (record.data.weight) parts.push(`Weight: ${record.data.weight}`);
-        if (record.data.headCircumference) parts.push(`Head Circ: ${record.data.headCircumference}`);
-        if (record.notes) parts.push(`Notes: ${record.notes}`);
+    const formattedRecords: FormattedGrowthRecord[] = allRecordsFlat.map(record => {
+      if (!record.child) return null;
 
-        formattedRecords.push({
-          id: `${child.id}-growth-${index}`,
-          childId: child.id,
-          childName: child.name,
-          childImageUrl: (child.imageUrl as string) || '',
-          date: record.date as string,
-          details: parts.join(', ') || 'No details recorded.',
-        });
-      });
-    });
+      const parts: string[] = [];
+      // Support both API structure (flat) and potential legacy/dummy structure (data object)
+      const height = record.height || record.data?.height;
+      const weight = record.weight || record.data?.weight;
+      const headCircumference = record.headCircumference || record.data?.headCircumference;
+
+      if (height) parts.push(`Height: ${height}`);
+      if (weight) parts.push(`Weight: ${weight}`);
+      if (headCircumference) parts.push(`Head Circ: ${headCircumference}`);
+      if (record.notes) parts.push(`Notes: ${record.notes}`);
+
+      return {
+        id: record.id,
+        childId: record.child.id,
+        childName: record.child.name || `${record.child.firstName} ${record.child.lastName}`,
+        childImageUrl: record.child.imageUrl || '',
+        date: record.date,
+        details: parts.join(', ') || 'No details recorded.',
+      };
+    }).filter(Boolean) as FormattedGrowthRecord[];
 
     return formattedRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [currentUser, childrenForUser]);
+  }, [allRecordsFlat, currentUser]);
 
 
   const filteredRecords = useMemo(() => {

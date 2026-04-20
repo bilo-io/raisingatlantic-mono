@@ -1,12 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { MasterDataService } from './master-data.service';
+import { GrowthRecord, CompletedMilestone, CompletedVaccination } from '../children/children.model';
+import { createMockRepository } from '../common/test/test-utils';
 
 describe('MasterDataService', () => {
   let service: MasterDataService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [MasterDataService],
+      providers: [
+        MasterDataService,
+        {
+          provide: getRepositoryToken(GrowthRecord),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(CompletedMilestone),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(CompletedVaccination),
+          useValue: createMockRepository(),
+        },
+      ],
     }).compile();
 
     service = module.get<MasterDataService>(MasterDataService);

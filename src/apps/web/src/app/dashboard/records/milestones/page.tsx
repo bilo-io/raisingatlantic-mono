@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search, ChevronLeft, ChevronRight, Award, FileEdit, PlusCircle } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Award, FileEdit, PlusCircle, AlertTriangle } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import {
   Table,
@@ -25,6 +25,7 @@ import {
 } from "@/lib/api/adapters/user.adapter";
 import { 
   getMilestones, 
+  getAllCompletedMilestones,
 } from "@/lib/api/adapters/master-data.adapter";
 import { formatDateStandard } from '@/utils/date';
 import { MilestoneRecordFormModal } from '@/components/records/MilestoneRecordFormModal';
@@ -52,6 +53,8 @@ export default function MilestoneRecordsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [childrenForUser, setChildrenForUser] = useState<any[]>([]);
   const [milestonesMaster, setMilestonesMaster] = useState<any[]>([]);
+  const [allRecordsFlat, setAllRecordsFlat] = useState<any[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -79,24 +82,39 @@ export default function MilestoneRecordsPage() {
         if (user) {
           setCurrentUser(user);
           
-          let relevantChildren: any[];
-          if (user.role === UserRole.PARENT) {
-            relevantChildren = allChildren.filter(c => c.parentId === user.id);
-          } else if (user.role === UserRole.CLINICIAN) {
-            relevantChildren = allChildren.filter(c => c.clinicianId === user.id);
-          } else { // Admin or SuperAdmin sees all
-            relevantChildren = allChildren;
+          if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN) {
+            const records = await getAllCompletedMilestones();
+            setAllRecordsFlat(records);
+            setChildrenForUser(allChildren);
+          } else {
+            let relevantChildren: any[];
+            if (user.role === UserRole.PARENT) {
+              relevantChildren = allChildren.filter(c => c.parentId === user.id);
+            } else {
+              relevantChildren = allChildren.filter(c => c.clinicianId === user.id);
+            }
+            setChildrenForUser(relevantChildren);
+            
+            // Map records from children for non-admins
+            const localRecords: any[] = [];
+            relevantChildren.forEach(child => {
+              (child.completedMilestones || []).forEach((m: any) => {
+                localRecords.push({ ...m, child });
+              });
+            });
+            setAllRecordsFlat(localRecords);
           }
-          setChildrenForUser(relevantChildren);
         } else {
-          // If still no user found but we have an ID, proceed as SuperAdmin fallback
-          // to prevent perpetual skeleton state
-          console.warn("Current user not found, defaulting to SuperAdmin access for ID:", storedUserId);
           setCurrentUser({ id: storedUserId, name: 'Super Admin', role: UserRole.SUPER_ADMIN });
+          const [records] = await Promise.all([
+            getAllCompletedMilestones(),
+          ]);
+          setAllRecordsFlat(records);
           setChildrenForUser(allChildren);
         }
       } catch (error) {
         console.error("Failed to load milestone records:", error);
+        setLoadError(error instanceof Error ? error.message : 'An unknown network or server error occurred.');
       } finally {
         setLoading(false);
       }
@@ -115,26 +133,23 @@ export default function MilestoneRecordsPage() {
       });
     });
 
-    const formattedRecords: FormattedMilestoneRecord[] = [];
-    childrenForUser.forEach(child => {
-      (child.completedMilestones || []).forEach((completed: any) => {
-        const milestoneDetails = allMilestonesMap.get(completed.milestoneId);
-        if (milestoneDetails) {
-            formattedRecords.push({
-                id: `${child.id}-milestone-${completed.milestoneId}`,
-                childId: child.id,
-                childName: child.name,
-                childImageUrl: child.imageUrl || '',
-                date: completed.dateAchieved,
-                category: milestoneDetails.category,
-                description: milestoneDetails.description,
-            });
-        }
-      });
-    });
+    const formattedRecords: FormattedMilestoneRecord[] = allRecordsFlat.map(record => {
+      const milestoneDetails = allMilestonesMap.get(record.milestoneId);
+      if (!milestoneDetails || !record.child) return null;
+      
+      return {
+        id: record.id,
+        childId: record.child.id,
+        childName: record.child.name || `${record.child.firstName} ${record.child.lastName}`,
+        childImageUrl: record.child.imageUrl || '',
+        date: record.dateAchieved,
+        category: milestoneDetails.category,
+        description: milestoneDetails.description,
+      };
+    }).filter(Boolean) as FormattedMilestoneRecord[];
 
     return formattedRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [currentUser, childrenForUser, milestonesMaster]);
+  }, [allRecordsFlat, milestonesMaster, currentUser]);
 
 
   const filteredRecords = useMemo(() => {
@@ -160,7 +175,56 @@ export default function MilestoneRecordsPage() {
     // Here you would typically handle the API call to save the data
   };
 
-  if (!mounted || loading || !currentUser) {
+  if (!mounted) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center gap-4">
+           <Skeleton className="h-8 w-8 rounded-full" />
+           <Skeleton className="h-8 w-48" />
+        </div>
+        <div className="flex justify-between items-center">
+           <Skeleton className="h-10 w-64" />
+           <Skeleton className="h-10 w-10" />
+        </div>
+        <Card>
+           {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-16 w-full border-b" />)}
+        </Card>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex h-[80vh] w-full items-center justify-center p-6">
+        <Card className="max-w-md w-full shadow-lg border-destructive/20 text-center">
+          <CardHeader className="flex flex-col items-center">
+            <div className="bg-destructive/10 p-4 rounded-full mb-4">
+              <AlertTriangle className="h-10 w-10 text-destructive" />
+            </div>
+            <CardTitle className="text-2xl font-bold font-headline">Something went wrong</CardTitle>
+            <CardDescription className="text-base mt-2">
+              We encountered an issue loading milestone records. Please check your connection and try again.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-muted p-3 rounded-md text-sm text-muted-foreground text-left overflow-auto max-h-32 font-mono">
+              {loadError}
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-center space-x-4">
+            <Button variant="default" onClick={() => window.location.reload()}>
+              Try Again
+            </Button>
+            <Button variant="outline" onClick={() => window.location.href = '/'}>
+              Return Home
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
+  if (loading || !currentUser) {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex items-center gap-4">

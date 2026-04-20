@@ -1,4 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { GrowthRecord, CompletedMilestone, CompletedVaccination } from '../children/children.model';
 
 export interface Milestone {
   id: string;
@@ -20,6 +23,12 @@ export interface Vaccination {
 
 @Injectable()
 export class MasterDataService {
+  constructor(
+    @InjectRepository(GrowthRecord) private readonly growthRepo: Repository<GrowthRecord>,
+    @InjectRepository(CompletedMilestone) private readonly milestoneRepo: Repository<CompletedMilestone>,
+    @InjectRepository(CompletedVaccination) private readonly vaccineRepo: Repository<CompletedVaccination>,
+  ) {}
+
   private readonly milestones: MilestoneAgeGroup[] = [
     {
       age: '2 Months',
@@ -146,5 +155,26 @@ export class MasterDataService {
 
   findAllVaccinations(): Vaccination[] {
     return this.vaccinations;
+  }
+
+  async findAllGrowthRecords(): Promise<GrowthRecord[]> {
+    return await this.growthRepo.find({
+      relations: ['child'],
+      order: { date: 'DESC' }
+    });
+  }
+
+  async findAllCompletedMilestones(): Promise<CompletedMilestone[]> {
+    return await this.milestoneRepo.find({
+      relations: ['child'],
+      order: { dateAchieved: 'DESC' }
+    });
+  }
+
+  async findAllCompletedVaccinations(): Promise<CompletedVaccination[]> {
+    return await this.vaccineRepo.find({
+      relations: ['child'],
+      order: { dateAdministered: 'DESC' }
+    });
   }
 }

@@ -73,7 +73,10 @@ tasks:
       - 'web:test'
       - 'mobile:test'
       - 'tests:test'
-      - 'cypress:test'
+
+  test-e2e:
+    deps:
+      - 'cypress:test-e2e'
 
   clean:
     deps:
