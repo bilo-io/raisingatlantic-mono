@@ -12,6 +12,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { UserRole, type NavLinkItem, DASHBOARD_NAV_LINKS, SITE_NAME } from '@/lib/constants';
 import { DUMMY_DEFAULT_USER_ID, dummyUsers, type User as UserType } from '@/data/users';
+import { getUsers } from '@/lib/api/adapters/user.adapter';
 import { ThemeToggleButton } from '@/components/theme-toggle-button';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -132,10 +133,25 @@ export function PrivateLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.getItem === 'function') {
-      const storedUserId = localStorage.getItem('currentUserId');
-      const user = dummyUsers.find(u => u.id === storedUserId) || dummyUsers.find(u => u.id === DUMMY_DEFAULT_USER_ID);
-      
+    if (typeof window === 'undefined' || !window.localStorage) return;
+
+    const storedUserId = localStorage.getItem('currentUserId');
+
+    let cancelled = false;
+    (async () => {
+      let user: UserType | undefined;
+      try {
+        const apiUsers = await getUsers();
+        user = apiUsers.find((u: UserType) => u.id === storedUserId);
+      } catch {
+        // API may be unavailable; fall through to dummy lookup.
+      }
+      if (!user) {
+        user = dummyUsers.find((u) => u.id === storedUserId)
+          || dummyUsers.find((u) => u.id === DUMMY_DEFAULT_USER_ID);
+      }
+
+      if (cancelled) return;
       if (user) {
         setCurrentUser(user);
         if (!storedUserId) {
@@ -144,7 +160,9 @@ export function PrivateLayout({ children }: { children: React.ReactNode }) {
       } else {
         router.push('/login');
       }
-    }
+    })();
+
+    return () => { cancelled = true; };
   }, [router]);
   
 

@@ -20,32 +20,35 @@ tasks:
     options:
       runInCI: false
 
-  # Default CI task — runs headlessly against the production environment
-  test-e2e:
-    command: 'npm run test:prod'
+  # Default CI task — runs headlessly against the production environment.
+  # ELECTRON_RUN_AS_NODE is unset because, when set, Electron (Cypress's runtime)
+  # boots as a plain Node interpreter and rejects its own Chromium flags
+  # (--no-sandbox, --smoke-test, --ping=N) with "bad option" during verify.
+  test:
+    command: 'env -u ELECTRON_RUN_AS_NODE npm run test:prod'
     deps:
       - 'cypress:install'
 
   # NOTE: test-local requires the web dev server to already be running.
   # Moon v2 disallows depending on persistent tasks, so start web:dev manually first.
   test-local:
-    command: 'npm run test:local'
+    command: 'env -u ELECTRON_RUN_AS_NODE npm run test:local'
     deps:
       - 'cypress:install'
     options:
       runInCI: false
 
   test-dev:
-    command: 'npm run test:dev'
+    command: 'env -u ELECTRON_RUN_AS_NODE npm run test:dev'
     deps:
       - 'cypress:install'
 
   test-test:
-    command: 'npm run test:test'
+    command: 'env -u ELECTRON_RUN_AS_NODE npm run test:test'
     deps:
       - 'cypress:install'
 
   test-prod:
-    command: 'npm run test:prod'
+    command: 'env -u ELECTRON_RUN_AS_NODE npm run test:prod'
     deps:
       - 'cypress:install'

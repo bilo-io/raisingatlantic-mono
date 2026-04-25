@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto, UpdateAppointmentDto } from './dto/create-appointment.dto';
 import { Appointment } from './appointments.model';
@@ -40,6 +40,7 @@ export class AppointmentsController {
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string): Promise<void> {
     return this.appointmentsService.remove(id);
   }

@@ -452,7 +452,7 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
                 )}
                  <div className="grid gap-1 flex-1">
                   <Link href={`/dashboard/children/${item.id}`} className="font-semibold hover:underline">{(item.title || '') + ' ' + item.name}</Link>
-                  <p className="text-xs text-muted-foreground">{item.imageUrl ? getAgeFromDate(item.dateOfBirth) : (item.specialty || item.email)}</p>
+                  <p className="text-xs text-muted-foreground">{item.dateOfBirth ? getAgeFromDate(item.dateOfBirth) : (item.specialty || item.email)}</p>
                  </div>
                  {currentUser.role === UserRole.PARENT && (
                   <>

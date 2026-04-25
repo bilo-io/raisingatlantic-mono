@@ -68,14 +68,16 @@ function injectTests(items: any[]) {
         // Replace phone numbers
         body = body.replace(/"phone":\s*"[^"]*"/g, '"phone": "{{$randomPhoneNumber}}"');
         
-        // Replace common foreign key examples with captured IDs
+        // Replace common foreign-key examples with seeded mock IDs that services resolve via
+        // ILike fallback lookups. Using seeded references (not captured UUIDs) decouples dependent
+        // tests from the POST→DELETE lifecycle of users/tenants/practices in the same test run.
         body = body.replace(/"tenantId":\s*"[^"]*"/g, '"tenantId": "{{tenantsId}}"');
-        body = body.replace(/"practiceId":\s*"[^"]*"/g, '"practiceId": "{{practicesId}}"');
+        body = body.replace(/"practiceId":\s*"[^"]*"/g, '"practiceId": "Atlantic"');
         body = body.replace(/"userId":\s*"[^"]*"/g, '"userId": "{{usersId}}"');
-        body = body.replace(/"parentId":\s*"[^"]*"/g, '"parentId": "{{usersId}}"');
-        body = body.replace(/"clinicianId":\s*"[^"]*"/g, '"clinicianId": "{{usersId}}"');
-        body = body.replace(/"generatedById":\s*"[^"]*"/g, '"generatedById": "{{usersId}}"');
-        body = body.replace(/"childId":\s*"[^"]*"/g, '"childId": "{{childrenId}}"');
+        body = body.replace(/"parentId":\s*"[^"]*"/g, '"parentId": "jane.doe@example.com"');
+        body = body.replace(/"clinicianId":\s*"[^"]*"/g, '"clinicianId": "dr.smith@clinician.com"');
+        body = body.replace(/"generatedById":\s*"[^"]*"/g, '"generatedById": "dr.smith@clinician.com"');
+        body = body.replace(/"childId":\s*"[^"]*"/g, '"childId": "Alex"');
         
         // Handle dates and status
         body = body.replace(/"scheduledAt":\s*"[^"]*"/g, '"scheduledAt": "{{$isoTimestamp}}"');
@@ -95,10 +97,34 @@ function injectTests(items: any[]) {
         const idIndex = path.indexOf(':id');
         if (idIndex > 0) {
           const entityName = path[idIndex - 1];
+          const isSubResource = idIndex < path.length - 1;
+          // Sub-resource paths (e.g. /children/:id/allergies) run AFTER the main
+          // /children/:id DELETE in the collection order, so the captured UUID is
+          // stale. Prefer a seeded mock ID that services resolve via ILike fallback.
+          const subResourceSeedId: Record<string, string> = {
+            children: 'Junior',
+          };
           item.request.url.variable.forEach((v: any) => {
             if (v.key === 'id') {
-              v.value = `{{${entityName}Id}}`;
-              console.log(`Linked :id in ${item.name} to {{${entityName}Id}}`);
+              if (isSubResource && subResourceSeedId[entityName]) {
+                v.value = subResourceSeedId[entityName];
+                console.log(`Linked :id in ${item.name} to seeded ${entityName} id "${v.value}"`);
+              } else {
+                v.value = `{{${entityName}Id}}`;
+                console.log(`Linked :id in ${item.name} to {{${entityName}Id}}`);
+              }
+            }
+          });
+        }
+
+        // Special-case the blog :slug route — the OpenAPI example default is the literal
+        // string "string", which never matches a seeded slug. Point it at a real seed.
+        const slugIndex = path.indexOf(':slug');
+        if (slugIndex > 0 && path[slugIndex - 1] === 'slug') {
+          item.request.url.variable.forEach((v: any) => {
+            if (v.key === 'slug') {
+              v.value = 'the-ai-copilot-pediatric-care';
+              console.log(`Linked :slug in ${item.name} to seeded slug`);
             }
           });
         }

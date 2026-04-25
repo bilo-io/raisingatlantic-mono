@@ -17,7 +17,7 @@ export default defineConfig({
       return config;
     },
     specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
-    supportFile: false,
+    supportFile: 'cypress/support/e2e.ts',
   },
   // Explicitly point at our tsconfig so webpack/ts-loader doesn't error with TS18002
   env: {},
