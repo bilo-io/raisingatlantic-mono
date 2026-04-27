@@ -55,13 +55,21 @@ tasks:
     options:
       runInCI: false
 
-  dev:
+  dev-web:
     deps:
       - 'api:dev'
       - 'web:dev'
+    options:
+      runInCI: false
+      persistent: true
+
+  dev-mobile:
+    deps:
+      - 'api:dev'
       - 'mobile:dev'
     options:
       runInCI: false
+      persistent: true
 
   lint:
     deps:
