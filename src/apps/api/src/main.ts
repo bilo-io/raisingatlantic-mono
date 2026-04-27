@@ -13,14 +13,18 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.use(cookieParser());
+  const isProd = process.env.NODE_ENV === 'production';
+  const allowedOrigins = [
+    'http://localhost:9002',
+    'https://raisingatlantic-dev.vercel.app',
+    'https://raisingatlantic-staging.vercel.app',
+    'https://raisingatlantic-prod.vercel.app',
+    'https://raisingatlantic.vercel.app',
+  ];
   app.enableCors({
-    origin: [
-      'http://localhost:9002', 
-      'https://raisingatlantic-dev.vercel.app',
-      'https://raisingatlantic-staging.vercel.app',
-      'https://raisingatlantic-prod.vercel.app',
-      'https://raisingatlantic.vercel.app'
-    ],
+    // In dev: allow any origin (LAN IPs from mobile sim/device, Expo Go, etc.).
+    // In prod: enforce explicit allowlist.
+    origin: isProd ? allowedOrigins : true,
     credentials: true,
   });
   app.setGlobalPrefix('v1');

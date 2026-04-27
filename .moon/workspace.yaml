@@ -9,6 +9,7 @@ projects:
   
   # Packages
   ui: 'src/pkgs/ui'
+  types: 'src/pkgs/types'
   
   # Tests
   cypress: 'src/test/cypress'

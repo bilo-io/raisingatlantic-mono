@@ -3,11 +3,29 @@
   "compilerOptions": {
     "strict": true,
     "skipLibCheck": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "customConditions": [],
+    "paths": {
+      "@raising-atlantic/types": ["../../pkgs/types/src/index.ts"],
+      "@raising-atlantic/types/*": ["../../pkgs/types/src/*"]
+    }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     "nativewind-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/node_modules/**",
+    "node_modules/expo-asset/**",
+    "node_modules/expo/node_modules/expo-asset/**",
+    "babel.config.js",
+    "metro.config.js",
+    "jest.config.js",
+    "android",
+    "ios",
+    ".expo"
   ]
 }

@@ -8,6 +8,7 @@ tasks:
       - 'api:install'
       - 'web:install'
       - 'ui:install'
+      - 'types:install'
       - 'mobile:install'
       - 'cypress:install'
       - 'postman:install'
@@ -17,6 +18,7 @@ tasks:
       - 'api:build'
       - 'web:build'
       - 'ui:build'
+      - 'types:build'
       - 'mobile:build'
 
   deploy-test:
@@ -80,6 +82,7 @@ tasks:
       - 'api:clean'
       - 'web:clean'
       - 'ui:clean'
+      - 'types:clean'
       - 'mobile:clean'
 
   db-start:

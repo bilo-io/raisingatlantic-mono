@@ -25,7 +25,7 @@ export default function LoginScreen() {
       <Screen edges={["top", "bottom"]} contentStyle={{ justifyContent: "center", flex: 1 }}>
         <Card padding="lg" elevated>
           <View style={{ alignItems: "center", marginBottom: 20 }}>
-            <Branding width={200} height={56} />
+            <Branding variant="icon" width={72} height={72} />
           </View>
 
           <Text variant="subheading" style={{ textAlign: "center" }}>

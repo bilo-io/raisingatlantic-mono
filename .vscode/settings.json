@@ -2,5 +2,6 @@
   "moon.binPath": "/Users/bilolwabona/.proto/shims/moon",
   "moon.rootPrefixes": [
     "."
-  ]
+  ],
+  "postman.settings.dotenv-detection-notification-visibility": false
 }

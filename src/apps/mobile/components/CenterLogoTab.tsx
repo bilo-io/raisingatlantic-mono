@@ -2,8 +2,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { Pressable, View } from "react-native";
 import { useTheme } from "../theme/useTheme";
-import LogoLight from "../assets/branding/app-logo-light.svg";
-import LogoDark from "../assets/branding/app-logo-dark.svg";
+import LogoLight from "../assets/branding/app-icon-light.svg";
+import LogoDark from "../assets/branding/app-icon-dark.svg";
 
 type Props = {
   onPress?: ((e: any) => void) | null;
@@ -61,7 +61,7 @@ export function CenterLogoTab({ onPress, onLongPress, accessibilityLabel, testID
               justifyContent: "center",
             }}
           >
-            <Logo width={34} height={34} />
+            <Logo width={64} height={64} />
           </View>
         </LinearGradient>
       </View>

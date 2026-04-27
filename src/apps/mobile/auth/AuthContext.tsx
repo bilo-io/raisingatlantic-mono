@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { setAuthBridge } from "../lib/api/auth-header";
 import { fixtureUsers } from "./fixtures";
 import { clearUser, loadUser, saveUser } from "./storage";
 import { Role, User } from "./types";
@@ -24,7 +25,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     loadUser()
-      .then(setUser)
+      .then((u) => {
+        setUser(u);
+        setAuthBridge(u);
+      })
       .finally(() => setIsHydrating(false));
   }, []);
 
@@ -32,11 +36,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const next = fixtureUsers[role];
     await saveUser(next);
     setUser(next);
+    setAuthBridge(next);
   }, []);
 
   const signOut = useCallback(async () => {
     await clearUser();
     setUser(null);
+    setAuthBridge(null);
   }, []);
 
   const value = useMemo<AuthContextValue>(

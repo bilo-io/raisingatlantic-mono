@@ -1,9 +1,9 @@
 import { Tabs } from "expo-router";
 import {
+  CalendarDays,
   ClipboardList,
   ShieldCheck,
   Stethoscope,
-  UserCircle,
 } from "lucide-react-native";
 import React from "react";
 import { CenterLogoTab } from "../../../components/CenterLogoTab";
@@ -65,14 +65,15 @@ export default function ClinicianTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="schedule"
         options={{
-          title: "Profile",
+          title: "Schedule",
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon Icon={UserCircle} color={color} focused={focused} />
+            <TabBarIcon Icon={CalendarDays} color={color} focused={focused} />
           ),
         }}
       />
+      <Tabs.Screen name="profile" options={{ href: null }} />
     </Tabs>
   );
 }

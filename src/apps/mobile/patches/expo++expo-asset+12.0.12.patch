@@ -1,0 +1,69 @@
+diff --git a/node_modules/expo/node_modules/expo-asset/build/Asset.d.ts b/node_modules/expo/node_modules/expo-asset/build/Asset.d.ts
+index 0954854..b492d02 100644
+--- a/node_modules/expo/node_modules/expo-asset/build/Asset.d.ts
++++ b/node_modules/expo/node_modules/expo-asset/build/Asset.d.ts
+@@ -1,4 +1,4 @@
+-import { AssetMetadata } from './AssetSources';
++import { AssetMetadata } from '../src/AssetSources';
+ export type AssetDescriptor = {
+     name: string;
+     type: string;
+diff --git a/node_modules/expo/node_modules/expo-asset/build/AssetHooks.d.ts b/node_modules/expo/node_modules/expo-asset/build/AssetHooks.d.ts
+index 27787f9..da6bc8a 100644
+--- a/node_modules/expo/node_modules/expo-asset/build/AssetHooks.d.ts
++++ b/node_modules/expo/node_modules/expo-asset/build/AssetHooks.d.ts
+@@ -1,4 +1,4 @@
+-import { Asset } from './Asset';
++import { Asset } from '../src/Asset';
+ /**
+  * Downloads and stores one or more assets locally.
+  * After the assets are loaded, this hook returns a list of asset instances.
+diff --git a/node_modules/expo/node_modules/expo-asset/build/index.d.ts b/node_modules/expo/node_modules/expo-asset/build/index.d.ts
+index d1ca1e1..5bc4773 100644
+--- a/node_modules/expo/node_modules/expo-asset/build/index.d.ts
++++ b/node_modules/expo/node_modules/expo-asset/build/index.d.ts
+@@ -1,4 +1,4 @@
+-import './Asset.fx';
+-export * from './Asset';
+-export * from './AssetHooks';
++import '../src/Asset.fx';
++export * from '../src/Asset';
++export * from '../src/AssetHooks';
+ //# sourceMappingURL=index.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/expo/node_modules/expo-asset/src/Asset.fx.ts b/node_modules/expo/node_modules/expo-asset/src/Asset.fx.ts
+index 75f1fb5..c89213f 100644
+--- a/node_modules/expo/node_modules/expo-asset/src/Asset.fx.ts
++++ b/node_modules/expo/node_modules/expo-asset/src/Asset.fx.ts
+@@ -1,3 +1,4 @@
++// @ts-nocheck
+ import type { default as AssetSourceResolver } from 'react-native/Libraries/Image/AssetSourceResolver';
+ 
+ import { Asset, ANDROID_EMBEDDED_URL_BASE_RESOURCE } from './Asset';
+diff --git a/node_modules/expo/node_modules/expo-asset/src/Asset.ts b/node_modules/expo/node_modules/expo-asset/src/Asset.ts
+index 489d7b5..f28329d 100644
+--- a/node_modules/expo/node_modules/expo-asset/src/Asset.ts
++++ b/node_modules/expo/node_modules/expo-asset/src/Asset.ts
+@@ -1,3 +1,4 @@
++// @ts-nocheck
+ import { getAssetByID } from '@react-native/assets-registry/registry';
+ import { Platform } from 'expo-modules-core';
+ 
+diff --git a/node_modules/expo/node_modules/expo-asset/src/AssetSourceResolver.ts b/node_modules/expo/node_modules/expo-asset/src/AssetSourceResolver.ts
+index 038a244..ad41b40 100644
+--- a/node_modules/expo/node_modules/expo-asset/src/AssetSourceResolver.ts
++++ b/node_modules/expo/node_modules/expo-asset/src/AssetSourceResolver.ts
+@@ -1,3 +1,4 @@
++// @ts-nocheck
+ import type { PackagerAsset } from '@react-native/assets-registry/registry';
+ import { Platform } from 'expo-modules-core';
+ import { PixelRatio } from 'react-native';
+diff --git a/node_modules/expo/node_modules/expo-asset/src/AssetSources.ts b/node_modules/expo/node_modules/expo-asset/src/AssetSources.ts
+index d724e42..226d7d1 100644
+--- a/node_modules/expo/node_modules/expo-asset/src/AssetSources.ts
++++ b/node_modules/expo/node_modules/expo-asset/src/AssetSources.ts
+@@ -1,3 +1,4 @@
++// @ts-nocheck
+ import type { PackagerAsset } from '@react-native/assets-registry/registry';
+ import { Platform } from 'expo-modules-core';
+ import { PixelRatio, NativeModules } from 'react-native';

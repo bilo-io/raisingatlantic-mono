@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Baby, ClipboardList, Compass, UserCircle } from "lucide-react-native";
+import { Baby, ClipboardList, Compass, MessageSquare } from "lucide-react-native";
 import React from "react";
 import { CenterLogoTab } from "../../../components/CenterLogoTab";
 import { TabBarIcon } from "../../../components/TabBarIcon";
@@ -60,14 +60,15 @@ export default function ParentTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="messages"
         options={{
-          title: "Profile",
+          title: "Messages",
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon Icon={UserCircle} color={color} focused={focused} />
+            <TabBarIcon Icon={MessageSquare} color={color} focused={focused} />
           ),
         }}
       />
+      <Tabs.Screen name="profile" options={{ href: null }} />
     </Tabs>
   );
 }

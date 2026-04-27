@@ -1,0 +1,21 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+project:
+  name: 'types'
+  description: 'Shared TypeScript types and zod schemas across api / web / mobile'
+
+tasks:
+  install:
+    command: 'npm install --legacy-peer-deps --cache /tmp/npm-cache'
+
+  build:
+    command: 'npx tsc --noEmit'
+    deps:
+      - 'install'
+    inputs:
+      - 'src/**/*'
+      - 'package.json'
+      - 'tsconfig.json'
+
+  clean:
+    command: 'rm -rf node_modules'
