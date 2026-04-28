@@ -4,10 +4,289 @@
 
 **Current status as of 2026-04-28:** the codebase has working web ([Next.js](https://nextjs.org) 16), API ([NestJS](https://nestjs.com) 11), mobile ([Expo](https://expo.dev) 54) and shared packages, deployed on **[Vercel](https://vercel.com) (web + API)** with **[Neon](https://neon.tech) Postgres** as the database. The platform is functional in dev/test, but the operational, legal, compliance, and commercial layers required for a live healthcare product are not yet in place.
 
+## Phase Ownership Summary
+
+The at-a-glance view of who drives each phase. The **Lead** column is the directly-responsible individual (DRI); the **Effort split** column estimates where the actual work falls (rough but honest — tune as we learn). Bolded leads in the table below are the phases where `DEV` is **not** the primary owner — those are the levers stakeholders need to pull. Role definitions are in the [Role Legend](#role-legend) further down.
+
+| Phase | Lead | Effort split | Where stakeholders pull weight |
+| --- | --- | --- | --- |
+| [0 — Minimum Viable Product](#phase-0--whats-already-done) | `DEV` | `MVP 80%` · `PRODUCT 20%` | — *(retrospective)* |
+| [1 — Infrastructure](#phase-1--infrastructure--hosting-decision) | `DEV` | `DEV 90%` · `PRODUCT 10%` | Hosting cost sign-off, ADR review |
+| [2 — Authentication](#phase-2--authentication--identity) | `DEV` | `DEV 90%` · `PRODUCT 10%` | Auth-provider choice |
+| [3 — Payments](#phase-3--payments) | **`PRODUCT`** | `PRODUCT 30%` · `FINANCE 25%` · `DEV 45%` | Pricing tiers, Stripe KYC, SARS VAT, CIPC docs |
+| [4 — POPIA](#phase-4--popia-compliance) | **`COMPLIANCE`** | `COMPLIANCE 50%` · `LEGAL 30%` · `DEV 20%` | Information Officer registration, RoPA, DPAs, breach drill |
+| [5 — Security](#phase-5--security) | `DEV` | `DEV 80%` · `OPS 20%` | Pen-test vendor procurement, quarterly access reviews |
+| [6 — Legal Documents](#phase-6--legal-documents) | **`LEGAL`** | `LEGAL 70%` · `PRODUCT 25%` · `DEV 5%` | Attorney engagement, MSA negotiation, sub-processor disclosures |
+| [7 — Observability](#phase-7--observability--monitoring) | `DEV` | `DEV 80%` · `OPS 20%` | On-call rotation, SLO targets |
+| [8 — Email / SMS](#phase-8--email-sms--notifications) | `DEV` | `DEV 50%` · `MARKETING 25%` · `DESIGN 25%` | Template copy, branded HTML visuals |
+| [9 — CI/CD](#phase-9--cicd--release-engineering) | `DEV` | `DEV 100%` | — |
+| [10 — Mobile Release](#phase-10--mobile-app-release) | `DEV` | `DEV 50%` · `DESIGN 25%` · `PRODUCT 25%` | Store screenshots, listing copy, data-safety forms |
+| [11 — Workspace](#phase-11--workspace--communications) | **`OPS`** | `OPS 60%` · `DEV 40%` | Slack admin, vendor accounts, DMARC, email aliases |
+| [12 — Pre-Launch Testing](#phase-12--pre-launch-testing) | `DEV` | `DEV 50%` · `CLINICAL 25%` · `PRODUCT 25%` | EPI / milestone validation, beta-practice recruitment |
+| [13 — Launch & Marketing](#phase-13--launch--marketing) | **`MARKETING`** | `MARKETING 50%` · `DESIGN 20%` · `PRODUCT 20%` · `DEV 10%` | Press, association outreach, launch copy, press kit |
+| [14 — Post-Launch Ops](#phase-14--post-launch-operations) | **`SUPPORT`** | `SUPPORT 30%` · `OPS 25%` · `FINANCE 25%` · `DEV 20%` | Helpdesk, bookkeeping, weekly metrics, quarterly drills |
+
+> **Bottom line:** across the 14 active phases, `DEV` carries roughly half the load and stakeholders carry the other half. **Phases 3, 4, 6, 11, 13, 14 are stakeholder-led** (bolded leads above) — if `DEV` is the only person making progress on those, the launch is at risk.
+
+## Table of Contents
+
+- [Raising Atlantic — Go-Live Readiness Plan](#raising-atlantic--go-live-readiness-plan)
+  - [Phase Ownership Summary](#phase-ownership-summary)
+  - [Table of Contents](#table-of-contents)
+  - [Role Legend](#role-legend)
+  - [TL;DR — Phased Action Plan](#tldr--phased-action-plan)
+    - [🔴 Required (non-negotiable) before release](#-required-non-negotiable-before-release)
+    - [🟠 Follow-up Tier 1 (release week + first month)](#-follow-up-tier-1-release-week--first-month)
+    - [🟡 Follow-up Tier 2 (release month, weeks 2–4)](#-follow-up-tier-2-release-month-weeks-24)
+    - [🟢 Follow-up Tier 3 (first quarter post-launch)](#-follow-up-tier-3-first-quarter-post-launch)
+    - [🔵 Future work (likely outside this document's scope)](#-future-work-likely-outside-this-documents-scope)
+- [Phases 0 - 14](#phases-0---14)
+  - [Phase 0 — Minimum Viable Product](#phase-0--minimum-viable-product)
+    - [0.1 Product \& Code](#01-product--code)
+    - [0.2 Testing \& Tooling](#02-testing--tooling)
+  - [Phase 1 — Infrastructure \& Hosting Decision](#phase-1--infrastructure--hosting-decision)
+    - [1.1 Vercel vs GCP — Decision Framework](#11-vercel-vs-gcp--decision-framework)
+    - [1.2 GCP Foundation (recommended path)](#12-gcp-foundation-recommended-path)
+    - [1.3 Workload Hosting Layout](#13-workload-hosting-layout)
+    - [1.4 Infrastructure as Code (Terraform + GitHub Actions)](#14-infrastructure-as-code-terraform--github-actions)
+      - [Repository layout](#repository-layout)
+      - [State \& bootstrap](#state--bootstrap)
+      - [Provider coverage](#provider-coverage)
+      - [GitHub Actions ↔ GCP authentication](#github-actions--gcp-authentication)
+      - [GitHub Actions pipelines for Terraform](#github-actions-pipelines-for-terraform)
+      - [Secrets management](#secrets-management)
+      - [What Terraform manages — the full inventory](#what-terraform-manages--the-full-inventory)
+      - [What Terraform does **not** manage](#what-terraform-does-not-manage)
+      - [Drift \& policy](#drift--policy)
+    - [1.5 Database — Neon vs Cloud SQL](#15-database--neon-vs-cloud-sql)
+  - [Phase 2 — Authentication \& Identity](#phase-2--authentication--identity)
+    - [2.1 Auth Provider Decision](#21-auth-provider-decision)
+    - [2.2 Account Security Hardening](#22-account-security-hardening)
+    - [2.3 Clinician Verification Workflow](#23-clinician-verification-workflow)
+  - [Phase 3 — Payments](#phase-3--payments)
+    - [3.1 Provider Selection — Stripe vs Paystack vs Ozow](#31-provider-selection--stripe-vs-paystack-vs-ozow)
+    - [3.2 Stripe Setup](#32-stripe-setup)
+    - [3.3 Pricing \& Plans](#33-pricing--plans)
+    - [3.4 Billing UX](#34-billing-ux)
+    - [3.5 Compliance](#35-compliance)
+    - [3.6 Ozow Integration (Fast-Follow, Post-Launch)](#36-ozow-integration-fast-follow-post-launch)
+  - [Phase 4 — POPIA Compliance](#phase-4--popia-compliance)
+    - [4.1 Governance \& Legal Basis](#41-governance--legal-basis)
+    - [4.2 Consent \& Data Subject Rights](#42-consent--data-subject-rights)
+    - [4.3 Cross-Border Transfers](#43-cross-border-transfers)
+    - [4.4 Breach Notification](#44-breach-notification)
+  - [Phase 5 — Security](#phase-5--security)
+    - [5.1 Application Security](#51-application-security)
+    - [5.2 Infrastructure Security](#52-infrastructure-security)
+    - [5.3 Data Security](#53-data-security)
+    - [5.4 Operational Security](#54-operational-security)
+  - [Phase 6 — Legal Documents](#phase-6--legal-documents)
+    - [6.1 Public-facing Documents](#61-public-facing-documents)
+    - [6.2 Role-specific Agreements](#62-role-specific-agreements)
+    - [6.3 Internal Documents](#63-internal-documents)
+    - [6.4 Professional Review](#64-professional-review)
+  - [Phase 7 — Observability \& Monitoring](#phase-7--observability--monitoring)
+    - [7.1 Logging](#71-logging)
+    - [7.2 Metrics \& Tracing](#72-metrics--tracing)
+    - [7.3 Error Tracking](#73-error-tracking)
+    - [7.4 Uptime \& SLOs](#74-uptime--slos)
+  - [Phase 8 — Email, SMS \& Notifications](#phase-8--email-sms--notifications)
+    - [8.1 Transactional Email](#81-transactional-email)
+    - [8.2 SMS / WhatsApp](#82-sms--whatsapp)
+    - [8.3 Push Notifications (Mobile)](#83-push-notifications-mobile)
+  - [Phase 9 — CI/CD \& Release Engineering](#phase-9--cicd--release-engineering)
+    - [9.1 Continuous Integration (Application Code)](#91-continuous-integration-application-code)
+    - [9.2 Continuous Deployment (Application Code)](#92-continuous-deployment-application-code)
+    - [9.3 Coordinating Infra and App Pipelines](#93-coordinating-infra-and-app-pipelines)
+    - [9.4 Environment Parity](#94-environment-parity)
+  - [Phase 10 — Mobile App Release](#phase-10--mobile-app-release)
+    - [10.1 Apple App Store](#101-apple-app-store)
+    - [10.2 Google Play Store](#102-google-play-store)
+    - [10.3 Mobile-specific Compliance](#103-mobile-specific-compliance)
+  - [Phase 11 — Workspace \& Communications](#phase-11--workspace--communications)
+    - [11.1 Should We Use Slack? — Recommendation](#111-should-we-use-slack--recommendation)
+    - [11.2 Other Workspace Tooling](#112-other-workspace-tooling)
+    - [11.3 Domain \& Email Hygiene](#113-domain--email-hygiene)
+  - [Phase 12 — Pre-Launch Testing](#phase-12--pre-launch-testing)
+    - [12.1 Automated Coverage](#121-automated-coverage)
+    - [12.2 Manual / Exploratory](#122-manual--exploratory)
+    - [12.3 Performance \& Load](#123-performance--load)
+    - [12.4 Closed Beta](#124-closed-beta)
+  - [Phase 13 — Launch \& Marketing](#phase-13--launch--marketing)
+  - [Phase 14 — Post-Launch Operations](#phase-14--post-launch-operations)
+    - [14.1 Support](#141-support)
+    - [14.2 Operational Cadence](#142-operational-cadence)
+    - [14.3 Financial Operations](#143-financial-operations)
+
 ---
 
-## Phase 0 — What's Already Done
+## Role Legend
 
+Each phase below lists the roles responsible for driving it. The **first role is the lead (DRI)**; the rest are supporting. If a phase has a non-`DEV` lead and `DEV` is the only one actually moving on it, that's a flag — escalate.
+
+- `DEV` — solo developer (Bilo). Implementation, infrastructure, code, all technical decisions.
+- `PRODUCT` — product / business decisions: pricing, scope, B2B negotiation, store-listing copy, hosting cost trade-offs.
+- `LEGAL` — external attorney engagement: ToS, Privacy Policy, DPAs, contract review, advisory sign-off.
+- `COMPLIANCE` — POPIA-specific work: Information Officer registration, Record of Processing Activities, breach tabletop drills, sub-processor disclosures.
+- `FINANCE` — bookkeeping, KYC, VAT, SARS, banking, Section 11D R&D incentive, founder-liability ringfencing.
+- `MARKETING` — copy, press, launch announcement, content calendar, partner outreach (paediatric associations).
+- `DESIGN` — brand, app-store screenshots, email templates, press kit, marketing assets.
+- `CLINICAL` — paediatric advisor: EPI-SA schedule accuracy, milestone wording, growth-chart correctness.
+- `OPS` — workspace admin, account provisioning, vendor procurement, pen-test / audit scheduling, on-call cadence, access reviews.
+- `SUPPORT` — inbox triage, FAQ maintenance, SLA response, customer escalations.
+
+> **The deal with stakeholders:** `DEV` carries every technical phase. **Stakeholders own `LEGAL`, `COMPLIANCE`, `FINANCE`, `MARKETING`, `CLINICAL`, and a meaningful share of `PRODUCT` and `OPS`.** Non-technical work that lands on `DEV` by default is the single biggest threat to launch date.
+
+---
+
+## TL;DR — Phased Action Plan
+
+A 5min read of the entire document, ordered by urgency. Each item links to the section that goes deep on it. Treat this as the canonical checklist; the rest of the document is the reasoning behind each line.
+
+
+### 🔴 Required (non-negotiable) before release
+The minimum viable launch list. Skip any of these and we are either non-compliant, insecure, or unable to operate.
+
+**Roles:** `DEV 45%` · `COMPLIANCE 15%` · `LEGAL 12%` · `PRODUCT 10%` · `OPS 10%` · `FINANCE 5%` · `CLINICAL 3%` *(over half of this tier is non-engineering — Information Officer, DPAs, lawyer-reviewed legal docs, Stripe KYC, beta recruitment)*
+
+**`DEV` — engineering execution**
+- [ ] **Hosting + DB decision finalised** — Vercel+Neon **or** GCP+Cloud SQL `africa-south1` ([§1.1](#11-vercel-vs-gcp--decision-framework), [§1.5](#15-database--neon-vs-cloud-sql))
+- [ ] **Terraform + GitHub Actions IaC pipeline operational** — every prod resource provisioned via PR, zero console click-ops ([§1.4](#14-infrastructure-as-code-terraform--github-actions))
+- [ ] **Auth provider live with MFA enforced** for `CLINICIAN` / `ADMIN` / `SUPER_ADMIN` ([§2.1](#21-auth-provider-decision), [§2.2](#22-account-security-hardening))
+- [ ] **Email verification + password reset** working in production ([§2.2](#22-account-security-hardening))
+- [ ] **WAF + TLS 1.2+ + HSTS preload + Cloud Armor + private-IP database** ([§5.2](#52-infrastructure-security))
+- [ ] **Backup + restore drill** rehearsed; documented RTO < 1h, RPO < 15min ([§1.5](#15-database--neon-vs-cloud-sql))
+- [ ] **Sentry + uptime checks + Slack alerting** wired and firing ([§7.3](#73-error-tracking), [§7.4](#74-uptime--slos), [§11.1](#111-should-we-use-slack--recommendation))
+
+**`COMPLIANCE` — POPIA accountability**
+- [ ] **Information Officer appointed and registered** with the Information Regulator ([§4.1](#41-governance--legal-basis))
+- [ ] **DPAs signed** with every live processor (Stripe, Vercel/GCP, Neon, SendGrid, Sentry, etc.) ([§4.3](#43-cross-border-transfers))
+- [ ] **Breach-notification runbook** documented and tabletop-tested once ([§4.4](#44-breach-notification))
+
+**`LEGAL` — attorney sign-off**
+- [ ] **Privacy Policy + ToS + Disclaimer** lawyer-reviewed by a SA POPIA specialist ([§6.1](#61-public-facing-documents), [§6.4](#64-professional-review))
+
+**`PRODUCT` + `FINANCE` — payments enablement**
+- [ ] **Stripe live** with at least one paying tier wired end-to-end (KYC, SARS VAT, CIPC docs, pricing tiers) ([§3.2](#32-stripe-setup)–[§3.5](#35-compliance))
+
+**`OPS` — workspace, vendor & access hygiene**
+- [ ] **Mandatory 2FA** on GitHub, GCP, Stripe, Neon, Google Workspace, domain registrar ([§5.4](#54-operational-security))
+- [ ] **Penetration test** vendor procured; P0/P1 findings remediated ([§5.4](#54-operational-security))
+- [ ] **DMARC enforced** + `security.txt` published ([§5.1](#51-application-security), [§11.3](#113-domain--email-hygiene))
+
+**`CLINICAL` + `PRODUCT` — beta validation**
+- [ ] **Closed beta with ≥1 real practice for ≥30 days**, zero P0 bugs in last 14 days ([§12.4](#124-closed-beta))
+
+### 🟠 Follow-up Tier 1 (release week + first month)
+Not strictly blocking, but embarrassing or risky if they slip past week 4 of being live.
+
+**Roles:** `DEV 50%` · `OPS 15%` · `MARKETING 10%` · `DESIGN 10%` · `PRODUCT 5%` · `FINANCE 5%` · `SUPPORT 5%` *(branded emails, Slack workspace, helpdesk inbox, mobile-store listings, Xero setup all need stakeholder hands)*
+
+**`DEV` — engineering execution**
+- [ ] **Public status page** at `status.raisingatlantic.com` ([§7.4](#74-uptime--slos))
+- [ ] **DSAR + right-to-erasure self-service endpoint** wired into the dashboard ([§4.2](#42-consent--data-subject-rights))
+- [ ] **SLOs defined** with error budgets — baseline 99.5% availability / p95 < 500ms ([§7.4](#74-uptime--slos))
+- [ ] **Cypress smoke suite gating prod deploys**, Postman contract tests on staging nightly ([§12.1](#121-automated-coverage))
+
+**`MARKETING` + `DESIGN` + `DEV` — branded customer touchpoints**
+- [ ] **Branded transactional email templates** (welcome, verification, EPI reminder, billing receipt) ([§8.1](#81-transactional-email))
+
+**`OPS` — workspace bring-up**
+- [ ] **Slack workspace operational** with `#alerts-prod`, `#deploys`, `#stripe`, `#sales-leads` integrations live ([§11.1](#111-should-we-use-slack--recommendation))
+
+**`FINANCE` — books on rails**
+- [ ] **Bookkeeping wired** — Xero / QuickBooks Online + Stripe integration ([§14.3](#143-financial-operations))
+
+**`SUPPORT` — customer-facing helpdesk**
+- [ ] **Public FAQ + `support@raisingatlantic.com` helpdesk** ([§14.1](#141-support))
+
+**`PRODUCT` + `DESIGN` + `DEV` — mobile store launch**
+- [ ] **Mobile app submitted** to Apple App Store + Google Play (web typically launches first; mobile follows in week 1–4) ([§10](#phase-10--mobile-app-release))
+
+### 🟡 Follow-up Tier 2 (release month, weeks 2–4)
+Conversion-uplift and ops-quality work that pays back fast once real users are flowing.
+
+**Roles:** `DEV 50%` · `MARKETING 20%` · `DESIGN 15%` · `PRODUCT 10%` · `OPS 5%` *(press kit, multi-language QA validation, LinkedIn launch, content calendar all sit with stakeholders)*
+
+**`DEV` — engineering execution**
+- [ ] **SMS / WhatsApp** via [Twilio](https://www.twilio.com) for appointment and vaccination alerts ([§8.2](#82-sms--whatsapp))
+- [ ] **Expo Push Notifications** wired into the mobile app with quiet-hours respect ([§8.3](#83-push-notifications-mobile))
+- [ ] **Detox / Maestro mobile E2E** on signup → add child → log growth ([§12.1](#121-automated-coverage))
+- [ ] **Analytics** — [Plausible](https://plausible.io) or [PostHog](https://posthog.com) deployed; GA4 explicitly avoided unless we have a clean DPA story ([§13](#phase-13--launch--marketing))
+
+**`PRODUCT` + `DEV` — billing UX**
+- [ ] **[Ozow](https://ozow.com) as second checkout option** for parent paid tier ([§3.6](#36-ozow-integration-fast-follow-post-launch))
+- [ ] **Stripe Customer Portal** embedded at `/dashboard/account/billing` ([§3.4](#34-billing-ux))
+
+**`OPS` — knowledge base & ticketing**
+- [ ] **Linear + Notion** fully populated; runbooks committed to Notion ([§11.2](#112-other-workspace-tooling))
+
+**`CLINICAL` + `DEV` — localisation QA**
+- [ ] **Multi-language QA** — Afrikaans + Zulu translations validated by native speakers ([§12.2](#122-manual--exploratory))
+
+**`MARKETING` + `DESIGN` — go-to-market**
+- [ ] **Press kit + LinkedIn launch + paediatric-association outreach** ([§13](#phase-13--launch--marketing))
+
+### 🟢 Follow-up Tier 3 (first quarter post-launch)
+Maturity work — the shift from "launched" to "grown-up".
+
+**Roles:** `DEV 55%` · `OPS 25%` · `COMPLIANCE 10%` · `PRODUCT 10%` *(quarterly DR drills, access reviews, annual POPIA review, YubiKey rollout, GA-readiness sign-off live with stakeholders)*
+
+**`DEV` — engineering execution**
+- [ ] **Field-level encryption with GCP KMS** for HPCSA numbers and child medical conditions ([§5.3](#53-data-security))
+- [ ] **Feature-flag platform** wired in ([GrowthBook](https://www.growthbook.io) / [Flagsmith](https://www.flagsmith.com) / PostHog) ([§9.4](#94-environment-parity))
+- [ ] **BigQuery analytics export** from Cloud Logging for business-metrics dashboards ([§7.2](#72-metrics--tracing))
+- [ ] **Blue/green canary rollouts** (10% → 50% → 100%) tuned with automated rollback ([§9.2](#92-continuous-deployment-application-code))
+
+**`OPS` — operational cadence & access**
+- [ ] **Quarterly DR drill** + quarterly access review established as routine ([§14.2](#142-operational-cadence))
+- [ ] **Bug bounty (private)** on [HackerOne](https://www.hackerone.com) or [Bugcrowd](https://www.bugcrowd.com) ([§5.4](#54-operational-security))
+- [ ] **Hardware security keys ([YubiKey](https://www.yubico.com))** rolled out to all admins beyond `SUPER_ADMIN` ([§5.4](#54-operational-security))
+
+**`COMPLIANCE` — annual POPIA hygiene**
+- [ ] **Annual POPIA review** scheduled and tracked ([§14.2](#142-operational-cadence))
+
+**`PRODUCT` + `DEV` — readiness sign-off**
+- [ ] **Open beta → general availability** transition ([§12.4](#124-closed-beta))
+
+### 🔵 Future work (likely outside this document's scope)
+On the radar but not load-bearing for the SA launch. Re-evaluate at the 6-month mark; some of these may belong in their own RFCs rather than this checklist.
+
+**Roles:** `PRODUCT 30%` · `DEV 30%` · `COMPLIANCE 15%` · `LEGAL 10%` · `FINANCE 5%` · `CLINICAL 5%` · `MARKETING 5%` *(mostly strategic decisions — African expansion, SOC 2 / HIPAA scoping, advisory-board recruitment, R&D incentive — `DEV` only does the engineering follow-through)*
+
+**`PRODUCT` + `DEV` — strategic product expansion**
+- [ ] **African-market expansion** — revisit [Paystack](https://paystack.com) for Nigeria / Ghana / Kenya ([§3.1](#31-provider-selection--stripe-vs-paystack-vs-ozow))
+- [ ] **API public/partner program** with rate-limited keys and developer portal
+
+**`COMPLIANCE` + `PRODUCT` — enterprise / international compliance**
+- [ ] **SOC 2 Type 1 audit** if pursuing enterprise tenants (medical-aid schemes, hospital groups)
+- [ ] **HIPAA / HITRUST readiness** if entering the US market
+
+**`LEGAL` + `PRODUCT` + `DEV` — B2B contracting**
+- [ ] **B2B self-serve Master Services Agreement portal** for new tenants ([§6.2](#62-role-specific-agreements))
+
+**`CLINICAL` + `DEV` — clinical maturation**
+- [ ] **Genkit AI clinical-summary maturation** beyond the current placeholder ([§4.3](#43-cross-border-transfers))
+
+**`CLINICAL` + `PRODUCT` — clinical governance**
+- [ ] **External clinical advisory board** of registered paediatricians beyond the launch reviewer ([§12.2](#122-manual--exploratory))
+
+**`DEV` — long-horizon resilience**
+- [ ] **Multi-region failover** to a warm-standby GCP region (e.g. `europe-west1`)
+
+**`FINANCE` — tax incentives**
+- [ ] **R&D Tax Incentive (Section 11D)** application once spend justifies audit cost ([§14.3](#143-financial-operations))
+
+
+---
+
+# Phases 0 - 14
+
+## Phase 0 — Minimum Viable Product
+
+**Roles:** `DEV 100%` *(retrospective — no further action)*
+
+The MVP is a proof of concept for stakeholders to make get an idea for a look and feel, and to make informed decisions for the next phases.
 A snapshot of capabilities that are already shipped or in-repo. Treat this as the baseline we do **not** need to redo before going live.
 
 ### 0.1 Product & Code
@@ -16,12 +295,12 @@ A working three-app monorepo with role-based flows for Parents, Clinicians, Admi
 - [x] [Moonrepo](https://moonrepo.dev) monorepo with `apps/{api,web,mobile}` and shared `pkgs/{types,ui}`
 - [x] Next.js 16 web app with App Router, RSC, [Tailwind](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com), i18n ([`react-i18next`](https://react.i18next.com)), [TipTap](https://tiptap.dev) blog, design-system route
 - [x] NestJS 11 API with bounded modules: `users`, `tenants`, `practices`, `children`, `verifications`, `master-data`, `appointments`, `reports`, `blog`, `leads`, `system-logs`, `ai`
+- [x] RBAC enforced both client-side (`lib/rbac`) and server-side (`JwtAuthGuard`, `RolesGuard`) 
 - [x] Expo 54 mobile app with role-segmented [Expo Router](https://docs.expo.dev/router/introduction/) groups (`(parent)`, `(clinician)`, `(admin)`)
 - [x] Shared TypeScript domain types (`pkgs/types`) and shared UI primitives (`pkgs/ui`)
 - [x] Custom telemetry interfaces (`core/telemetry`) with [GCP](https://cloud.google.com) / [OpenTelemetry](https://opentelemetry.io) adapters
 - [x] Dual data-source pattern (`withDataSource` + mock fallback) toggled by `NEXT_PUBLIC_USE_API`
 - [x] [TanStack React Query](https://tanstack.com/query) v5 wired across web and mobile; error boundaries (`FeatureErrorBoundary`, `RouteError`)
-- [x] RBAC enforced both client-side (`lib/rbac`) and server-side (`JwtAuthGuard`, `RolesGuard`)
 
 ### 0.2 Testing & Tooling
 Multiple test layers exist but coverage and CI gating are still inconsistent.
@@ -36,6 +315,8 @@ Multiple test layers exist but coverage and CI gating are still inconsistent.
 
 ## Phase 1 — Infrastructure & Hosting Decision
 
+**Roles:** `DEV 90%` · `PRODUCT 10%` *(`PRODUCT` signs off on cost trade-offs and hosting strategy; `DEV` executes everything else)*
+
 The single biggest pre-launch decision: stay on Vercel or migrate to [Google Cloud Platform](https://cloud.google.com). Making the wrong call here is expensive to undo, so it's worth resolving this **before** wiring up payments, observability, and compliance — because each of those depends on where the workloads live.
 
 ### 1.1 Vercel vs GCP — Decision Framework
@@ -47,7 +328,7 @@ In plain terms: Vercel is fast to ship on but charges premium prices, has no nat
 - [ ] Estimate 12-month cost on each platform at projected traffic
 
 ### 1.2 GCP Foundation (recommended path)
-If we go with GCP, we set up the bones once and never have to revisit them. This is the "boring infrastructure" everything else sits on top of. **Hard rule: every item below is provisioned via Terraform from the start (see §1.4) — no click-ops in the GCP console for anything that touches a deployable environment.**
+If we go with GCP, we set up the bones once and never have to revisit them. This is the "boring infrastructure" everything else sits on top of. **Hard rule: every item below is provisioned via Terraform from the start (see [§1.4](#14-infrastructure-as-code-terraform--github-actions)) — no click-ops in the GCP console for anything that touches a deployable environment.**
 
 - [ ] Create GCP organization tied to a `raisingatlantic.com` domain on [Google Workspace](https://workspace.google.com)
 - [ ] Set up billing account with budget alerts at 50%/80%/100% of monthly cap (defined in Terraform)
@@ -149,7 +430,7 @@ Treat this as the contract. If it's in production and not in this list, document
 
 - [ ] GCP projects, billing links, API enablement, org policies
 - [ ] VPC, subnets, firewall rules, NAT, [Private Service Connect](https://cloud.google.com/vpc/docs/private-service-connect)
-- [ ] Cloud Run services (API, web, workers) — image tag updated by the **app** CI pipeline, not infra (see §9)
+- [ ] Cloud Run services (API, web, workers) — image tag updated by the **app** CI pipeline, not infra (see [§9](#phase-9--cicd--release-engineering))
 - [ ] Cloud SQL Postgres instance, databases, users, backup config, replicas
 - [ ] Cloud Storage buckets (assets, backups, tfstate) with lifecycle + retention
 - [ ] Artifact Registry repositories
@@ -200,6 +481,8 @@ We're currently on Neon. Neon is excellent for dev velocity (branches, serverles
 
 ## Phase 2 — Authentication & Identity
 
+**Roles:** `DEV 90%` · `PRODUCT 10%` *(provider choice has cost and UX implications `PRODUCT` must weigh in on)*
+
 Right now there's a JWT auth guard but the registration / password-reset / MFA story is thin. For a healthcare product holding minor children's records, this layer has to be airtight.
 
 ### 2.1 Auth Provider Decision
@@ -232,21 +515,39 @@ The [HPCSA](https://www.hpcsa.co.za) / [SANC](https://www.sanc.co.za) verificati
 
 ---
 
-## Phase 3 — Payments ([Stripe](https://stripe.com))
+## Phase 3 — Payments
 
-The product currently has no monetization wired up. Stripe is the right call for South Africa: ZAR support, 3D-Secure, recurring billing, and the strongest dev experience.
+**Roles:** `PRODUCT 30%` · `FINANCE 25%` · `DEV 45%` *(`PRODUCT` defines pricing tiers and trial logic; `FINANCE` handles Stripe KYC, CIPC docs, SARS VAT registration; `DEV` integrates the rails)*
 
-### 3.1 Stripe Setup
+The product currently has no monetization wired up. South Africa is a multi-rail payments market: international card processors, locally-licensed PSPs, and instant-EFT specialists each cover a different slice of the buyer base. The wrong choice burns conversion (asking parents for a credit card they don't have) or burns runway (paying premium fees for buyers who'd happily EFT). Below is the provider comparison, then the recommendation, then the implementation work.
+
+### 3.1 Provider Selection — [Stripe](https://stripe.com) vs [Paystack](https://paystack.com) vs [Ozow](https://ozow.com)
+
+Plain-language summary of the three credible providers for a SA healthtech in 2026:
+
+| Provider | Best at | SA fees (typical) | Methods supported | Subscriptions | Verdict for us |
+| --- | --- | --- | --- | --- | --- |
+| **[Stripe](https://stripe.com)** | International cards, polished subscriptions, [Stripe Tax](https://stripe.com/tax), [Stripe Billing](https://stripe.com/billing), [Radar](https://stripe.com/radar) fraud, best DX | ~2.9% + R2 (local cards), +1% intl | Cards, Apple/Google Pay, [Stripe ACH-style EFT](https://stripe.com/za) (limited) | First-class | **Primary** — wins on B2B subscriptions for clinicians/practices |
+| **[Paystack](https://paystack.com)** (Stripe-owned since 2020) | African-market cards + local UX optics, dev-friendly REST API | ~2.9% local cards, lower negotiable at volume | Cards, [bank transfer](https://paystack.com/za/payments), QR, Apple Pay | Yes ([Paystack Subscriptions](https://paystack.com/docs/payments/subscriptions/)), less mature than Stripe Billing | **Skip pre-launch** — overlaps Stripe (same parent company), only adds value if we expand into Nigeria/Ghana/Kenya |
+| **[Ozow](https://ozow.com)** | SA instant-EFT (pull from any major SA bank), no card required | ~1.5% (lowest of the three), capped fees on large transactions | Instant-EFT only (no cards, no international) | No native subscriptions — needs custom recurring-charge logic via [Ozow's API](https://hub.ozow.com/docs) or pairing with a card-on-file flow | **Add as fast-follow** once parent paid tier exists — meaningful conversion uplift for the ~40% of SA adults with bank accounts but no credit card |
+
+**Decision:**
+- [ ] **Pre-launch: Stripe only.** It covers the buyers who'll actually be paying on day one (clinicians, practices, tenants) — they all have business cards, want VAT-compliant invoices, and are international-card friendly. Stripe Billing + Stripe Tax give us subscription billing, dunning, ZAR-VAT, and proration out of the box; Paystack would force us to rebuild the subscription layer ourselves, and Ozow doesn't do recurring at all. One integration is one integration.
+- [ ] **Fast-follow (post-launch, ~30 days after parent paid tier launches): add Ozow as a second checkout option for parents.** This is the SA-specific play — many parent buyers will not have a Visa/Mastercard but will EFT instantly. Ozow's 1.5% fee also beats Stripe on per-transaction economics for large one-off charges (e.g. annual family plan).
+- [ ] **Defer Paystack indefinitely** unless and until we expand into another African market (Nigeria, Ghana, Kenya). Adding it pre-launch is duplicate work for marginal coverage.
+- [ ] Document the decision in `docs/ADR/0002-payments.md` so the rationale survives staff turnover.
+
+### 3.2 Stripe Setup
 The fundamentals of taking money.
 
 - [ ] Stripe account in **[South Africa](https://stripe.com/za)** with ZAR as primary currency
 - [ ] Verify business identity (KYC) — needs [CIPC](https://www.cipc.co.za) company registration + proof of address
-- [ ] Enable **[Stripe Tax](https://stripe.com/tax)** for South African VAT (15%) — auto-calculated and remitted
+- [ ] Enable **Stripe Tax** for South African VAT (15%) — auto-calculated and remitted
 - [ ] Configure tax registrations ([SARS](https://www.sars.gov.za) VAT number)
 - [ ] Set up [Stripe webhooks](https://stripe.com/docs/webhooks) (`/v1/webhooks/stripe`) with signature verification
 - [ ] Store Stripe IDs (`stripeCustomerId`, `stripeSubscriptionId`) on `User` and `Tenant` entities
 
-### 3.2 Pricing & Plans
+### 3.3 Pricing & Plans
 The actual product packaging.
 
 - [ ] Define pricing tiers (Parent free? Clinician seat-based? Tenant flat-rate?)
@@ -255,25 +556,40 @@ The actual product packaging.
 - [ ] Free trial logic (14 days clinician, no credit card upfront?)
 - [ ] Coupon / promo code support for early-adopter practices
 
-### 3.3 Billing UX
+### 3.4 Billing UX
 The screens users actually see.
 
 - [ ] [Stripe Customer Portal](https://stripe.com/docs/customer-management) embedded in `/dashboard/account/billing`
 - [ ] Invoice history with PDF download
-- [ ] Failed-payment retry + dunning emails ([Stripe Billing](https://stripe.com/billing) handles this)
+- [ ] Failed-payment retry + dunning emails (Stripe Billing handles this)
 - [ ] Upgrade / downgrade / cancel flows
 - [ ] Proration handling for mid-cycle plan changes
-
-### 3.4 Compliance
+- [ ] **Provider-agnostic abstraction:** wrap Stripe behind a `PaymentProvider` interface in the API now (even with one implementation) so adding Ozow later is a new adapter, not a refactor
+`
+### 3.5 Compliance
 The legal/regulatory side of payments.
 
 - [ ] Confirm [PCI-DSS SAQ-A](https://www.pcisecuritystandards.org/document_library) scope (we only use [Stripe Elements](https://stripe.com/payments/elements) / Checkout, no card data touches our servers)
 - [ ] Add cardholder-data flow diagram to security docs
-- [ ] Enable [Stripe Radar](https://stripe.com/radar) for fraud detection
+- [ ] Enable Stripe Radar for fraud detection
+
+### 3.6 Ozow Integration (Fast-Follow, Post-Launch)
+Trigger this phase only after the parent paid tier is live and we see real card-decline / abandonment data justifying the second rail. The integration itself is small (~1 week of dev) but adds an ongoing reconciliation burden.
+
+- [ ] Sign up for an [Ozow merchant account](https://ozow.com/get-started) — KYC similar to Stripe (CIPC registration, proof of address, bank account verification)
+- [ ] Implement Ozow as a second adapter behind the `PaymentProvider` interface introduced in [§3.4](#34-billing-ux)
+- [ ] Add Ozow as a checkout option on parent-facing flows only (not B2B clinician/practice subscriptions — keep those on Stripe for cleaner reconciliation)
+- [ ] Wire up the [Ozow notification webhook](https://hub.ozow.com/docs/notification-callback) (`/v1/webhooks/ozow`) with HMAC verification
+- [ ] Reconciliation job: nightly cron compares Ozow settlement reports against `Payment` records — flag discrepancies in Slack `#stripe` (rename to `#payments` once Ozow lands)
+- [ ] For recurring parent plans: card-on-file via Stripe remains primary; Ozow stays one-off (annual upfront, top-ups). Don't try to fake recurring on Ozow — the UX is bad
+- [ ] Update Privacy Policy + sub-processor list to disclose Ozow
+- [ ] Sign Ozow DPA (SA-domiciled processor — much simpler than Stripe's cross-border story)
 
 ---
 
 ## Phase 4 — POPIA Compliance
+
+**Roles:** `COMPLIANCE 50%` · `LEGAL 30%` · `DEV 20%` *(stakeholder-led — `COMPLIANCE` drives the Information Officer registration, RoPA, and DPA paperwork; `LEGAL` handles attorney engagement; `DEV` builds DSAR / erasure endpoints only)*
 
 [POPIA](https://popia.co.za) (Protection of Personal Information Act, 2013) is South Africa's GDPR equivalent. We're processing **special personal information** (children's health data), which has the highest protection bar. Non-compliance penalties run to R10m or 10 years imprisonment, so this is not optional.
 
@@ -301,7 +617,7 @@ The "user-facing" side of POPIA.
 ### 4.3 Cross-Border Transfers
 POPIA Section 72 restricts sending personal information outside South Africa.
 
-- [ ] Inventory every third-party processor (Stripe, Vercel, Neon, [Genkit](https://firebase.google.com/docs/genkit) / Google AI, SendGrid, [Sentry](https://sentry.io), etc.) and their hosting region
+- [ ] Inventory every third-party processor (Stripe, [Ozow](https://ozow.com) when added, Vercel, Neon, [Genkit](https://firebase.google.com/docs/genkit) / Google AI, SendGrid, [Sentry](https://sentry.io), etc.) and their hosting region — note that Ozow is SA-domiciled and avoids the cross-border-transfer paperwork
 - [ ] Sign Data Processing Agreements (DPAs) with every one
 - [ ] For non-SA processors: confirm they offer "adequate protection" (contractually via SCCs, ideally)
 - [ ] Disclose all sub-processors in the public privacy policy
@@ -316,6 +632,8 @@ Required by POPIA Section 22 — "as soon as reasonably possible" after discover
 ---
 
 ## Phase 5 — Security
+
+**Roles:** `DEV 80%` · `OPS 20%` *(`DEV` does the technical hardening; `OPS` procures the pen-test vendor and runs quarterly access reviews)*
 
 The "make sure we don't end up on the front page of [News24](https://www.news24.com)" layer. Healthcare data is a high-value target.
 
@@ -365,6 +683,8 @@ The day-to-day discipline.
 
 ## Phase 6 — Legal Documents
 
+**Roles:** `LEGAL 70%` · `PRODUCT 25%` · `DEV 5%` *(stakeholder-led — `LEGAL` engages and manages the SA attorney; `PRODUCT` negotiates B2B MSAs with first practices; `DEV` only hosts the final content in `legal/[slug]`)*
+
 Before a single real user signs up, the legal pages need to be real, lawyer-reviewed, and version-controlled. The `legal/[slug]` route already exists in code — the actual content does not.
 
 ### 6.1 Public-facing Documents
@@ -404,6 +724,8 @@ Don't ship lawyer documents written by an LLM.
 
 ## Phase 7 — Observability & Monitoring
 
+**Roles:** `DEV 80%` · `OPS 20%` *(`DEV` wires Sentry / OTel / dashboards; `OPS` defines the on-call rotation and SLO targets)*
+
 Production systems need eyes on them. The telemetry interfaces exist in `core/telemetry` — the actual dashboards, alerts, and runbooks do not.
 
 ### 7.1 Logging
@@ -442,6 +764,8 @@ External-perspective monitoring.
 
 ## Phase 8 — Email, SMS & Notifications
 
+**Roles:** `DEV 50%` · `MARKETING 25%` · `DESIGN 25%` *(`DEV` integrates SendGrid/Twilio; `MARKETING` writes template copy; `DESIGN` produces branded HTML templates and the press-pack visuals)*
+
 `nodemailer` is wired into the API but no real provider is configured. Almost every flow (signup, verification, password reset, vaccination reminder, billing) needs reliable transactional comms.
 
 ### 8.1 Transactional Email
@@ -473,6 +797,8 @@ For the Expo app.
 
 ## Phase 9 — CI/CD & Release Engineering
 
+**Roles:** `DEV 100%` *(end-to-end engineering; nothing here is delegable)*
+
 The current Moon `deploy-test` / `deploy-prod` tasks are git-merge wrappers, which is fine for solo work but won't scale and won't gate on tests. **Two pipelines need to coexist cleanly: the infrastructure pipeline (Phase 1.4) and the application pipeline (this phase).** The boundary matters: the infra pipeline owns the *shape* of a Cloud Run service; the app pipeline owns the *image tag* deployed to it. Mixing them produces deadlocks where a code deploy waits on infra reviewers and vice versa.
 
 ### 9.1 Continuous Integration (Application Code)
@@ -480,7 +806,7 @@ Every PR must prove it doesn't break things before it merges.
 
 - [ ] GitHub Actions workflow on every PR running: `moon run :lint`, `moon run :test`, type-check, security audit
 - [ ] Required checks: API Jest, Web build, Mobile [EAS Build](https://docs.expo.dev/build/introduction/) (preview), Cypress E2E (smoke), Postman contract suite
-- [ ] Block merges to `main` and `test` without passing checks + 1 review (review rule + branch protection both managed via Terraform — see §1.4)
+- [ ] Block merges to `main` and `test` without passing checks + 1 review (review rule + branch protection both managed via Terraform — see [§1.4](#14-infrastructure-as-code-terraform--github-actions))
 - [ ] Container images for API + web built once on merge, tagged with the Git SHA, pushed to **Artifact Registry** in `africa-south1`
 - [ ] SBOM generation ([`syft`](https://github.com/anchore/syft)) + image signing ([`cosign`](https://github.com/sigstore/cosign)) — required for production deploys
 - [ ] Vulnerability scan on built images ([`trivy`](https://trivy.dev) / Artifact Registry's built-in scanning) — block on critical CVEs
@@ -509,12 +835,14 @@ The "works on my machine" prevention layer.
 
 - [ ] Three environments: `dev`, `staging` (test), `prod`
 - [ ] Each environment has its own Cloud SQL DB, Stripe keys (test in dev/staging, live in prod), Sentry project, and **its own GCP project** (project-level isolation > namespace-level)
-- [ ] Synthetic data only in dev/staging — no production data ever flows backwards (enforce via VPC Service Controls — see §1.2)
+- [ ] Synthetic data only in dev/staging — no production data ever flows backwards (enforce via VPC Service Controls — see [§1.2](#12-gcp-foundation-recommended-path))
 - [ ] Feature flags via **[GrowthBook](https://www.growthbook.io)** / **[Flagsmith](https://www.flagsmith.com)** / **[PostHog](https://posthog.com)** for risky launches (provider managed via Terraform)
 
 ---
 
 ## Phase 10 — Mobile App Release
+
+**Roles:** `DEV 50%` · `DESIGN 25%` · `PRODUCT 25%` *(`DEV` configures EAS and submits builds; `DESIGN` produces store screenshots and icons; `PRODUCT` writes the listing copy and answers Apple/Google data-safety forms)*
 
 The Expo app is scaffolded but has never been submitted to a store. Store review is its own multi-week process — start early.
 
@@ -541,6 +869,8 @@ The Expo app is scaffolded but has never been submitted to a store. Store review
 ---
 
 ## Phase 11 — Workspace & Communications
+
+**Roles:** `OPS 60%` · `DEV 40%` *(`OPS` provisions the Slack workspace, channels, SSO, vendor accounts, DMARC, email aliases; `DEV` wires the technical webhook integrations)*
 
 We already use Google Workspace + GitHub. The pain point is WhatsApp as the single firehose.
 
@@ -594,6 +924,8 @@ Things that should "just work" but bite if neglected.
 
 ## Phase 12 — Pre-Launch Testing
 
+**Roles:** `DEV 50%` · `CLINICAL 25%` · `PRODUCT 25%` *(`DEV` writes automation; `CLINICAL` is the registered paediatrician validating EPI / milestones / growth charts; `PRODUCT` recruits and manages closed-beta practices)*
+
 The final shake-out before real parents and clinicians.
 
 ### 12.1 Automated Coverage
@@ -625,6 +957,8 @@ The final shake-out before real parents and clinicians.
 
 ## Phase 13 — Launch & Marketing
 
+**Roles:** `MARKETING 50%` · `DESIGN 20%` · `PRODUCT 20%` · `DEV 10%` *(stakeholder-led — `MARKETING` runs LinkedIn, paediatric-association outreach, press; `DESIGN` produces the press kit; `PRODUCT` finalises pricing copy and demo flow; `DEV` only wires analytics and SEO metadata)*
+
 The "tell people about it" phase. Cheap to defer, expensive to skip entirely.
 
 - [ ] Final landing page copy and SEO (`about`, `pricing`, `contact`, `blog` already scaffolded)
@@ -639,6 +973,8 @@ The "tell people about it" phase. Cheap to defer, expensive to skip entirely.
 ---
 
 ## Phase 14 — Post-Launch Operations
+
+**Roles:** `SUPPORT 30%` · `OPS 25%` · `FINANCE 25%` · `DEV 20%` *(stakeholder-heavy — `SUPPORT` runs the helpdesk + FAQ; `OPS` runs weekly metrics review and quarterly drills; `FINANCE` owns Xero, VAT, PAYE, R&D incentive; `DEV` only handles engineering follow-ups)*
 
 What "running" the business actually looks like once real users are in.
 
@@ -663,20 +999,4 @@ What "running" the business actually looks like once real users are in.
 
 ---
 
-## Quick-Reference: Critical Path to Go-Live
-
-If everything above feels overwhelming, this is the **minimum viable launch list** — anything not on it can be a fast-follow.
-
-1. [ ] Hosting + DB migration decision finalised (Vercel+Neon **or** GCP+Cloud SQL)
-2. [ ] Terraform + GitHub Actions IaC pipeline operational — every prod resource provisioned via PR, zero console click-ops
-3. [ ] Auth provider chosen and MFA enforced for clinical roles
-4. [ ] Privacy Policy + ToS + Disclaimer reviewed by a SA POPIA-literate attorney
-5. [ ] Information Officer appointed + registered
-6. [ ] Stripe wired up with at least one paying tier
-7. [ ] Sentry + uptime monitoring + Slack alerting live
-8. [ ] Backup + restore drill completed successfully
-9. [ ] Closed beta with ≥1 real practice for ≥30 days
-10. [ ] Penetration test report received and P0/P1 findings remediated
-11. [ ] Status page public and DMARC enforced
-
-Everything else in this document is "important but not blocking" — schedule it post-launch with explicit owners and dates.
+> **End of phase walkthrough.** For the consolidated launch-day checklist, jump back to the [TL;DR — Phased Action Plan](#tldr--phased-action-plan) at the top of this document.
