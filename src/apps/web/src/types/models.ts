@@ -39,7 +39,16 @@ export interface ChildDetail extends BaseEntity {
   progress: number;
   growthRecords: GrowthRecord[];
   completedMilestones: { milestoneId: string; dateAchieved: string; notes?: string }[];
-  completedVaccinations: { vaccineId: string; dateAdministered: string }[];
+  completedVaccinations: {
+    vaccineId: string;
+    dateAdministered: string;
+    batchNumber?: string;
+    expiryDate?: string;
+    manufacturer?: string;
+    administeredByName?: string;
+    clinicName?: string;
+    source?: 'CLINICIAN' | 'PARENT';
+  }[];
 }
 
 export interface User extends BaseEntity {

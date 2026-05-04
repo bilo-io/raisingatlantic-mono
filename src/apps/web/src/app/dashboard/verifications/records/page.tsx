@@ -12,8 +12,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, AlertTriangle, CheckCircle2, FileCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { RoleGate } from '@/components/auth/RoleGate';
+import { UserRole } from '@/lib/constants';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 export default function RecordVerificationsPage() {
+  const { user, role } = useCurrentUser();
+  const isClinicianViewer = role === UserRole.CLINICIAN;
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,7 +38,28 @@ export default function RecordVerificationsPage() {
     loadData();
   }, []);
 
-  const filteredRecords = records?.filter(r => 
+  const ownIdentities = (() => {
+    if (!isClinicianViewer || !user?.name) return null;
+    const title = user.title?.trim() ?? '';
+    const fullName = user.name.trim();
+    const lastName = fullName.split(/\s+/).slice(-1)[0] ?? '';
+    return new Set(
+      [
+        fullName,
+        lastName,
+        title ? `${title} ${fullName}` : '',
+        title ? `${title} ${lastName}` : '',
+      ]
+        .filter(Boolean)
+        .map(s => s.toLowerCase())
+    );
+  })();
+
+  const visibleRecords = ownIdentities
+    ? records.filter(r => r.flaggedBy && ownIdentities.has(String(r.flaggedBy).toLowerCase()))
+    : records;
+
+  const filteredRecords = visibleRecords?.filter(r =>
     r.childName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.recordType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.issue?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -88,7 +114,11 @@ export default function RecordVerificationsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Flagged Record Verifications</CardTitle>
-            <CardDescription>Review child records that have been flagged for inconsistencies or require verification.</CardDescription>
+            <CardDescription>
+              {isClinicianViewer
+                ? 'Records you have flagged for verification. Final sign-off is performed by an administrator.'
+                : 'Review child records that have been flagged for inconsistencies or require verification.'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
              {filteredRecords.length > 0 ? (
@@ -107,16 +137,22 @@ export default function RecordVerificationsPage() {
                         {record.status}
                       </Badge>
                       <Button variant="outline" size="sm" className="w-full sm:w-auto">View Record Details</Button>
-                      <Button size="sm" className="w-full sm:w-auto">
-                         <CheckCircle2 className="h-4 w-4 mr-1.5" /> Mark as Verified
-                      </Button>
+                      <RoleGate roles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
+                        <Button size="sm" className="w-full sm:w-auto">
+                           <CheckCircle2 className="h-4 w-4 mr-1.5" /> Mark as Verified
+                        </Button>
+                      </RoleGate>
                     </div>
                   </li>
                 ))}
               </ul>
             ) : (
               <p className="text-muted-foreground text-center py-8">
-                {searchTerm ? "No records match your search." : "No records currently flagged for verification."}
+                {searchTerm
+                  ? 'No records match your search.'
+                  : isClinicianViewer
+                    ? "You haven't flagged any records currently pending verification."
+                    : 'No records currently flagged for verification.'}
               </p>
             )}
           </CardContent>

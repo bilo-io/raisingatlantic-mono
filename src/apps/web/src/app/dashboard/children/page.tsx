@@ -3,12 +3,17 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { MoreHorizontal, PlusCircle, Search, Trash2, Edit3, Eye, List, LayoutGrid, Baby } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
+import { AddChildModal } from '@/components/children/AddChildModal';
+import { dummyUsers, DUMMY_DEFAULT_USER_ID, type User as UserType } from '@/data/users';
+import { getCurrentUser } from '@/lib/auth';
+import { useToast } from '@/hooks/useToast';
 import {
   Table,
   TableBody,
@@ -46,18 +51,23 @@ type Child = {
 const VIEW_MODE_STORAGE_KEY = 'viewMode_children';
 
 export default function ChildrenListPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { addToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserType | undefined>();
   const [children, setChildren] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    
+
     const loadData = async () => {
       try {
         setLoading(true);
@@ -65,21 +75,23 @@ export default function ChildrenListPage() {
           getChildren(),
           getUsers()
         ]);
-        
+
         setChildren(allChildren);
         setUsers(allUsers);
-        
+
         if (typeof window !== 'undefined' && window.localStorage) {
            const storedViewMode = localStorage.getItem(VIEW_MODE_STORAGE_KEY) as 'grid' | 'list' | null;
            if (storedViewMode) {
              setViewMode(storedViewMode);
            }
-           
-           const userId = localStorage.getItem('currentUserId') || 'user-1';
-           setCurrentUserId(userId);
-           const user = allUsers.find((u: any) => u.id === userId);
-           if(user) {
-               setCurrentUserRole(user.role);
+
+           const authUser = getCurrentUser()
+             ?? dummyUsers.find(u => u.id === localStorage.getItem('currentUserId'))
+             ?? dummyUsers.find(u => u.id === DUMMY_DEFAULT_USER_ID);
+           if (authUser) {
+             setCurrentUser(authUser);
+             setCurrentUserId(authUser.id);
+             setCurrentUserRole(authUser.role);
            }
         }
       } catch (error) {
@@ -91,6 +103,24 @@ export default function ChildrenListPage() {
 
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (mounted && searchParams.get('new') === '1' && currentUser) {
+      setIsAddModalOpen(true);
+    }
+  }, [mounted, searchParams, currentUser]);
+
+  const handleAddChildSubmit = (data: any) => {
+    console.log('New child data:', data);
+    addToast({
+      title: 'Profile Created!',
+      description: `${data.firstName} ${data.lastName}'s profile has been successfully created.`,
+      type: 'success',
+    });
+    if (searchParams.get('new')) {
+      router.replace('/dashboard/children');
+    }
+  };
 
   useEffect(() => {
     if (mounted) {
@@ -141,7 +171,7 @@ export default function ChildrenListPage() {
   };
 
 
-  if (!mounted || loading) {
+  if (!mounted || loading || !currentUser) {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex items-center gap-4">
@@ -166,19 +196,26 @@ export default function ChildrenListPage() {
   }
 
   return (
-    <TooltipProvider>
-      <div className="flex flex-col gap-6">
-        <div className="flex items-center">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Baby className="mr-3 h-7 w-7 text-primary" />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Manage your children's profiles.</p>
-            </TooltipContent>
-          </Tooltip>
-          <h1 className="font-headline text-2xl font-bold tracking-tight">My Children</h1>
-        </div>
+    <>
+      <AddChildModal
+        open={isAddModalOpen}
+        onOpenChange={setIsAddModalOpen}
+        onSubmit={handleAddChildSubmit}
+        currentUser={currentUser}
+      />
+      <TooltipProvider>
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Baby className="mr-3 h-7 w-7 text-primary" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Manage your children's profiles.</p>
+              </TooltipContent>
+            </Tooltip>
+            <h1 className="font-headline text-2xl font-bold tracking-tight">My Children</h1>
+          </div>
         
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="relative flex-1 md:flex-initial">
@@ -208,11 +245,9 @@ export default function ChildrenListPage() {
             >
               <LayoutGrid className="h-4 w-4" />
             </Button>
-            <Button asChild size="icon">
-              <Link href="/dashboard/children/new">
-                <PlusCircle className="h-4 w-4" />
-                <span className="sr-only">Add New Child</span>
-              </Link>
+            <Button size="icon" onClick={() => setIsAddModalOpen(true)}>
+              <PlusCircle className="h-4 w-4" />
+              <span className="sr-only">Add New Child</span>
             </Button>
           </div>
         </div>
@@ -226,10 +261,8 @@ export default function ChildrenListPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild>
-                <Link href="/dashboard/children/new">
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Your First Child
-                </Link>
+              <Button onClick={() => setIsAddModalOpen(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Your First Child
               </Button>
             </CardContent>
           </Card>
@@ -331,7 +364,8 @@ export default function ChildrenListPage() {
             </Table>
           </Card>
         )}
-      </div>
-    </TooltipProvider>
+        </div>
+      </TooltipProvider>
+    </>
   );
 }

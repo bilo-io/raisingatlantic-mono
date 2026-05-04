@@ -4,6 +4,8 @@ import { boysWeightForAgeData } from '@/data/charts/boys-weight-for-age';
 import { girlsWeightForAgeData } from '@/data/charts/girls-weight-for-age';
 import { boysHeightForAgeData } from '@/data/charts/boys-height-for-age';
 import { girlsHeightForAgeData } from '@/data/charts/girls-height-for-age';
+import { boysWeightForHeightData } from '@/data/charts/boys-weight-for-height';
+import { girlsWeightForHeightData } from '@/data/charts/girls-weight-for-height';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -19,8 +21,10 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  getChildById
+import {
+  getChildById,
+  addCompletedVaccination,
+  type CompletedVaccinationInput,
 } from '@/lib/api/adapters/child.adapter';
 import { 
   getUsers 
@@ -56,6 +60,7 @@ import { cn } from '@/lib/utils';
 import { differenceInMonths } from 'date-fns';
 import { RoleAvatar } from '@/components/ui/RoleAvatar';
 import { GrowthRecordFormModal } from '@/components/records/GrowthRecordFormModal';
+import { VaccinationRecordCard } from '@/components/records/VaccinationRecordCard';
 import { useToast } from '@/hooks/useToast';
 import { UserDetailModal } from '@/components/users/UserDetailModal';
 
@@ -228,6 +233,57 @@ export default function ChildProfilePage() {
     });
   };
 
+  const expiryToIsoDate = (expiry?: string): string | undefined => {
+    if (!expiry) return undefined;
+    const m = expiry.match(/^(\d{1,2})\/(\d{4})$/);
+    if (!m) return undefined;
+    const month = m[1].padStart(2, '0');
+    return `${m[2]}-${month}-01`;
+  };
+
+  const handleLogVaccinationSubmit = async (vaccineId: string, formData: { source: 'CLINICIAN' | 'PARENT'; dateAdministered: string; batchNumber?: string; expiryDate?: string; manufacturer?: string; administeredByName?: string; }) => {
+    if (!child) return;
+    try {
+      const payload: CompletedVaccinationInput = {
+        vaccineId,
+        dateAdministered: formData.dateAdministered,
+        batchNumber: formData.batchNumber,
+        expiryDate: expiryToIsoDate(formData.expiryDate),
+        manufacturer: formData.manufacturer,
+        administeredByName: formData.administeredByName,
+        source: formData.source,
+      };
+      const saved = await addCompletedVaccination(child.id, payload);
+      const optimistic = {
+        vaccineId,
+        dateAdministered: formData.dateAdministered,
+        batchNumber: formData.batchNumber,
+        expiryDate: expiryToIsoDate(formData.expiryDate),
+        manufacturer: formData.manufacturer,
+        administeredByName: formData.administeredByName,
+        source: formData.source,
+        ...(saved && typeof saved === 'object' ? saved : {}),
+      };
+      setChild((prev: any) => prev ? {
+        ...prev,
+        completedVaccinations: [...(prev.completedVaccinations || []), optimistic],
+      } : prev);
+      addToast({
+        title: 'Vaccination logged',
+        description: `Recorded for ${child.name}.`,
+        type: 'success',
+      });
+    } catch (err) {
+      console.error('Failed to log vaccination', err);
+      addToast({
+        title: 'Could not save record',
+        description: err instanceof Error ? err.message : 'Please try again.',
+        type: 'error',
+      });
+      throw err;
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto py-6 space-y-6">
@@ -249,8 +305,13 @@ export default function ChildProfilePage() {
     );
   }
 
-  const backLink = currentUserRole === UserRole.CLINICIAN ? '/dashboard/patients' : '/dashboard/children';
-  const backText = currentUserRole === UserRole.CLINICIAN ? 'Back to Patients' : 'Back to Children List';
+  const fromParam = searchParams.get('from');
+  const cameFromPatients = fromParam === 'patients';
+  const cameFromChildren = fromParam === 'children';
+  const isClinicalRole = currentUserRole === UserRole.CLINICIAN || currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.SUPER_ADMIN;
+  const useClinicianBack = cameFromPatients || (!cameFromChildren && isClinicalRole);
+  const backLink = useClinicianBack ? '/dashboard/patients' : '/dashboard/children';
+  const backText = useClinicianBack ? 'Back to Patients' : 'Back to Children List';
 
   if (!child) {
     return (
@@ -279,8 +340,8 @@ export default function ChildProfilePage() {
     const recordDate = new Date(record.date);
     const ageInMonths = differenceInMonths(recordDate, new Date(child.dateOfBirth));
     
-    const weightStr = record.data.weight || '';
-    const heightStr = record.data.height || '';
+    const weightStr = record.weight ?? record.data?.weight ?? '';
+    const heightStr = record.height ?? record.data?.height ?? '';
     
     const weight = parseFloat(weightStr.toString().replace(/[^0-9.]/g, ''));
     const height = parseFloat(heightStr.toString().replace(/[^0-9.]/g, ''));
@@ -292,40 +353,62 @@ export default function ChildProfilePage() {
     };
   }).sort((a: any, b: any) => a.age - b.age) : [];
 
-  const GrowthChart = ({ metric, child }: { metric: 'weight' | 'height', child: any }) => {
+  const GrowthChart = ({ metric, child }: { metric: 'weight' | 'height' | 'weight-for-height', child: any }) => {
+    // NB: Do not change these colors unless explicitly specified
     const chartConfig = React.useMemo(() => ({
-      line_plus_3:  { label: "+3 line",  color: "hsl(var(--destructive))" },
+      line_plus_3:  { label: "+3 line",  color: "#EF4444" },
       line_plus_2: { label: "+2 line", color: "#E68A19" },
       line_0: { label: "0-line (median)", color: "#21C45D" },
       line_minus_2: { label: "-2 line", color: "#E68A19" },
-      line_minus_3: { label: "-3 line", color: "hsl(var(--destructive))" },
-      childData: { label: child.name, color: "hsl(var(--primary))" },
+      line_minus_3: { label: "-3 line", color: "#EF4444" },
+      childData: { label: child.name, color: "#3B82F6" },
     }), [child.name]) satisfies ChartConfig;
 
+    const isWfh = metric === 'weight-for-height';
+    const xKey = isWfh ? 'length' : 'age';
+
     const combinedChartData = React.useMemo(() => {
-      const standardChartData = metric === 'height'
-          ? (child.gender === 'male' ? boysHeightForAgeData : girlsHeightForAgeData)
-          : (child.gender === 'male' ? boysWeightForAgeData : girlsWeightForAgeData);
+      const standardChartData = isWfh
+          ? (child.gender === 'male' ? boysWeightForHeightData : girlsWeightForHeightData)
+          : metric === 'height'
+            ? (child.gender === 'male' ? boysHeightForAgeData : girlsHeightForAgeData)
+            : (child.gender === 'male' ? boysWeightForAgeData : girlsWeightForAgeData);
+
+      if (isWfh) {
+        const childByLength = new Map<number, number>();
+        childsGrowthData.forEach((d: any) => {
+          if (d.height == null || d.weight == null) return;
+          const bin = Math.round(d.height * 2) / 2;
+          childByLength.set(bin, d.weight);
+        });
+        return standardChartData.map((p: any) => ({
+          ...p,
+          childData: childByLength.get(p.length) ?? null,
+        }));
+      }
 
       const childDataMap = new Map<number, { weight: number | null, height: number | null }>();
       childsGrowthData.forEach((d: any) => {
         childDataMap.set(d.age, { weight: d.weight, height: d.height });
       });
 
-      const mergedData = standardChartData.map((standardDataPoint: any) => {
+      return standardChartData.map((standardDataPoint: any) => {
         const childDataForAge = childDataMap.get(standardDataPoint.age);
         const childMetricValue = childDataForAge
           ? (metric === 'weight' ? childDataForAge.weight : childDataForAge.height)
           : null;
-
         return {
           ...standardDataPoint,
           childData: childMetricValue,
         };
       });
-      
-      return mergedData;
-    }, [metric, child.gender, childsGrowthData, boysHeightForAgeData, girlsHeightForAgeData, boysWeightForAgeData, girlsWeightForAgeData]);
+    }, [metric, isWfh, child.gender, childsGrowthData]);
+
+    const yAxisName = isWfh
+      ? 'Weight (kg)'
+      : metric === 'height' ? 'Length/Height (cm)' : 'Weight (kg)';
+    const yAxisUnit = isWfh ? 'kg' : metric === 'height' ? 'cm' : 'kg';
+    const yAxisDomain: [number | 'auto', number | 'auto'] = metric === 'height' ? [45, 125] : ['auto', 'auto'];
 
     return (
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
@@ -334,21 +417,25 @@ export default function ChildProfilePage() {
             data={combinedChartData}
             margin={{ top: 20, right: 20, left: 0, bottom: 10 }}
             >
-            <defs>
-              <linearGradient id="growthGradient" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="var(--primary)" />
-                <stop offset="100%" stopColor="var(--accent)" />
-              </linearGradient>
-            </defs>
             <CartesianGrid vertical={false} />
-            <XAxis dataKey="age" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}m`} name="Age in Months" />
-            <YAxis 
-                tickLine={false} 
-                axisLine={false} 
-                tickMargin={8} 
-                name={metric === 'height' ? 'Length/Height (cm)' : 'Weight (kg)'}
-                unit={metric === 'height' ? 'cm' : 'kg'}
-                domain={metric === 'height' ? [45, 125] : ['auto', 'auto']}
+            <XAxis
+                dataKey={xKey}
+                type={isWfh ? 'number' : 'category'}
+                domain={isWfh ? [45, 120] : undefined}
+                ticks={isWfh ? [45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120] : undefined}
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(value) => isWfh ? `${value}cm` : `${value}m`}
+                name={isWfh ? 'Length/Height (cm)' : 'Age in Months'}
+            />
+            <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                name={yAxisName}
+                unit={yAxisUnit}
+                domain={yAxisDomain}
             />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
@@ -357,7 +444,7 @@ export default function ChildProfilePage() {
             <Line dataKey="line_0" type="linear" stroke="var(--color-line_0)" strokeWidth={3} dot={false} name="0-line (median)" />
             <Line dataKey="line_plus_2" type="linear" stroke="var(--color-line_plus_2)" strokeWidth={2} dot={false} name="+2 line" />
             <Line dataKey="line_plus_3" type="linear" stroke="var(--color-line_plus_3)" strokeWidth={2} dot={false} name="+3 line" />
-            <Line dataKey="childData" type="monotone" stroke="url(#growthGradient)" strokeWidth={3} dot={{ r: 5, fill: "var(--card)", stroke: "url(#growthGradient)", strokeWidth: 2 }} activeDot={{ r: 7, fill: "var(--card)", stroke: "url(#growthGradient)", strokeWidth: 2 }} name={child.name} connectNulls />
+            <Line dataKey="childData" type="monotone" stroke="var(--color-childData)" strokeWidth={3} dot={{ r: 5, fill: "var(--card)", stroke: "var(--color-childData)", strokeWidth: 2 }} activeDot={{ r: 7, fill: "var(--card)", stroke: "var(--color-childData)", strokeWidth: 2 }} name={child.name} connectNulls />
             </LineChart>
         </ChartContainer>
     );
@@ -374,9 +461,18 @@ export default function ChildProfilePage() {
                 <p className="text-sm text-muted-foreground">{record.notes || 'Routine check-up'}</p>
               </div>
               <div className="text-right text-sm shrink-0">
-                {record.data.height && <p><span className="font-medium text-muted-foreground">H: </span>{record.data.height}</p>}
-                {record.data.weight && <p><span className="font-medium text-muted-foreground">W: </span>{record.data.weight}</p>}
-                {record.data.headCircumference && <p className="text-xs"><span className="font-medium text-muted-foreground">HC: </span>{record.data.headCircumference}</p>}
+                {(() => {
+                  const height = record.height ?? record.data?.height;
+                  const weight = record.weight ?? record.data?.weight;
+                  const headCircumference = record.headCircumference ?? record.data?.headCircumference;
+                  return (
+                    <>
+                      {height && <p><span className="font-medium text-muted-foreground">H: </span>{height}</p>}
+                      {weight && <p><span className="font-medium text-muted-foreground">W: </span>{weight}</p>}
+                      {headCircumference && <p className="text-xs"><span className="font-medium text-muted-foreground">HC: </span>{headCircumference}</p>}
+                    </>
+                  );
+                })()}
               </div>
             </li>
           ))}
@@ -602,8 +698,8 @@ export default function ChildProfilePage() {
                           <CardTitle>Growth Records</CardTitle>
                           <CardDescription>
                               {isExporting ? `Full growth report for ${child.name}`
-                                : growthView === 'chart' 
-                                  ? `Displaying ${chartMetric}-for-age chart for ${child.gender === 'male' ? 'boys' : 'girls'}`
+                                : growthView === 'chart'
+                                  ? `Displaying ${chartMetric === 'weight-for-height' ? 'weight-for-height' : `${chartMetric}-for-age`} chart for ${child.gender === 'male' ? 'boys' : 'girls'}`
                                   : `List of all growth records for ${child.name}`
                               }
                           </CardDescription>
@@ -640,20 +736,27 @@ export default function ChildProfilePage() {
                             <h4 className="text-lg font-semibold mb-2">Height-for-Age Chart</h4>
                              <GrowthChart metric="height" child={child} />
                           </div>
+                           <div>
+                            <h4 className="text-lg font-semibold mb-2">Weight-for-Height Chart</h4>
+                             <GrowthChart metric="weight-for-height" child={child} />
+                          </div>
                         </div>
                       ) : growthView === 'list' ? (
                          <GrowthListView />
                       ) : (
                          <div className="space-y-4">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                   <Button variant={chartMetric === 'weight' ? 'default' : 'outline'} size="sm" onClick={() => updateUrlParams({ chartMetric: 'weight' })}>
                                   Weight-for-age
                                   </Button>
                                   <Button variant={chartMetric === 'height' ? 'default' : 'outline'} size="sm" onClick={() => updateUrlParams({ chartMetric: 'height' })}>
                                   Height-for-age
                                   </Button>
+                                  <Button variant={chartMetric === 'weight-for-height' ? 'default' : 'outline'} size="sm" onClick={() => updateUrlParams({ chartMetric: 'weight-for-height' })}>
+                                  Weight-for-height
+                                  </Button>
                               </div>
-                              <GrowthChart metric={chartMetric as 'weight' | 'height'} child={child} />
+                              <GrowthChart metric={chartMetric as 'weight' | 'height' | 'weight-for-height'} child={child} />
                           </div>
                       )}
                     </CardContent>
@@ -720,48 +823,16 @@ export default function ChildProfilePage() {
                 </TabsContent>
 
                 <TabsContent value="vaccinations">
-                  <Card>
-                    <CardHeader><CardTitle>Vaccination Schedule & Status</CardTitle></CardHeader>
-                    <CardContent>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-[100px]">Status</TableHead>
-                            <TableHead>Vaccine</TableHead>
-                            <TableHead>Dose</TableHead>
-                            <TableHead>Recommended Age</TableHead>
-                            <TableHead>Date Administered</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {vaccinationsMaster.map((vaccine: any) => {
-                            const completedVaccine = child.completedVaccinations?.find((cv: any) => cv.vaccineId === vaccine.id);
-                            const isCompleted = !!completedVaccine;
-                            return (
-                              <TableRow key={vaccine.id}>
-                                <TableCell>
-                                  <Checkbox
-                                    id={`vaccine-${vaccine.id}`}
-                                    checked={isCompleted}
-                                    disabled 
-                                    aria-label={`${vaccine.name} ${isCompleted ? 'completed' : 'pending'}`}
-                                  />
-                                </TableCell>
-                                <TableCell className="font-medium">{vaccine.name}</TableCell>
-                                <TableCell>{vaccine.doseInfo}</TableCell>
-                                <TableCell>{vaccine.recommendedAge}</TableCell>
-                                <TableCell>
-                                  {isCompleted && completedVaccine.dateAdministered 
-                                    ? formatDateStandard(completedVaccine.dateAdministered) 
-                                    : 'Pending'}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
+                  <VaccinationRecordCard
+                    child={child}
+                    vaccinationsMaster={vaccinationsMaster}
+                    clinician={clinician ? {
+                      name: [clinician.title, clinician.name].filter(Boolean).join(' '),
+                      practice: clinician.practiceName,
+                      hpcsa: clinician.hpcsa,
+                    } : undefined}
+                    onLogSubmit={handleLogVaccinationSubmit}
+                  />
                 </TabsContent>
               </Tabs>
             </section>

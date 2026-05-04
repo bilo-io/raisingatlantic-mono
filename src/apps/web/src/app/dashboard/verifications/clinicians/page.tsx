@@ -14,8 +14,13 @@ import { formatDateStandard } from '@/utils/date';
 import { RoleAvatar } from '@/components/ui/RoleAvatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
+import { RoleGate } from '@/components/auth/RoleGate';
+import { UserRole } from '@/lib/constants';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 export default function ClinicianVerificationsPage() {
+  const { role } = useCurrentUser();
+  const isClinicianViewer = role === UserRole.CLINICIAN;
   const [clinicians, setClinicians] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -91,7 +96,11 @@ export default function ClinicianVerificationsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Pending Clinician Verifications</CardTitle>
-            <CardDescription>Review and approve or request more information for new clinician applications.</CardDescription>
+            <CardDescription>
+              {isClinicianViewer
+                ? 'Review pending clinician applications. Approval is handled by an administrator.'
+                : 'Review and approve or request more information for new clinician applications.'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {filteredClinicians.length > 0 ? (
@@ -118,7 +127,9 @@ export default function ClinicianVerificationsPage() {
                           {clinician.status}
                        </span>
                       <Button variant="outline" size="sm" className="w-full sm:w-auto">View Application</Button>
-                      <Button size="sm" className="w-full sm:w-auto">Approve</Button>
+                      <RoleGate roles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
+                        <Button size="sm" className="w-full sm:w-auto">Approve</Button>
+                      </RoleGate>
                     </div>
                   </li>
                 ))}

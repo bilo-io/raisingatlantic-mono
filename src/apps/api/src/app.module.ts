@@ -41,41 +41,60 @@ import { SystemLog } from './common/models/system-log.model';
       limit: 1,
     }]),
 
-    // TypeORM configured from .env via ConfigService
+    // TypeORM configured from .env via ConfigService.
+    // Prefers DATABASE_URL (Neon / Vercel-Postgres style); falls back to discrete
+    // DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME for local Docker dev.
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get<string>('DB_HOST'),
-        port: config.get<number>('DB_PORT'),
-        username: config.get<string>('DB_USER'),
-        password: config.get<string>('DB_PASSWORD'),
-        database: config.get<string>('DB_NAME'),
-        entities: [
-          Example, 
-          User, 
-          ClinicianProfile, 
-          Tenant, 
-          Practice, 
-          Child, 
-          GrowthRecord, 
-          CompletedMilestone, 
+      useFactory: (config: ConfigService) => {
+        const databaseUrl = config.get<string>('DATABASE_URL');
+        const isProd = config.get<string>('NODE_ENV') === 'production';
+        const sslEnabled =
+          config.get<string>('DB_SSL') === 'true' ||
+          (!!databaseUrl && /sslmode=require/.test(databaseUrl));
+
+        const entities = [
+          Example,
+          User,
+          ClinicianProfile,
+          Tenant,
+          Practice,
+          Child,
+          GrowthRecord,
+          CompletedMilestone,
           CompletedVaccination,
           Allergy,
           MedicalCondition,
           Report,
           Appointment,
           BlogPost,
-          SystemLog
-        ],
-        // retry connection on startup
-        retryAttempts: 10,
-        retryDelay: 3000,
-        // auto-create / sync schema in dev — disable in production
-        synchronize: config.get<string>('NODE_ENV') !== 'production',
-        logging: config.get<string>('NODE_ENV') !== 'production',
-      }),
+          SystemLog,
+        ];
+
+        const base = {
+          type: 'postgres' as const,
+          entities,
+          retryAttempts: 10,
+          retryDelay: 3000,
+          synchronize: !isProd,
+          logging: !isProd,
+          ssl: sslEnabled ? { rejectUnauthorized: false } : false,
+        };
+
+        if (databaseUrl) {
+          return { ...base, url: databaseUrl };
+        }
+
+        return {
+          ...base,
+          host: config.get<string>('DB_HOST'),
+          port: config.get<number>('DB_PORT'),
+          username: config.get<string>('DB_USER'),
+          password: config.get<string>('DB_PASSWORD'),
+          database: config.get<string>('DB_NAME'),
+        };
+      },
     }),
 
     ExamplesModule,

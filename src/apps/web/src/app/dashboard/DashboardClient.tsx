@@ -75,33 +75,37 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
             user = allUsers.find((u: any) => u.id === storedUserId);
         }
 
-        if (user) {
-          setCurrentUser(user);
-          
-          // 2. Fetch all other dashboard dependencies in parallel
-          const [
-            allChildren,
-            allUsers,
-            allVaccinations,
-            allMilestones,
-            pendingClinicians,
-            pendingRecords
-          ] = await Promise.all([
-            getChildren(),
-            getUsers(),
-            getVaccinationSchedule(),
-            getMilestones(),
-            getCliniciansForVerification(),
-            getRecordsForVerification()
-          ]);
-
-          setChildren(allChildren);
-          setUsers(allUsers);
-          setVaccinations(allVaccinations);
-          setMilestones(allMilestones);
-          setCliniciansToVerify(pendingClinicians);
-          setRecordsToVerify(pendingRecords);
+        if (!user) {
+          throw new Error(
+            'Unable to resolve the current user. Your session may be stale — please sign in again.'
+          );
         }
+
+        setCurrentUser(user);
+
+        // 2. Fetch all other dashboard dependencies in parallel
+        const [
+          allChildren,
+          allUsers,
+          allVaccinations,
+          allMilestones,
+          pendingClinicians,
+          pendingRecords
+        ] = await Promise.all([
+          getChildren(),
+          getUsers(),
+          getVaccinationSchedule(),
+          getMilestones(),
+          getCliniciansForVerification(),
+          getRecordsForVerification()
+        ]);
+
+        setChildren(allChildren);
+        setUsers(allUsers);
+        setVaccinations(allVaccinations);
+        setMilestones(allMilestones);
+        setCliniciansToVerify(pendingClinicians);
+        setRecordsToVerify(pendingRecords);
       } catch (err: any) {
         console.error("Dashboard data load failed:", err);
         setError(err);
@@ -209,7 +213,7 @@ export default function DashboardClient({ initialServerData }: DashboardClientPr
         mainList: myChildren.slice(0, 3),
         mainListLink: "/dashboard/children",
         quickActions: [
-          { label: "Add New Child", href: "/dashboard/children/new", icon: PlusCircle },
+          { label: "Add New Child", href: "/dashboard/children?new=1", icon: PlusCircle },
           { label: "View All Records", href: "/dashboard/records", icon: ClipboardList },
           { label: "Manage My Account", href: "/dashboard/account", icon: User },
           { label: "Search Directory", href: "/dashboard/directory", icon: Search },

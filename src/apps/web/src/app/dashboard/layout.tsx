@@ -1,5 +1,6 @@
 
 import { PrivateLayout } from '@/components/layout/PrivateLayout';
+import { RequireRole } from '@/components/auth/RequireRole';
 import type React from 'react';
 
 export default function DashboardLayout({
@@ -7,5 +8,9 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <PrivateLayout>{children}</PrivateLayout>;
+  return (
+    <RequireRole>
+      <PrivateLayout>{children}</PrivateLayout>
+    </RequireRole>
+  );
 }

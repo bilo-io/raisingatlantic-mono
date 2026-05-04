@@ -12,6 +12,7 @@ import { CreateChildDto } from './dto/create-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
 import { CreateAllergyDto } from './dto/create-allergy.dto';
 import { CreateMedicalConditionDto } from './dto/create-medical-condition.dto';
+import { CreateCompletedVaccinationDto } from './dto/create-completed-vaccination.dto';
 
 @Injectable()
 export class ChildrenService {
@@ -165,6 +166,18 @@ export class ChildrenService {
     const child = await this.findOne(childId);
     const allergy = this.allergyRepo.create({ ...dto, child });
     return await this.allergyRepo.save(allergy);
+  }
+
+  async addCompletedVaccination(childId: string, dto: CreateCompletedVaccinationDto): Promise<CompletedVaccination> {
+    const child = await this.findOne(childId);
+    const record = this.vaccineRepo.create({
+      ...dto,
+      dateAdministered: new Date(dto.dateAdministered),
+      expiryDate: dto.expiryDate ? new Date(dto.expiryDate) : undefined,
+      source: dto.source ?? 'CLINICIAN',
+      child,
+    });
+    return await this.vaccineRepo.save(record);
   }
 
   // Medical Condition Methods

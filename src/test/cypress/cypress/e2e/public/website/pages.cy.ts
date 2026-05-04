@@ -4,7 +4,7 @@ describe('Landing Page', () => {
   });
 
   it('renders the hero section with key content', () => {
-    cy.contains('Empowering Progress, Together').should('be.visible');
+    cy.get('img[alt="Raising Atlantic"]').should('be.visible');
     cy.contains('A collaborative platform for parents and clinicians').should('be.visible');
     cy.contains('Get Started').should('be.visible');
     cy.contains('Learn More').should('be.visible');
@@ -105,7 +105,7 @@ describe('About Page', () => {
   });
 
   it('can navigate back to home via the logo', () => {
-    cy.get('nav a[href="/"]').first().click();
+    cy.get('header a[href="/"]').first().click();
     cy.url().should('eq', Cypress.config().baseUrl + '/');
   });
 });
@@ -145,7 +145,7 @@ describe('Blog Page', () => {
 
   it('renders navigation back to landing from the blog page', () => {
     cy.get('nav').contains('About').should('be.visible');
-    cy.get('nav').contains('Login').should('be.visible');
+    cy.get('header').contains('Login').should('be.visible');
   });
 
   it('can navigate to the About page from the blog nav', () => {
