@@ -199,7 +199,7 @@ export default function PatientsPage() {
               </Avatar>
               <div>
                 <CardTitle className="font-headline text-lg">
-                  <Link href={`/dashboard/children/${patient.id}`} className="hover:underline">{patient.name}</Link>
+                  <Link href={`/dashboard/children/${patient.id}?from=patients`} className="hover:underline">{patient.name}</Link>
                 </CardTitle>
                 <CardDescription>{getAgeFromDate(patient.dateOfBirth)}</CardDescription>
               </div>
@@ -221,8 +221,8 @@ export default function PatientsPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild><Link href={`/dashboard/children/${patient.id}`}><Eye className="mr-2 h-4 w-4" />View Profile</Link></DropdownMenuItem>
-                <DropdownMenuItem asChild><Link href={`/dashboard/children/${patient.id}/edit`}><Edit3 className="mr-2 h-4 w-4" />Edit</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href={`/dashboard/children/${patient.id}?from=patients`}><Eye className="mr-2 h-4 w-4" />View Profile</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href={`/dashboard/children/${patient.id}/edit?from=patients`}><Edit3 className="mr-2 h-4 w-4" />Edit</Link></DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </CardFooter>
@@ -254,7 +254,7 @@ export default function PatientsPage() {
                       <AvatarImage src={patient.imageUrl} alt={patient.name} />
                       <AvatarFallback name={patient.name}>{patient.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
-                    <Link href={`/dashboard/children/${patient.id}`} className="font-medium hover:underline">{patient.name}</Link>
+                    <Link href={`/dashboard/children/${patient.id}?from=patients`} className="font-medium hover:underline">{patient.name}</Link>
                   </div>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">{getAgeFromDate(patient.dateOfBirth)}</TableCell>
@@ -273,10 +273,10 @@ export default function PatientsPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/children/${patient.id}`}><Eye className="mr-2 h-4 w-4" />View Profile</Link>
+                        <Link href={`/dashboard/children/${patient.id}?from=patients`}><Eye className="mr-2 h-4 w-4" />View Profile</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/children/${patient.id}/edit`}><Edit3 className="mr-2 h-4 w-4" />Edit Profile</Link>
+                        <Link href={`/dashboard/children/${patient.id}/edit?from=patients`}><Edit3 className="mr-2 h-4 w-4" />Edit Profile</Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

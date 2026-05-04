@@ -39,10 +39,6 @@ export const DASHBOARD_NAV_LINKS: NavLinkItem[] = [
     label: 'Children',
     icon: Baby,
     roles: [UserRole.PARENT],
-    children: [
-      { href: '/dashboard/children', label: 'All Children', icon: Users },
-      { href: '/dashboard/children/new', label: 'Add New Child', icon: PlusCircle },
-    ]
   },
   {
     href: '/dashboard/patients',

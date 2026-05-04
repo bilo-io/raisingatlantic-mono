@@ -91,6 +91,32 @@ export async function updateChild(id: string, data: Partial<Child>): Promise<Chi
   throw new Error('Child not found');
 }
 
+export interface CompletedVaccinationInput {
+  vaccineId: string;
+  dateAdministered: string;
+  batchNumber?: string;
+  expiryDate?: string;
+  manufacturer?: string;
+  administeredByName?: string;
+  clinicName?: string;
+  source?: 'CLINICIAN' | 'PARENT';
+}
+
+export async function addCompletedVaccination(childId: string, data: CompletedVaccinationInput): Promise<any> {
+  if (useApi()) {
+    const response = await apiClient.post(`/children/${childId}/vaccinations`, data);
+    return response.data;
+  }
+  const child = childrenDetails.find(c => c.id === childId);
+  if (!child) throw new Error('Child not found');
+  const record = {
+    id: `cv-${Date.now()}`,
+    ...data,
+  };
+  (child as any).completedVaccinations = [...((child as any).completedVaccinations || []), record];
+  return record;
+}
+
 export async function deleteChild(id: string): Promise<void> {
   if (useApi()) {
     await apiClient.delete(`/children/${id}`);

@@ -4,6 +4,7 @@ import { CreateChildDto } from './dto/create-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
 import { CreateAllergyDto } from './dto/create-allergy.dto';
 import { CreateMedicalConditionDto } from './dto/create-medical-condition.dto';
+import { CreateCompletedVaccinationDto } from './dto/create-completed-vaccination.dto';
 import { Child } from './children.model';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -49,6 +50,12 @@ export class ChildrenController {
   @Roles(UserRole.ADMIN, UserRole.CLINICIAN)
   async addCondition(@Param('id') id: string, @Body() dto: CreateMedicalConditionDto) {
     return this.childrenService.addMedicalCondition(id, dto);
+  }
+
+  @Post(':id/vaccinations')
+  @Roles(UserRole.ADMIN, UserRole.CLINICIAN, UserRole.PARENT)
+  async addCompletedVaccination(@Param('id') id: string, @Body() dto: CreateCompletedVaccinationDto) {
+    return this.childrenService.addCompletedVaccination(id, dto);
   }
 
   @Patch(':id')

@@ -16,6 +16,7 @@ async function bootstrap() {
   const isProd = process.env.NODE_ENV === 'production';
   const allowedOrigins = [
     'http://localhost:9002',
+    'https://raisingatlantic-web.vercel.app',
     'https://raisingatlantic-dev.vercel.app',
     'https://raisingatlantic-staging.vercel.app',
     'https://raisingatlantic-prod.vercel.app',

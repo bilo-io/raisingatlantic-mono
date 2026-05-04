@@ -21,8 +21,10 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  getChildById
+import {
+  getChildById,
+  addCompletedVaccination,
+  type CompletedVaccinationInput,
 } from '@/lib/api/adapters/child.adapter';
 import { 
   getUsers 
@@ -231,6 +233,57 @@ export default function ChildProfilePage() {
     });
   };
 
+  const expiryToIsoDate = (expiry?: string): string | undefined => {
+    if (!expiry) return undefined;
+    const m = expiry.match(/^(\d{1,2})\/(\d{4})$/);
+    if (!m) return undefined;
+    const month = m[1].padStart(2, '0');
+    return `${m[2]}-${month}-01`;
+  };
+
+  const handleLogVaccinationSubmit = async (vaccineId: string, formData: { source: 'CLINICIAN' | 'PARENT'; dateAdministered: string; batchNumber?: string; expiryDate?: string; manufacturer?: string; administeredByName?: string; }) => {
+    if (!child) return;
+    try {
+      const payload: CompletedVaccinationInput = {
+        vaccineId,
+        dateAdministered: formData.dateAdministered,
+        batchNumber: formData.batchNumber,
+        expiryDate: expiryToIsoDate(formData.expiryDate),
+        manufacturer: formData.manufacturer,
+        administeredByName: formData.administeredByName,
+        source: formData.source,
+      };
+      const saved = await addCompletedVaccination(child.id, payload);
+      const optimistic = {
+        vaccineId,
+        dateAdministered: formData.dateAdministered,
+        batchNumber: formData.batchNumber,
+        expiryDate: expiryToIsoDate(formData.expiryDate),
+        manufacturer: formData.manufacturer,
+        administeredByName: formData.administeredByName,
+        source: formData.source,
+        ...(saved && typeof saved === 'object' ? saved : {}),
+      };
+      setChild((prev: any) => prev ? {
+        ...prev,
+        completedVaccinations: [...(prev.completedVaccinations || []), optimistic],
+      } : prev);
+      addToast({
+        title: 'Vaccination logged',
+        description: `Recorded for ${child.name}.`,
+        type: 'success',
+      });
+    } catch (err) {
+      console.error('Failed to log vaccination', err);
+      addToast({
+        title: 'Could not save record',
+        description: err instanceof Error ? err.message : 'Please try again.',
+        type: 'error',
+      });
+      throw err;
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto py-6 space-y-6">
@@ -252,8 +305,13 @@ export default function ChildProfilePage() {
     );
   }
 
-  const backLink = currentUserRole === UserRole.CLINICIAN ? '/dashboard/patients' : '/dashboard/children';
-  const backText = currentUserRole === UserRole.CLINICIAN ? 'Back to Patients' : 'Back to Children List';
+  const fromParam = searchParams.get('from');
+  const cameFromPatients = fromParam === 'patients';
+  const cameFromChildren = fromParam === 'children';
+  const isClinicalRole = currentUserRole === UserRole.CLINICIAN || currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.SUPER_ADMIN;
+  const useClinicianBack = cameFromPatients || (!cameFromChildren && isClinicalRole);
+  const backLink = useClinicianBack ? '/dashboard/patients' : '/dashboard/children';
+  const backText = useClinicianBack ? 'Back to Patients' : 'Back to Children List';
 
   if (!child) {
     return (
@@ -773,6 +831,7 @@ export default function ChildProfilePage() {
                       practice: clinician.practiceName,
                       hpcsa: clinician.hpcsa,
                     } : undefined}
+                    onLogSubmit={handleLogVaccinationSubmit}
                   />
                 </TabsContent>
               </Tabs>

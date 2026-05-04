@@ -13,11 +13,14 @@ import type { ChildDetail } from '@/types/models';
 import type { Vaccination, VaccinationTrack } from '@/data/vaccinations';
 import { VaccinationRecordPdfTemplate, type ClinicianContext } from './VaccinationRecordPdfTemplate';
 import { exportVaccinationRecordPdf } from '@/lib/pdf/vaccination-record';
+import { LogVaccinationModal, type LogVaccinationFormData } from './LogVaccinationModal';
 
 type Props = {
   child: ChildDetail;
   vaccinationsMaster: Vaccination[];
   clinician?: ClinicianContext;
+  onLogVaccine?: (vaccine: Vaccination) => void;
+  onLogSubmit?: (vaccineId: string, data: LogVaccinationFormData) => void | Promise<void>;
 };
 
 type FilterMode = 'all' | 'EPI' | 'PRIVATE';
@@ -76,7 +79,7 @@ function StatusCircle({ state, size = 'md' }: { state: RowState; size?: 'sm' | '
   }
   if (state === 'due') {
     return (
-      <span className={cn('inline-flex items-center justify-center rounded-full bg-sky-500/20 ring-1 ring-sky-500', dim)} />
+      <span className={cn('inline-flex items-center justify-center rounded-full bg-foreground/20 ring-1 ring-foreground', dim)} />
     );
   }
   return <span className={cn('inline-flex rounded-full ring-1 ring-muted-foreground/40', dim)} />;
@@ -100,8 +103,8 @@ function GroupCircle({ given, total, hasDue }: { given: number; total: number; h
   }
   if (hasDue) {
     return (
-      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-sky-500/20 ring-1 ring-sky-500">
-        <span className="h-0 w-0 border-y-[4px] border-l-[6px] border-y-transparent border-l-sky-500 ml-0.5" />
+      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-foreground/20 ring-1 ring-foreground">
+        <span className="h-0 w-0 border-y-[4px] border-l-[6px] border-y-transparent border-l-foreground ml-0.5" />
       </span>
     );
   }
@@ -119,12 +122,31 @@ function TrackChip({ vaccine }: { vaccine: Vaccination }) {
   return <Badge className="bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/15 border-transparent">EPI</Badge>;
 }
 
-export function VaccinationRecordCard({ child, vaccinationsMaster, clinician }: Props) {
+function DetailField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</div>
+      <div className="text-sm mt-1">{value}</div>
+    </div>
+  );
+}
+
+export function VaccinationRecordCard({ child, vaccinationsMaster, clinician, onLogVaccine, onLogSubmit }: Props) {
   const printRef = React.useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = React.useState(false);
   const [filter, setFilter] = React.useState<FilterMode>('all');
   const [collapsed, setCollapsed] = React.useState<Record<string, boolean>>({});
+  const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
+  const [logTarget, setLogTarget] = React.useState<Vaccination | null>(null);
   const { addToast } = useToast();
+
+  const handleLogClick = (vaccine: Vaccination) => {
+    if (onLogVaccine) {
+      onLogVaccine(vaccine);
+      return;
+    }
+    setLogTarget(vaccine);
+  };
 
   const handleExport = async () => {
     if (!printRef.current) return;
@@ -159,9 +181,20 @@ export function VaccinationRecordCard({ child, vaccinationsMaster, clinician }: 
   }, [vaccinationsMaster]);
 
   const groups = React.useMemo(() => {
+    const matchesFilter = (v: Vaccination): boolean => {
+      if (filter === 'all') return true;
+      const isAnnual = /annual/i.test(v.recommendedAge);
+      const isPrivate = v.track === 'PRIVATE';
+      const isEpiChip = !isAnnual && !isPrivate;
+      if (filter === 'EPI') {
+        const isVerified = rowStateFor(child, v).state === 'given';
+        return isEpiChip || isVerified;
+      }
+      return isAnnual || isPrivate;
+    };
     return orderedAges.map(age => {
       const vaccines = vaccinationsMaster.filter(v => v.recommendedAge === age);
-      const visible = filter === 'all' ? vaccines : vaccines.filter(v => (v.track ?? 'EPI') === filter);
+      const visible = vaccines.filter(matchesFilter);
       const rows = visible.map(v => ({ vaccine: v, ...rowStateFor(child, v) }));
       const givenCount = vaccines.filter(v => child.completedVaccinations.some(cv => cv.vaccineId === v.id)).length;
       const hasDue = rows.some(r => r.state === 'due');
@@ -270,17 +303,83 @@ export function VaccinationRecordCard({ child, vaccinationsMaster, clinician }: 
                 >
                   <div className="overflow-hidden">
                     <div className="ml-7 space-y-1.5 pt-1.5 pb-0.5">
-                      {group.visibleRows.map(({ vaccine, state }) => (
-                        <div
-                          key={vaccine.id}
-                          className="flex items-center gap-3 rounded-full border bg-muted/30 px-4 py-2"
-                        >
-                          <StatusCircle state={state} size="sm" />
-                          <span className="text-sm flex-1 truncate">{vaccine.name}</span>
-                          <TrackChip vaccine={vaccine} />
-                          <ChevronDown className="h-4 w-4 text-muted-foreground/60" />
-                        </div>
-                      ))}
+                      {group.visibleRows.map(({ vaccine, state }) => {
+                        const isExpanded = !!expanded[vaccine.id];
+                        const completed = child.completedVaccinations.find(cv => cv.vaccineId === vaccine.id);
+                        const isLogged = state === 'given' || state === 'parent';
+                        return (
+                          <div
+                            key={vaccine.id}
+                            className={cn(
+                              'border bg-muted/30 transition-all',
+                              isExpanded ? 'rounded-2xl' : 'rounded-full'
+                            )}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setExpanded(prev => ({ ...prev, [vaccine.id]: !prev[vaccine.id] }))}
+                              className="flex items-center gap-3 w-full px-4 py-2 text-left"
+                              aria-expanded={isExpanded}
+                            >
+                              <StatusCircle state={state} size="sm" />
+                              <span className="text-sm flex-1 truncate">{vaccine.name}</span>
+                              <TrackChip vaccine={vaccine} />
+                              <ChevronDown className={cn('h-4 w-4 text-muted-foreground/60 transition-transform', isExpanded && 'rotate-180')} />
+                            </button>
+
+                            {isExpanded && (
+                              <div className="px-4 pb-3">
+                                {isLogged && completed ? (
+                                  <>
+                                    <div className="grid grid-cols-2 gap-y-3 gap-x-6">
+                                      <DetailField
+                                        label="Date given"
+                                        value={completed.dateAdministered ? format(new Date(completed.dateAdministered), 'dd/MM/yyyy') : '—'}
+                                      />
+                                      <DetailField
+                                        label="Batch"
+                                        value={completed.batchNumber || '—'}
+                                      />
+                                      <DetailField
+                                        label="Expiry"
+                                        value={completed.expiryDate ? format(new Date(completed.expiryDate), 'MM/yyyy') : '—'}
+                                      />
+                                      <DetailField
+                                        label="Manufacturer"
+                                        value={completed.manufacturer || '—'}
+                                      />
+                                    </div>
+                                    {(completed.administeredByName || isLogged) && (
+                                      <>
+                                        <div className="my-3 h-px bg-border/60" />
+                                        <div className="flex items-center justify-between gap-3">
+                                          <div className="min-w-0">
+                                            <div className="text-sm font-semibold truncate">{completed.administeredByName || 'Unknown provider'}</div>
+                                            <div className="text-[11px] text-muted-foreground">Administering provider</div>
+                                          </div>
+                                          {state === 'given' ? (
+                                            <Badge className="bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/15 border-transparent">Verified</Badge>
+                                          ) : (
+                                            <Badge className="bg-amber-500/15 text-amber-500 hover:bg-amber-500/15 border-transparent">Self-reported</Badge>
+                                          )}
+                                        </div>
+                                      </>
+                                    )}
+                                  </>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleLogClick(vaccine)}
+                                    className="w-full rounded-full border border-dashed bg-transparent px-4 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
+                                  >
+                                    + Log this vaccine
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -311,6 +410,13 @@ export function VaccinationRecordCard({ child, vaccinationsMaster, clinician }: 
           />
         </div>
       </div>
+
+      <LogVaccinationModal
+        vaccine={logTarget}
+        open={!!logTarget}
+        onOpenChange={(open) => { if (!open) setLogTarget(null); }}
+        onSubmit={onLogSubmit}
+      />
     </Card>
   );
 }
