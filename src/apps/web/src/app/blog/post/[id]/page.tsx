@@ -18,8 +18,9 @@ async function getPost(id: string) {
   }
 }
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  const post = await getPost(params.id);
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const post = await getPost(id);
   if (!post) return { title: 'Post Not Found' };
   return {
     title: `RaisingAtlantic | ${post.title}`,
@@ -27,8 +28,8 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
   };
 }
 
-export default async function BlogPostPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default async function BlogPostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const post = await getPost(id);
 
   if (!post) {

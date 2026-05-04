@@ -148,6 +148,8 @@ export class CompletedMilestone {
   updatedAt: Date;
 }
 
+export type VaccinationSourceDb = 'CLINICIAN' | 'PARENT';
+
 @Entity('completed_vaccinations')
 export class CompletedVaccination {
   @PrimaryGeneratedColumn('uuid')
@@ -161,6 +163,28 @@ export class CompletedVaccination {
 
   @Column({ type: 'date' })
   dateAdministered: Date;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  batchNumber?: string;
+
+  @Column({ type: 'date', nullable: true })
+  expiryDate?: Date;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  manufacturer?: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  administeredByName?: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  clinicName?: string;
+
+  @Column({
+    type: 'enum',
+    enum: ['CLINICIAN', 'PARENT'],
+    default: 'CLINICIAN',
+  })
+  source: VaccinationSourceDb;
 
   @Column({
     type: 'enum',

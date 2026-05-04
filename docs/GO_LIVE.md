@@ -284,7 +284,7 @@ On the radar but not load-bearing for the SA launch. Re-evaluate at the 6-month 
 
 ## Phase 0: Minimum Viable Product
 
-**Roles:** `DEV 100%` *(retrospective, no further action)*
+**Roles:** `DEV 80%` *(retrospective, no further action)*
 
 The MVP is a proof of concept for stakeholders to make get an idea for a look and feel, and to make informed decisions for the next phases.
 A snapshot of capabilities that are already shipped or in-repo. Treat this as the baseline we do **not** need to redo before going live.

@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -23,6 +24,10 @@ const vaccinationRecordSchema = z.object({
   childId: z.string().nonempty({ message: "You must select a child." }),
   vaccineId: z.string().nonempty({ message: "You must select a vaccine." }),
   dateAdministered: z.date({ required_error: "A date is required." }),
+  batchNumber: z.string().optional(),
+  expiryDate: z.date().optional(),
+  manufacturer: z.string().optional(),
+  administeredByName: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -44,6 +49,10 @@ export function VaccinationRecordFormModal({ childrenList, onFormSubmit, open, o
         childId: '',
         vaccineId: '',
         dateAdministered: new Date(),
+        batchNumber: '',
+        expiryDate: undefined,
+        manufacturer: '',
+        administeredByName: '',
         notes: '',
     },
   });
@@ -158,6 +167,74 @@ export function VaccinationRecordFormModal({ childrenList, onFormSubmit, open, o
               )}
             />
 
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="batchNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Batch no.</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. HEX-2204" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="expiryDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Expiry</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                            {field.value ? formatDatePretty(field.value) : <span>Pick a date</span>}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="manufacturer"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Manufacturer</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Sanofi" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="administeredByName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Administered by</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Sr Jacobs" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
               name="notes"
@@ -166,7 +243,7 @@ export function VaccinationRecordFormModal({ childrenList, onFormSubmit, open, o
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="e.g., Lot number, site of administration..."
+                      placeholder="Optional clinical notes..."
                       className="resize-none"
                       {...field}
                     />

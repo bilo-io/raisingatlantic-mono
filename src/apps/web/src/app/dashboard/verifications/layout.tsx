@@ -8,7 +8,11 @@ export const metadata: Metadata = {
 
 export default function VerificationsLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RequireRole roles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
+    <RequireRole roles={[
+      UserRole.CLINICIAN,
+      UserRole.ADMIN,
+      UserRole.SUPER_ADMIN
+    ]}>
       {children}
     </RequireRole>
   );

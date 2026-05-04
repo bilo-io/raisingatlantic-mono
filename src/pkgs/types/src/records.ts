@@ -49,6 +49,9 @@ export const createCompletedMilestoneSchema = z.object({
 
 export type CreateCompletedMilestoneInput = z.infer<typeof createCompletedMilestoneSchema>;
 
+export const vaccinationSourceSchema = z.enum(["CLINICIAN", "PARENT"]);
+export type VaccinationSource = z.infer<typeof vaccinationSourceSchema>;
+
 export const completedVaccinationSchema = z.object({
   id: z.string(),
   childId: z.string().optional(),
@@ -56,6 +59,12 @@ export const completedVaccinationSchema = z.object({
   dateAdministered: z.string(),
   status: resourceStatusSchema,
   recordedById: z.string().optional(),
+  batchNumber: z.string().optional(),
+  expiryDate: z.string().optional(),
+  manufacturer: z.string().optional(),
+  administeredByName: z.string().optional(),
+  clinicName: z.string().optional(),
+  source: vaccinationSourceSchema.optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -65,6 +74,12 @@ export type CompletedVaccination = z.infer<typeof completedVaccinationSchema>;
 export const createCompletedVaccinationSchema = z.object({
   vaccineId: z.string().min(1),
   dateAdministered: isoDateString,
+  batchNumber: z.string().optional(),
+  expiryDate: isoDateString.optional(),
+  manufacturer: z.string().optional(),
+  administeredByName: z.string().optional(),
+  clinicName: z.string().optional(),
+  source: vaccinationSourceSchema.optional(),
 });
 
 export type CreateCompletedVaccinationInput = z.infer<typeof createCompletedVaccinationSchema>;
@@ -84,11 +99,15 @@ export const milestoneAgeGroupSchema = z.object({
 
 export type MilestoneAgeGroup = z.infer<typeof milestoneAgeGroupSchema>;
 
+export const vaccinationTrackSchema = z.enum(["EPI", "PRIVATE"]);
+export type VaccinationTrack = z.infer<typeof vaccinationTrackSchema>;
+
 export const vaccinationSchema = z.object({
   id: z.string(),
   name: z.string(),
   recommendedAge: z.string(),
   doseInfo: z.string(),
+  track: vaccinationTrackSchema.optional(),
 });
 
 export type Vaccination = z.infer<typeof vaccinationSchema>;

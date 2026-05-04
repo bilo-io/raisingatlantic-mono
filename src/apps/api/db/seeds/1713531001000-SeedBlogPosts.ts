@@ -12,7 +12,7 @@ async function seed(): Promise<void> {
       title: "Goodbye Paper, Hello Cloud: Modernizing South Africa's Road to Health Booklet",
       slug: "modernizing-the-road-to-health",
       shortDescription: "Discover how digitizing the traditional RtHB ensures you never lose a medical record again.",
-      imageUrl: "https://images.unsplash.com/photo-1576091160550-217359f42f8c?auto=format&fit=crop&w=800&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80",
       synopsis: "The traditional physical Road to Health booklet is highly susceptible to being lost or damaged, leading to fragmented pediatric care. By switching to a secure, cloud-based ledger, parents and clinicians ensure permanent continuity of care.",
       body: `## The Problem with Paper Records
 For decades, the physical South African National Department of Health (DoH) Road to Health booklet (RtHB) has been the standard for tracking a child's early development. However, these physical booklets are highly susceptible to loss, damage, or incomplete entries. This fragmentation creates a critical lack of "Continuity of Care," forcing pediatricians and parents to rely on incomplete historical data, which can severely delay early interventions.
@@ -73,7 +73,7 @@ By automating these reminders, parents no longer have to worry about missing cru
       title: "Beyond the Basics: Tracking Growth Velocity and Developmental Milestones",
       slug: "tracking-growth-velocity-and-milestones",
       shortDescription: "Why measuring your child's growth rate is just as important as recording their absolute height and weight.",
-      imageUrl: "https://images.unsplash.com/photo-1584622781564-1d9876a13d00?auto=format&fit=crop&w=800&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=800&q=80",
       synopsis: "Growth velocity measures the mathematical rate of physical growth to ensure children stay aligned to an optimal percentile curve. Tracking these metrics alongside cognitive and physical milestones ensures a comprehensive view.",
       body: `## What is Growth Velocity?
 While recording a child's absolute weight or height is standard practice, clinicians rely on **Growth Velocity**—the mathematical rate of physical growth across time—to ensure a child remains aligned to an optimal percentile curve.
