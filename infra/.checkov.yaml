@@ -1,0 +1,8 @@
+# Checkov policy gates for the IaC pipeline.
+# Skips are listed with justification. Do not add new skips without a comment.
+skip-check:
+  - CKV_GCP_62  # Cloud Storage bucket logging — tfstate bucket logs to itself, accepted for bootstrap
+  - CKV2_GCP_6  # Shielded VMs — Cloud Run is managed, no VMs provisioned by this stack
+compact: true
+directory:
+  - infra/
