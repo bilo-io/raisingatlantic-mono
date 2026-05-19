@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, Users, Baby, Settings, ShieldCheck, MessageCircleQuestion, Sparkles, FileText, UserPlus, LogIn, Briefcase, PlusCircle, UserCircle as UserCircleIcon, MapPin, ClipboardList, TrendingUp, Award, Syringe, User, UserCheck, FileCheck, Shield, Stethoscope, Info, Mail, Search, Newspaper, Building, Palette, Gem, Fingerprint, Tag } from 'lucide-react';
+import { LayoutDashboard, Users, Baby, Settings, ShieldCheck, MessageCircleQuestion, Sparkles, FileText, UserPlus, LogIn, Briefcase, PlusCircle, UserCircle as UserCircleIcon, MapPin, ClipboardList, TrendingUp, Award, Syringe, User, UserCheck, FileCheck, Shield, Stethoscope, Info, Mail, Search, Newspaper, Building, Palette, Gem, Fingerprint, Tag, Activity, Thermometer, Brain, Heart, Calculator } from 'lucide-react';
 
 export enum UserRole {
   PARENT = 'parent',
@@ -102,6 +102,17 @@ export const DASHBOARD_NAV_LINKS: NavLinkItem[] = [
       { href: '/dashboard/admin/blog', label: 'Blog Management', icon: Newspaper, roles: [UserRole.SUPER_ADMIN] },
       { href: '/dashboard/admin/system', label: 'System Settings', icon: Settings },
       { href: '/dashboard/admin/logs', label: 'System Logs', icon: ClipboardList },
+    ]
+  },
+  {
+    href: '/dashboard/triage',
+    label: 'Triage',
+    icon: Activity,
+    children: [
+      { href: '/dashboard/triage/fever', label: 'Fever', icon: Thermometer },
+      { href: '/dashboard/triage/head-injury', label: 'Head Injury', icon: Brain },
+      { href: '/dashboard/triage/home-care', label: 'Home Care', icon: Heart },
+      { href: '/dashboard/triage/dose-calculator', label: 'Dose Calculator', icon: Calculator },
     ]
   },
   {
