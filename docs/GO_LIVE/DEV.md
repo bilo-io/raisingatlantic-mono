@@ -553,35 +553,35 @@ Before a single real user signs up, the legal pages need to be real, lawyer-revi
 #### 6.1 Public-facing Documents
 What every visitor sees.
 
-- [ ] **Privacy Policy**: POPIA-compliant, lists every processor, retention periods, DSAR contact
-- [ ] **Terms of Service**: limits of liability, dispute resolution, governing law (South African)
-- [ ] **Cookie Policy** + cookie consent banner (essential, functional, analytics, marketing buckets)
-- [ ] **Acceptable Use Policy**
-- [ ] **Disclaimer**: explicit "this app is not a substitute for medical advice, no clinician-patient relationship is formed by use of the platform"
+- [/] **Privacy Policy**: POPIA-compliant, lists every processor, retention periods, DSAR contact
+- [/] **Terms of Service**: limits of liability, dispute resolution, governing law (South African)
+- [/] **Cookie Policy** + cookie consent banner (essential, functional, analytics, marketing buckets)
+- [/] **Acceptable Use Policy**
+- [/] **Disclaimer**: explicit "this app is not a substitute for medical advice, no clinician-patient relationship is formed by use of the platform"
 
 #### 6.2 Role-specific Agreements
 Different audiences sign different things.
 
-- [ ] **Parent EULA**: consent on behalf of minor, dispute terms, age limits
-- [ ] **Clinician Service Agreement**: professional indemnity disclaimers, scope of clinician obligations on the platform
-- [ ] **Tenant / Practice Master Services Agreement** (B2B contract for practices) + Order Form + DPA addendum
-- [ ] **Data Processing Agreement** (we act as processor for the tenant/practice in some flows)
+- [/] **Parent EULA**: consent on behalf of minor, dispute terms, age limits
+- [/] **Clinician Service Agreement**: professional indemnity disclaimers, scope of clinician obligations on the platform
+- [/] **Tenant / Practice Master Services Agreement** (B2B contract for practices) + Order Form + DPA addendum
+- [/] **Data Processing Agreement** (we act as processor for the tenant/practice in some flows)
 
 #### 6.3 Internal Documents
 What the team needs even if the public doesn't see it.
 
-- [ ] Incident response policy
-- [ ] Information security policy
-- [ ] Data retention & deletion policy
-- [ ] Acceptable use policy for staff
-- [ ] DPA with each subprocessor, countersigned and filed
+- [/] Incident response policy
+- [/] Information security policy
+- [/] Data retention & deletion policy
+- [/] Acceptable use policy for staff
+- [/] DPA with each subprocessor, countersigned and filed
 
 #### 6.4 Professional Review
 Don't ship lawyer documents written by an LLM.
 
-- [ ] Engage a South African attorney experienced in POPIA + healthtech (e.g. [Webber Wentzel](https://www.webberwentzel.com), [ENS Africa](https://www.ensafrica.com), or a healthtech specialist boutique)
-- [ ] Get sign-off on all public-facing documents
-- [ ] Get sign-off on the consent flow specifically (parental consent for minors is the highest-risk path)
+- [/] Engage a South African attorney experienced in POPIA + healthtech (e.g. [Webber Wentzel](https://www.webberwentzel.com), [ENS Africa](https://www.ensafrica.com), or a healthtech specialist boutique)
+- [/] Get sign-off on all public-facing documents
+- [/] Get sign-off on the consent flow specifically (parental consent for minors is the highest-risk path)
 
 ---
 
