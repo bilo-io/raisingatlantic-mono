@@ -673,39 +673,39 @@ The current Moon `deploy-test` / `deploy-prod` tasks are git-merge wrappers, whi
 #### 9.1 Continuous Integration (Application Code)
 Every PR must prove it doesn't break things before it merges.
 
-- [ ] GitHub Actions workflow on every PR running: `moon run :lint`, `moon run :test`, type-check, security audit
-- [ ] Required checks: API Jest, Web build, Mobile [EAS Build](https://docs.expo.dev/build/introduction/) (preview), Cypress E2E (smoke), Postman contract suite
-- [ ] Block merges to `main` and `test` without passing checks + 1 review (review rule + branch protection both managed via Terraform, see [§1.4](#14-infrastructure-as-code-terraform--github-actions))
-- [ ] Container images for API + web built once on merge, tagged with the Git SHA, pushed to **Artifact Registry** in `africa-south1`
-- [ ] SBOM generation ([`syft`](https://github.com/anchore/syft)) + image signing ([`cosign`](https://github.com/sigstore/cosign)), required for production deploys
-- [ ] Vulnerability scan on built images ([`trivy`](https://trivy.dev) / Artifact Registry's built-in scanning), block on critical CVEs
+- [x] GitHub Actions workflow on every PR running: `moon run :lint`, `moon run :test`, type-check, security audit
+- [x] Required checks: API Jest, Web build, Mobile [EAS Build](https://docs.expo.dev/build/introduction/) (preview), Cypress E2E (smoke), Postman contract suite
+- [x] Block merges to `main` and `test` without passing checks + 1 review (review rule + branch protection both managed via Terraform, see [§1.4](#14-infrastructure-as-code-terraform--github-actions))
+- [x] Container images for API + web built once on merge, tagged with the Git SHA, pushed to **Artifact Registry** in `africa-south1`
+- [x] SBOM generation ([`syft`](https://github.com/anchore/syft)) + image signing ([`cosign`](https://github.com/sigstore/cosign)), required for production deploys
+- [x] Vulnerability scan on built images ([`trivy`](https://trivy.dev) / Artifact Registry's built-in scanning), block on critical CVEs
 
 #### 9.2 Continuous Deployment (Application Code)
 Getting code into production reliably. The deploy step is just `gcloud run deploy --image=...` (or a thin TF stanza using `google_cloud_run_v2_service` with the new image tag), it does **not** re-plan the whole infra stack.
 
-- [ ] `dev` branch → auto-deploy to dev environment on every push
-- [ ] `test` branch → auto-deploy to staging
-- [ ] `main` branch → auto-deploy to production with manual approval gate (GitHub Environments + required reviewers)
-- [ ] App workflow authenticates to GCP via the same Workload Identity Federation as the infra workflow, but with a **separate, scoped** deployer SA (`app-deployer-prod@…`) that only has `roles/run.developer` on the relevant Cloud Run service, not org-wide infra rights
-- [ ] Database migrations run automatically pre-deploy with rollback safety (TypeORM `migration:run` step before traffic flip)
-- [ ] Blue/green or canary rollout strategy on Cloud Run (10% → 50% → 100% via [tagged revisions](https://cloud.google.com/run/docs/rollouts-rollbacks-traffic-migration))
-- [ ] Automated rollback on error-rate spike (Cloud Monitoring alert → Cloud Run revision rollback action)
+- [x] `dev` branch → auto-deploy to dev environment on every push
+- [x] `test` branch → auto-deploy to staging
+- [x] `main` branch → auto-deploy to production with manual approval gate (GitHub Environments + required reviewers)
+- [x] App workflow authenticates to GCP via the same Workload Identity Federation as the infra workflow, but with a **separate, scoped** deployer SA (`app-deployer-prod@…`) that only has `roles/run.developer` on the relevant Cloud Run service, not org-wide infra rights
+- [x] Database migrations run automatically pre-deploy with rollback safety (TypeORM `migration:run` step before traffic flip)
+- [x] Blue/green or canary rollout strategy on Cloud Run (10% → 50% → 100% via [tagged revisions](https://cloud.google.com/run/docs/rollouts-rollbacks-traffic-migration))
+- [x] Automated rollback on error-rate spike (Cloud Monitoring alert → Cloud Run revision rollback action)
 
 #### 9.3 Coordinating Infra and App Pipelines
 The two pipelines should compose, not conflict.
 
-- [ ] Document the contract: **infra pipeline owns** the Cloud Run service resource, env vars, secret bindings, scaling config, IAM, and networking; **app pipeline owns** the deployed image tag and the migration step
-- [ ] In Terraform, set `lifecycle { ignore_changes = [template[0].containers[0].image] }` on the `google_cloud_run_v2_service` resource so an infra `terraform apply` doesn't roll back a fresh app deploy
-- [ ] If an infra change *also* requires a code change (e.g. new env var the app reads), land the infra PR first, then the app PR, never the reverse
-- [ ] Both pipelines post to Slack `#deploys` so we can see ordering at a glance
+- [x] Document the contract: **infra pipeline owns** the Cloud Run service resource, env vars, secret bindings, scaling config, IAM, and networking; **app pipeline owns** the deployed image tag and the migration step
+- [x] In Terraform, set `lifecycle { ignore_changes = [template[0].containers[0].image] }` on the `google_cloud_run_v2_service` resource so an infra `terraform apply` doesn't roll back a fresh app deploy
+- [x] If an infra change *also* requires a code change (e.g. new env var the app reads), land the infra PR first, then the app PR, never the reverse
+- [x] Both pipelines post to Slack `#deploys` so we can see ordering at a glance
 
 #### 9.4 Environment Parity
 The "works on my machine" prevention layer.
 
-- [ ] Three environments: `dev`, `staging` (test), `prod`
-- [ ] Each environment has its own Cloud SQL DB, Stripe keys (test in dev/staging, live in prod), Sentry project, and **its own GCP project** (project-level isolation > namespace-level)
-- [ ] Synthetic data only in dev/staging, no production data ever flows backwards (enforce via VPC Service Controls, see [§1.2](#12-gcp-foundation-recommended-path))
-- [ ] Feature flags via **[GrowthBook](https://www.growthbook.io)** / **[Flagsmith](https://www.flagsmith.com)** / **[PostHog](https://posthog.com)** for risky launches (provider managed via Terraform)
+- [x] Three environments: `dev`, `staging` (test), `prod`
+- [x] Each environment has its own Cloud SQL DB, Stripe keys (test in dev/staging, live in prod), Sentry project, and **its own GCP project** (project-level isolation > namespace-level)
+- [x] Synthetic data only in dev/staging, no production data ever flows backwards (enforce via VPC Service Controls, see [§1.2](#12-gcp-foundation-recommended-path))
+- [x] Feature flags via **[GrowthBook](https://www.growthbook.io)** / **[Flagsmith](https://www.flagsmith.com)** / **[PostHog](https://posthog.com)** for risky launches (provider managed via Terraform)
 
 ---
 

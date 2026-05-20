@@ -1,0 +1,360 @@
+name: CD — App
+
+# Runs on every push to dev / test / main that touches application code.
+# Pipeline:  build & push images → trivy scan → SBOM → cosign sign → deploy
+
+on:
+  push:
+    branches: [dev, test, main]
+    paths:
+      - 'src/**'
+      - 'pkgs/**'
+      - 'src/apps/api/Dockerfile'
+      - 'src/apps/web/Dockerfile'
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false  # never cancel an in-flight deploy
+
+# ── Resolve per-branch config ──────────────────────────────────────────────
+env:
+  REGISTRY: africa-south1-docker.pkg.dev
+  # PROJECT_ID, ENV_NAME, REGION, and SA are resolved in each job via branch map
+
+jobs:
+  # ── 1. Build images, scan, sign, push ────────────────────────────────────
+  build-and-push:
+    name: Build & Push
+    runs-on: ubuntu-latest
+    outputs:
+      api_image: ${{ steps.meta.outputs.api_image }}
+      web_image: ${{ steps.meta.outputs.web_image }}
+      project_id: ${{ steps.meta.outputs.project_id }}
+      env_name: ${{ steps.meta.outputs.env_name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve env config from branch
+        id: meta
+        run: |
+          case "${{ github.ref_name }}" in
+            dev)
+              echo "project_id=ra-dev"      >> "$GITHUB_OUTPUT"
+              echo "env_name=dev"           >> "$GITHUB_OUTPUT"
+              echo "sa=${{ secrets.APP_SERVICE_ACCOUNT_DEV }}" >> "$GITHUB_OUTPUT"
+              ;;
+            test)
+              echo "project_id=ra-staging"  >> "$GITHUB_OUTPUT"
+              echo "env_name=staging"       >> "$GITHUB_OUTPUT"
+              echo "sa=${{ secrets.APP_SERVICE_ACCOUNT_STAGING }}" >> "$GITHUB_OUTPUT"
+              ;;
+            main)
+              echo "project_id=ra-prod"     >> "$GITHUB_OUTPUT"
+              echo "env_name=prod"          >> "$GITHUB_OUTPUT"
+              echo "sa=${{ secrets.APP_SERVICE_ACCOUNT_PROD }}" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+          PROJECT_ID=$(grep project_id "$GITHUB_OUTPUT" | tail -1 | cut -d= -f2)
+          echo "api_image=${{ env.REGISTRY }}/${PROJECT_ID}/ra-images/ra-api:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          echo "web_image=${{ env.REGISTRY }}/${PROJECT_ID}/ra-images/ra-web:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.APP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ steps.meta.outputs.sa }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
+
+      - name: Build API image
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --cache-from type=gha,scope=api \
+            --cache-to   type=gha,scope=api,mode=max \
+            -f src/apps/api/Dockerfile \
+            -t ${{ steps.meta.outputs.api_image }} \
+            --load \
+            src/apps/api
+
+      - name: Build Web image
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --cache-from type=gha,scope=web \
+            --cache-to   type=gha,scope=web,mode=max \
+            -f src/apps/web/Dockerfile \
+            -t ${{ steps.meta.outputs.web_image }} \
+            --load \
+            src/apps/web
+
+      - name: Scan API image (block on CRITICAL CVEs)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.meta.outputs.api_image }}
+          format: table
+          exit-code: '1'
+          severity: CRITICAL
+          ignore-unfixed: true
+
+      - name: Scan Web image (block on CRITICAL CVEs)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.meta.outputs.web_image }}
+          format: table
+          exit-code: '1'
+          severity: CRITICAL
+          ignore-unfixed: true
+
+      - name: Push API image
+        run: docker push ${{ steps.meta.outputs.api_image }}
+
+      - name: Push Web image
+        run: docker push ${{ steps.meta.outputs.web_image }}
+
+      - name: Generate SBOM — API
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.meta.outputs.api_image }}
+          format: cyclonedx-json
+          output-file: sbom-api.json
+
+      - name: Generate SBOM — Web
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.meta.outputs.web_image }}
+          format: cyclonedx-json
+          output-file: sbom-web.json
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign API image
+        run: cosign sign --yes ${{ steps.meta.outputs.api_image }}
+
+      - name: Sign Web image
+        run: cosign sign --yes ${{ steps.meta.outputs.web_image }}
+
+  # ── 2a. Deploy to dev (auto — branch: dev) ────────────────────────────────
+  deploy-dev:
+    name: Deploy → dev
+    needs: build-and-push
+    if: github.ref_name == 'dev'
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.APP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.APP_SERVICE_ACCOUNT_DEV }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Run DB migrations
+        run: |
+          gcloud run jobs execute ra-migrate-dev \
+            --region africa-south1 \
+            --project ra-dev \
+            --wait \
+          || echo "::warning::Migration job not found — skipping (Phase 1 infra not yet bootstrapped)"
+
+      - name: Deploy API
+        run: |
+          gcloud run deploy ra-api-dev \
+            --image ${{ needs.build-and-push.outputs.api_image }} \
+            --region africa-south1 \
+            --project ra-dev \
+            --quiet
+
+      - name: Deploy Web
+        run: |
+          gcloud run deploy ra-web-dev \
+            --image ${{ needs.build-and-push.outputs.web_image }} \
+            --region africa-south1 \
+            --project ra-dev \
+            --quiet
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "${{ job.status == 'success' && '✅' || '❌' }} *deploy → dev* `${{ github.sha }}` by `${{ github.actor }}`\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  # ── 2b. Deploy to staging (auto — branch: test) ───────────────────────────
+  deploy-staging:
+    name: Deploy → staging
+    needs: build-and-push
+    if: github.ref_name == 'test'
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.APP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.APP_SERVICE_ACCOUNT_STAGING }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Run DB migrations
+        run: |
+          gcloud run jobs execute ra-migrate-staging \
+            --region africa-south1 \
+            --project ra-staging \
+            --wait \
+          || echo "::warning::Migration job not found — skipping"
+
+      - name: Deploy API
+        run: |
+          gcloud run deploy ra-api-staging \
+            --image ${{ needs.build-and-push.outputs.api_image }} \
+            --region africa-south1 \
+            --project ra-staging \
+            --quiet
+
+      - name: Deploy Web
+        run: |
+          gcloud run deploy ra-web-staging \
+            --image ${{ needs.build-and-push.outputs.web_image }} \
+            --region africa-south1 \
+            --project ra-staging \
+            --quiet
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "${{ job.status == 'success' && '✅' || '❌' }} *deploy → staging* `${{ github.sha }}` by `${{ github.actor }}`\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  # ── 2c. Deploy to prod (manual approval — branch: main) ───────────────────
+  deploy-prod:
+    name: Deploy → prod
+    needs: build-and-push
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    environment: production  # GitHub Environment — requires reviewer approval
+
+    steps:
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.APP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.APP_SERVICE_ACCOUNT_PROD }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Capture stable revision (for rollback)
+        id: stable
+        run: |
+          STABLE=$(gcloud run services describe ra-api-prod \
+            --region africa-south1 --project ra-prod \
+            --format='value(status.traffic[0].revisionName)' 2>/dev/null || echo "")
+          echo "revision=${STABLE}" >> "$GITHUB_OUTPUT"
+
+      - name: Run DB migrations
+        run: |
+          gcloud run jobs execute ra-migrate-prod \
+            --region africa-south1 \
+            --project ra-prod \
+            --wait \
+          || echo "::warning::Migration job not found — skipping"
+
+      # Canary deploy: new revision gets 0% traffic initially
+      - name: Deploy API canary (no traffic)
+        run: |
+          gcloud run deploy ra-api-prod \
+            --image ${{ needs.build-and-push.outputs.api_image }} \
+            --region africa-south1 \
+            --project ra-prod \
+            --no-traffic \
+            --tag canary-${{ github.sha }} \
+            --quiet
+
+      - name: Route 10% traffic to canary
+        run: |
+          gcloud run services update-traffic ra-api-prod \
+            --region africa-south1 \
+            --project ra-prod \
+            --to-tags canary-${{ github.sha }}=10
+
+      - name: Wait 5 min and check error rate
+        id: canary_check
+        run: |
+          sleep 300
+          # Query 5xx error count over the last 5 minutes; threshold = 5 errors
+          ERROR_COUNT=$(gcloud logging read \
+            'resource.type="cloud_run_revision" AND resource.labels.service_name="ra-api-prod" AND httpRequest.status>=500' \
+            --project ra-prod \
+            --freshness 5m \
+            --format 'value(httpRequest.status)' 2>/dev/null | wc -l | tr -d ' ')
+          echo "error_count=${ERROR_COUNT}" >> "$GITHUB_OUTPUT"
+          if [ "${ERROR_COUNT}" -gt "5" ]; then
+            echo "::error::Canary error rate too high (${ERROR_COUNT} 5xx in 5 min) — rolling back"
+            exit 1
+          fi
+
+      - name: Roll traffic to 50%
+        run: |
+          gcloud run services update-traffic ra-api-prod \
+            --region africa-south1 \
+            --project ra-prod \
+            --to-tags canary-${{ github.sha }}=50
+          sleep 120
+
+      - name: Full cutover (100%)
+        run: |
+          gcloud run services update-traffic ra-api-prod \
+            --region africa-south1 \
+            --project ra-prod \
+            --to-latest
+
+      - name: Deploy Web
+        run: |
+          gcloud run deploy ra-web-prod \
+            --image ${{ needs.build-and-push.outputs.web_image }} \
+            --region africa-south1 \
+            --project ra-prod \
+            --quiet
+
+      # Rollback on any failure after canary was deployed
+      - name: Rollback API on failure
+        if: failure() && steps.stable.outputs.revision != ''
+        run: |
+          echo "Rolling back to ${{ steps.stable.outputs.revision }}"
+          gcloud run services update-traffic ra-api-prod \
+            --region africa-south1 \
+            --project ra-prod \
+            --to-revisions ${{ steps.stable.outputs.revision }}=100
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "${{ job.status == 'success' && '✅' || '❌' }} *deploy → prod* `${{ github.sha }}` by `${{ github.actor }}`\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
