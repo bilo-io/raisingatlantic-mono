@@ -12,6 +12,11 @@ const legalNavItems = [
   { slug: 'terms-of-service', titleKey: 'termsOfService' },
   { slug: 'eula', titleKey: 'eula' },
   { slug: 'cookie-policy', titleKey: 'cookiePolicy' },
+  { slug: 'acceptable-use-policy', titleKey: 'acceptableUsePolicy' },
+  { slug: 'disclaimer', titleKey: 'disclaimer' },
+  { slug: 'clinician-service-agreement', titleKey: 'clinicianServiceAgreement' },
+  { slug: 'master-services-agreement', titleKey: 'masterServicesAgreement' },
+  { slug: 'data-processing-agreement', titleKey: 'dataProcessingAgreement' },
 ];
 
 export function LegalLayout({ children }: { children: React.ReactNode }) {
