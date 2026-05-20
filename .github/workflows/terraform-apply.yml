@@ -1,0 +1,185 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "infra/**"
+
+permissions:
+  contents: read
+  id-token: write  # Required for Workload Identity Federation
+
+jobs:
+  apply-dev:
+    name: Apply — dev
+    runs-on: ubuntu-latest
+    environment: dev  # TODO(OPS): create "dev" GitHub Environment (Settings → Environments)
+
+    defaults:
+      run:
+        working-directory: infra/envs/dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.TF_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.TF_SERVICE_ACCOUNT_DEV }}
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -input=false -var-file=terraform.tfvars
+        env:
+          TF_VAR_github_token: ${{ secrets.GH_TOKEN_TERRAFORM }}
+          TF_VAR_stripe_api_key: ${{ secrets.STRIPE_API_KEY_DEV }}
+          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_vercel_api_token: ${{ secrets.VERCEL_API_TOKEN }}
+          TF_VAR_sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          TF_VAR_sendgrid_api_key: ${{ secrets.SENDGRID_API_KEY }}
+          TF_VAR_betterstack_api_token: ${{ secrets.BETTERSTACK_API_TOKEN }}
+          TF_VAR_pagerduty_token: ${{ secrets.PAGERDUTY_TOKEN }}
+
+      - name: Notify Slack — dev applied
+        if: always()
+        uses: slackapi/slack-github-action@v2
+        with:
+          payload: |
+            {
+              "text": "${{ job.status == 'success' && '✅' || '❌' }} *Terraform apply — dev* ${{ job.status }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+            }
+        env:
+          # TODO(OPS): add SLACK_WEBHOOK_URL to GitHub Secrets (Settings → Secrets)
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  apply-staging:
+    name: Apply — staging
+    runs-on: ubuntu-latest
+    needs: apply-dev
+    environment: staging  # TODO(OPS): create "staging" GitHub Environment
+
+    defaults:
+      run:
+        working-directory: infra/envs/staging
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.TF_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.TF_SERVICE_ACCOUNT_STAGING }}
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -input=false -var-file=terraform.tfvars
+        env:
+          TF_VAR_github_token: ${{ secrets.GH_TOKEN_TERRAFORM }}
+          TF_VAR_stripe_api_key: ${{ secrets.STRIPE_API_KEY_STAGING }}
+          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_vercel_api_token: ${{ secrets.VERCEL_API_TOKEN }}
+          TF_VAR_sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          TF_VAR_sendgrid_api_key: ${{ secrets.SENDGRID_API_KEY }}
+          TF_VAR_betterstack_api_token: ${{ secrets.BETTERSTACK_API_TOKEN }}
+          TF_VAR_pagerduty_token: ${{ secrets.PAGERDUTY_TOKEN }}
+
+      - name: Notify Slack — staging applied
+        if: always()
+        uses: slackapi/slack-github-action@v2
+        with:
+          payload: |
+            {
+              "text": "${{ job.status == 'success' && '✅' || '❌' }} *Terraform apply — staging* ${{ job.status }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  apply-prod:
+    name: Apply — prod
+    runs-on: ubuntu-latest
+    needs: apply-staging
+    # MANUAL GATE: prod requires a human to approve before applying.
+    # TODO(OPS): create "production" GitHub Environment with required reviewers:
+    #   Settings → Environments → New environment → "production"
+    #   → Required reviewers: add yourself (Bilo Lwabona)
+    environment: production
+
+    defaults:
+      run:
+        working-directory: infra/envs/prod
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.TF_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.TF_SERVICE_ACCOUNT_PROD }}
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Plan (pre-apply confirmation)
+        run: terraform plan -input=false -var-file=terraform.tfvars -no-color
+        env:
+          TF_VAR_github_token: ${{ secrets.GH_TOKEN_TERRAFORM }}
+          TF_VAR_stripe_api_key: ${{ secrets.STRIPE_API_KEY_PROD }}
+          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_vercel_api_token: ${{ secrets.VERCEL_API_TOKEN }}
+          TF_VAR_sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          TF_VAR_sendgrid_api_key: ${{ secrets.SENDGRID_API_KEY }}
+          TF_VAR_betterstack_api_token: ${{ secrets.BETTERSTACK_API_TOKEN }}
+          TF_VAR_pagerduty_token: ${{ secrets.PAGERDUTY_TOKEN }}
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -input=false -var-file=terraform.tfvars
+        env:
+          TF_VAR_github_token: ${{ secrets.GH_TOKEN_TERRAFORM }}
+          TF_VAR_stripe_api_key: ${{ secrets.STRIPE_API_KEY_PROD }}
+          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_vercel_api_token: ${{ secrets.VERCEL_API_TOKEN }}
+          TF_VAR_sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          TF_VAR_sendgrid_api_key: ${{ secrets.SENDGRID_API_KEY }}
+          TF_VAR_betterstack_api_token: ${{ secrets.BETTERSTACK_API_TOKEN }}
+          TF_VAR_pagerduty_token: ${{ secrets.PAGERDUTY_TOKEN }}
+
+      - name: Notify Slack — prod applied
+        if: always()
+        uses: slackapi/slack-github-action@v2
+        with:
+          payload: |
+            {
+              "text": "${{ job.status == 'success' && '✅' || '❌' }} *Terraform apply — PROD* ${{ job.status }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

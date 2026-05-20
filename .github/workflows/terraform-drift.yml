@@ -1,0 +1,86 @@
+name: Terraform Drift Detection
+
+# Runs nightly at 02:00 SAST (00:00 UTC).
+# Fails and notifies Slack if any environment has drift (non-empty plan).
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:  # Allow manual trigger for debugging
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  drift:
+    name: Drift check (${{ matrix.env }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [dev, staging, prod]
+      fail-fast: false
+
+    defaults:
+      run:
+        working-directory: infra/envs/${{ matrix.env }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.TF_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets[format('TF_SERVICE_ACCOUNT_{0}', upper(matrix.env))] }}
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Plan (drift detection)
+        id: plan
+        run: |
+          terraform plan \
+            -detailed-exitcode \
+            -input=false \
+            -var-file=terraform.tfvars \
+            -no-color \
+            2>&1 | tee drift.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+        env:
+          TF_VAR_github_token: ${{ secrets.GH_TOKEN_TERRAFORM }}
+          TF_VAR_stripe_api_key: ${{ secrets[format('STRIPE_API_KEY_{0}', upper(matrix.env))] }}
+          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_vercel_api_token: ${{ secrets.VERCEL_API_TOKEN }}
+          TF_VAR_sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          TF_VAR_sendgrid_api_key: ${{ secrets.SENDGRID_API_KEY }}
+          TF_VAR_betterstack_api_token: ${{ secrets.BETTERSTACK_API_TOKEN }}
+          TF_VAR_pagerduty_token: ${{ secrets.PAGERDUTY_TOKEN }}
+        # exit code 0 = no changes, 1 = error, 2 = changes detected
+        continue-on-error: true
+
+      - name: Notify Slack on drift
+        # Only alert when changes are detected (exit code 2) or on error (exit code 1)
+        if: steps.plan.outputs.exit_code != '0'
+        uses: slackapi/slack-github-action@v2
+        with:
+          payload: |
+            {
+              "text": "⚠️ *Terraform drift detected — ${{ matrix.env }}*\nNon-empty plan found during nightly drift check. This means infra was changed outside of Terraform (click-ops or direct API call).\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View plan output>"
+            }
+        env:
+          # TODO(OPS): add SLACK_WEBHOOK_URL to GitHub Secrets
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Fail job on drift or error
+        if: steps.plan.outputs.exit_code != '0'
+        run: |
+          echo "Drift detected or plan error (exit code: ${{ steps.plan.outputs.exit_code }})"
+          cat drift.txt
+          exit 1

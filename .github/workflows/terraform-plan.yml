@@ -1,0 +1,143 @@
+name: Terraform Plan
+
+on:
+  pull_request:
+    paths:
+      - "infra/**"
+    branches:
+      - main
+      - dev
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write  # Required for Workload Identity Federation
+
+jobs:
+  plan:
+    name: Plan (${{ matrix.env }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [dev, staging, prod]
+      fail-fast: false
+
+    defaults:
+      run:
+        working-directory: infra/envs/${{ matrix.env }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+
+      # TODO(GCP): set TF_WORKLOAD_IDENTITY_PROVIDER and TF_SERVICE_ACCOUNT_DEV /
+      # TF_SERVICE_ACCOUNT_STAGING / TF_SERVICE_ACCOUNT_PROD in GitHub repository
+      # secrets (Settings → Secrets and variables → Actions).
+      # Values come from: terraform output (run from infra/bootstrap/).
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.TF_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets[format('TF_SERVICE_ACCOUNT_{0}', upper(matrix.env))] }}
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -input=false
+        env:
+          # TODO(GCP): TF_STATE_BUCKET is set from bootstrap output
+          TF_BACKEND_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+
+      - name: Install tflint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          tflint --init --config ../../.tflint.hcl
+
+      - name: Run tflint
+        id: tflint
+        run: tflint --config ../../.tflint.hcl
+        continue-on-error: true
+
+      - name: Install Checkov
+        run: pip install checkov
+
+      - name: Run Checkov
+        id: checkov
+        run: checkov --config-file ../../.checkov.yaml --directory .
+        continue-on-error: true
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -input=false \
+            -out=tfplan \
+            -var-file=terraform.tfvars \
+            -no-color \
+            2>&1 | tee plan.txt
+        env:
+          TF_VAR_github_token: ${{ secrets.GH_TOKEN_TERRAFORM }}
+          TF_VAR_stripe_api_key: ${{ secrets[format('STRIPE_API_KEY_{0}', upper(matrix.env))] }}
+          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_vercel_api_token: ${{ secrets.VERCEL_API_TOKEN }}
+          TF_VAR_sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          TF_VAR_sendgrid_api_key: ${{ secrets.SENDGRID_API_KEY }}
+          TF_VAR_betterstack_api_token: ${{ secrets.BETTERSTACK_API_TOKEN }}
+          TF_VAR_pagerduty_token: ${{ secrets.PAGERDUTY_TOKEN }}
+        continue-on-error: true
+
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v3
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+        # TODO(OPS): register at infracost.io and add INFRACOST_API_KEY to GitHub Secrets
+
+      - name: Generate Infracost estimate
+        id: infracost
+        run: |
+          infracost breakdown \
+            --path=tfplan \
+            --format=json \
+            --out-file=/tmp/infracost-${{ matrix.env }}.json
+        continue-on-error: true
+
+      - name: Post PR comment
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: |
+            ## Terraform Plan — `${{ matrix.env }}`
+
+            | Step | Result |
+            |------|--------|
+            | Format | ${{ steps.fmt.outcome == 'success' && '✅ Pass' || '❌ Fail' }} |
+            | Validate | ${{ steps.validate.outcome == 'success' && '✅ Pass' || '❌ Fail' }} |
+            | tflint | ${{ steps.tflint.outcome == 'success' && '✅ Pass' || '⚠️ Warnings' }} |
+            | Checkov | ${{ steps.checkov.outcome == 'success' && '✅ Pass' || '⚠️ Findings' }} |
+            | Plan | ${{ steps.plan.outcome == 'success' && '✅ No errors' || '❌ Errors' }} |
+
+            <details><summary>Plan output (click to expand)</summary>
+
+            ```
+            ${{ steps.plan.outputs.stdout }}
+            ```
+
+            </details>
+          comment-tag: terraform-plan-${{ matrix.env }}
+          mode: upsert
+
+      - name: Fail if plan errored
+        if: steps.plan.outcome == 'failure'
+        run: exit 1

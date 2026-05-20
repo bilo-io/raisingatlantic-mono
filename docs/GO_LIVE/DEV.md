@@ -206,8 +206,8 @@ A practical layout for where each piece of the app actually runs.
 The single most important rule of this go-live: **no one should ever have to log into the GCP console to change anything in production**. Every project, IAM binding, Cloud Run service, Cloud SQL instance, DNS record, secret, monitoring alert, and budget is described in Terraform under version control, reviewed via PR, and applied by GitHub Actions. The benefits are concrete: full audit trail (every change is a Git commit), free disaster recovery (re-apply in a new region in an afternoon), no "what did we click last Tuesday?" debugging, and POPIA evidence on demand.
 
 ##### Repository layout
-- [ ] Create a top-level `infra/` directory in the monorepo (or a sibling `raisingatlantic-infra` repo if we'd rather isolate blast radius)
-- [ ] Suggested layout:
+- [x] Create a top-level `infra/` directory in the monorepo (or a sibling `raisingatlantic-infra` repo if we'd rather isolate blast radius)
+- [x] Suggested layout:
   ```
   infra/
   ├── modules/                  # Reusable: cloud-run-service, cloud-sql, vpc, …
@@ -223,59 +223,59 @@ The single most important rule of this go-live: **no one should ever have to log
   ├── bootstrap/                # One-off: org, billing, tf-state bucket, GH OIDC
   └── README.md
   ```
-- [ ] Pin Terraform version with `.terraform-version` ([`tfenv`](https://github.com/tfutils/tfenv) / [`mise`](https://mise.jdx.dev)), recommend Terraform `>= 1.9` or **[OpenTofu](https://opentofu.org) 1.8** if we want to dodge HashiCorp's BSL licensing
-- [ ] Pin all provider versions in `versions.tf` (no floating `~>`)
+- [x] Pin Terraform version with `.terraform-version` ([`tfenv`](https://github.com/tfutils/tfenv) / [`mise`](https://mise.jdx.dev)), recommend Terraform `>= 1.9` or **[OpenTofu](https://opentofu.org) 1.8** if we want to dodge HashiCorp's BSL licensing
+- [x] Pin all provider versions in `versions.tf` (no floating `~>`)
 
 ##### State & bootstrap
 The chicken-and-egg problem: we need a state bucket before we can manage anything in Terraform.
 
 - [ ] One-time `bootstrap/` module run **manually** to create: a dedicated `ra-tfstate` GCS bucket (versioning + object lock + CMEK), the GitHub OIDC [Workload Identity Pool](https://cloud.google.com/iam/docs/workload-identity-federation), and the deployer service accounts
 - [ ] After bootstrap, commit the state bucket name and import the bootstrap resources into Terraform itself, so the bootstrap module manages itself going forward
-- [ ] Remote state in GCS with state-locking ([GCS native locking](https://cloud.google.com/docs/terraform/resource-management/store-state), no separate DynamoDB needed)
-- [ ] Per-environment state files (`envs/prod/terraform.tfstate`, etc.), never share state across envs
+- [x] Remote state in GCS with state-locking ([GCS native locking](https://cloud.google.com/docs/terraform/resource-management/store-state), no separate DynamoDB needed)
+- [x] Per-environment state files (`envs/prod/terraform.tfstate`, etc.), never share state across envs
 
 ##### Provider coverage
 Most things we need a Terraform provider for are already first-class. Some are not.
 
-- [ ] **[`hashicorp/google`](https://registry.terraform.io/providers/hashicorp/google/latest/docs) + [`google-beta`](https://registry.terraform.io/providers/hashicorp/google-beta/latest/docs)**: GCP core (Cloud Run, Cloud SQL, IAM, networking, Secret Manager, monitoring, Cloud DNS)
-- [ ] **[`integrations/github`](https://registry.terraform.io/providers/integrations/github/latest/docs)**: repo settings, branch protection, environments, secrets
-- [ ] **[`stripe/stripe`](https://registry.terraform.io/providers/stripe/stripe/latest/docs)** (community), products, prices, webhook endpoints
-- [ ] **[`cloudflare/cloudflare`](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs)**: only if we put [Cloudflare](https://www.cloudflare.com) in front of Cloud DNS (optional, but nice for WAF + DDoS as a second layer)
-- [ ] **[`vercel/vercel`](https://registry.terraform.io/providers/vercel/vercel/latest/docs)**: if we keep marketing on Vercel, manage projects + envs from Terraform
-- [ ] **[`neondatabase/neon`](https://registry.terraform.io/providers/kislerdm/neon/latest/docs)** (community), if we stay on Neon
-- [ ] **[`PagerDuty`](https://registry.terraform.io/providers/PagerDuty/pagerduty/latest/docs) / [`BetterStack`](https://registry.terraform.io/providers/BetterStackHQ/better-uptime/latest/docs) / [`Sentry`](https://registry.terraform.io/providers/jianyuan/sentry/latest/docs) / [`SendGrid`](https://registry.terraform.io/providers/Trois-Six/sendgrid/latest/docs) / [`1Password`](https://registry.terraform.io/providers/1Password/onepassword/latest/docs)**: every SaaS in our stack with a TF provider goes in IaC
+- [x] **[`hashicorp/google`](https://registry.terraform.io/providers/hashicorp/google/latest/docs) + [`google-beta`](https://registry.terraform.io/providers/hashicorp/google-beta/latest/docs)**: GCP core (Cloud Run, Cloud SQL, IAM, networking, Secret Manager, monitoring, Cloud DNS)
+- [x] **[`integrations/github`](https://registry.terraform.io/providers/integrations/github/latest/docs)**: repo settings, branch protection, environments, secrets
+- [x] **[`stripe/stripe`](https://registry.terraform.io/providers/stripe/stripe/latest/docs)** (community), products, prices, webhook endpoints
+- [x] **[`cloudflare/cloudflare`](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs)**: only if we put [Cloudflare](https://www.cloudflare.com) in front of Cloud DNS (optional, but nice for WAF + DDoS as a second layer)
+- [x] **[`vercel/vercel`](https://registry.terraform.io/providers/vercel/vercel/latest/docs)**: if we keep marketing on Vercel, manage projects + envs from Terraform
+- [x] **[`neondatabase/neon`](https://registry.terraform.io/providers/kislerdm/neon/latest/docs)** (community), if we stay on Neon
+- [x] **[`PagerDuty`](https://registry.terraform.io/providers/PagerDuty/pagerduty/latest/docs) / [`BetterStack`](https://registry.terraform.io/providers/BetterStackHQ/better-uptime/latest/docs) / [`Sentry`](https://registry.terraform.io/providers/jianyuan/sentry/latest/docs) / [`SendGrid`](https://registry.terraform.io/providers/Trois-Six/sendgrid/latest/docs) / [`1Password`](https://registry.terraform.io/providers/1Password/onepassword/latest/docs)**: every SaaS in our stack with a TF provider goes in IaC
 - [ ] Use the **[`tfe` / Terraform Cloud provider](https://registry.terraform.io/providers/hashicorp/tfe/latest/docs)** only if we want [Terraform Cloud](https://cloud.hashicorp.com/products/terraform) as backend, otherwise GCS is fine
 
 ##### GitHub Actions ↔ GCP authentication
 We should **never** put a GCP service-account JSON key in a GitHub secret. Use [Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation) instead, short-lived OIDC tokens, no long-lived keys.
 
-- [ ] Bootstrap a Workload Identity Pool + Provider in `ra-prod` for `token.actions.githubusercontent.com`
-- [ ] One deployer service account per environment (`tf-deployer-prod@ra-prod.iam.gserviceaccount.com`, etc.) with scoped IAM
-- [ ] Restrict the WIF binding to specific repo + branch (`repo:bilo-lwabona/raisingatlantic-mono:ref:refs/heads/main`), prevents PRs from arbitrary forks from assuming the role
-- [ ] In each workflow: [`google-github-actions/auth@v2`](https://github.com/google-github-actions/auth) with `workload_identity_provider` + `service_account` (no `credentials_json`)
-- [ ] Store nothing in `GITHUB_SECRETS` for GCP auth other than the WIF provider resource name
+- [x] Bootstrap a Workload Identity Pool + Provider in `ra-prod` for `token.actions.githubusercontent.com`
+- [x] One deployer service account per environment (`tf-deployer-prod@ra-prod.iam.gserviceaccount.com`, etc.) with scoped IAM
+- [x] Restrict the WIF binding to specific repo + branch (`repo:bilo-lwabona/raisingatlantic-mono:ref:refs/heads/main`), prevents PRs from arbitrary forks from assuming the role
+- [x] In each workflow: [`google-github-actions/auth@v2`](https://github.com/google-github-actions/auth) with `workload_identity_provider` + `service_account` (no `credentials_json`)
+- [x] Store nothing in `GITHUB_SECRETS` for GCP auth other than the WIF provider resource name
 
 ##### GitHub Actions pipelines for Terraform
 Two workflows is enough; resist the urge to over-engineer.
 
-- [ ] **`.github/workflows/terraform-plan.yml`**: runs on every PR that touches `infra/**`:
-  - [ ] `terraform fmt -check`, `terraform validate`, [`tflint`](https://github.com/terraform-linters/tflint), [`tfsec`](https://github.com/aquasecurity/tfsec) / [`checkov`](https://www.checkov.io) for security policy violations
-  - [ ] `terraform plan -out=tfplan` per affected env, posted as a sticky PR comment
-  - [ ] Cost diff via **[Infracost](https://www.infracost.io)** posted in the same PR comment
-  - [ ] Required for merge, block on plan failure or security findings
-- [ ] **`.github/workflows/terraform-apply.yml`**: runs on push to `main` (after merge):
-  - [ ] `dev` applies automatically
-  - [ ] `staging` applies automatically after `dev` succeeds
-  - [ ] `prod` requires manual approval via a [GitHub Environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment) with required reviewers (only one approver today, but the gate is still there)
+- [x] **`.github/workflows/terraform-plan.yml`**: runs on every PR that touches `infra/**`:
+  - [x] `terraform fmt -check`, `terraform validate`, [`tflint`](https://github.com/terraform-linters/tflint), [`tfsec`](https://github.com/aquasecurity/tfsec) / [`checkov`](https://www.checkov.io) for security policy violations
+  - [x] `terraform plan -out=tfplan` per affected env, posted as a sticky PR comment
+  - [x] Cost diff via **[Infracost](https://www.infracost.io)** posted in the same PR comment
+  - [x] Required for merge, block on plan failure or security findings
+- [x] **`.github/workflows/terraform-apply.yml`**: runs on push to `main` (after merge):
+  - [x] `dev` applies automatically
+  - [x] `staging` applies automatically after `dev` succeeds
+  - [x] `prod` requires manual approval via a [GitHub Environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment) with required reviewers (only one approver today, but the gate is still there)
   - [ ] Apply uses the merged-PR plan if reachable; otherwise re-plans and confirms parity
-  - [ ] Notifies `#deploys` Slack channel on apply (success + failure)
+  - [x] Notifies `#deploys` Slack channel on apply (success + failure)
 - [ ] No one, not even an admin, can `terraform apply` from a laptop against `prod`. IAM denies it. CI is the only path.
 
 ##### Secrets management
-- [ ] **GCP Secret Manager** as the single source of truth at runtime, Cloud Run mounts secrets directly
-- [ ] Secrets are *created* by Terraform but their *values* are written separately (either via `gcloud secrets versions add` once, or via a sealed-secrets workflow), Terraform should know a secret exists, not what's in it
-- [ ] Use `lifecycle { ignore_changes = [secret_data] }` so Terraform doesn't fight value rotations
-- [ ] No secrets ever in GitHub Actions logs (`::add-mask::` for any echoed value)
+- [x] **GCP Secret Manager** as the single source of truth at runtime, Cloud Run mounts secrets directly
+- [x] Secrets are *created* by Terraform but their *values* are written separately (either via `gcloud secrets versions add` once, or via a sealed-secrets workflow), Terraform should know a secret exists, not what's in it
+- [x] Use `lifecycle { ignore_changes = [secret_data] }` so Terraform doesn't fight value rotations
+- [x] No secrets ever in GitHub Actions logs (`::add-mask::` for any echoed value)
 - [ ] Rotate the deployer service-account WIF binding annually (calendar reminder)
 
 ##### What Terraform manages: the full inventory
@@ -313,8 +313,8 @@ Out of scope is just as important as in-scope.
 ##### Drift & policy
 Even with IaC discipline, things drift. Catch it early.
 
-- [ ] Nightly GitHub Actions cron: `terraform plan` on every env, fail-and-notify if non-empty
-- [ ] **[OPA](https://www.openpolicyagent.org) / [Conftest](https://www.conftest.dev)** or **`tfsec`** policy gates in PR (no public buckets, no `0.0.0.0/0` SSH, no `serviceAccountKey` resources, no resources outside `africa-south1`)
+- [x] Nightly GitHub Actions cron: `terraform plan` on every env, fail-and-notify if non-empty
+- [x] **[OPA](https://www.openpolicyagent.org) / [Conftest](https://www.conftest.dev)** or **`tfsec`** policy gates in PR (no public buckets, no `0.0.0.0/0` SSH, no `serviceAccountKey` resources, no resources outside `africa-south1`)
 - [ ] Quarterly review: anything imported manually gets either codified or destroyed
 - [ ] When the [Information Regulator](https://inforegulator.org.za) asks "who has access to production?", the answer is `git log infra/envs/prod/iam.tf`: that is the audit
 
