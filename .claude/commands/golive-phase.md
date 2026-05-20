@@ -1,0 +1,212 @@
+# /golive-phase
+
+Execute a go-live phase from `docs/GO_LIVE/DEV.md`: browse incomplete tasks, plan the work, implement in a dedicated worktree, and open a PR.
+
+## Arguments
+
+`$ARGUMENTS` — optional phase number or name (e.g. `1`, `1.4`, `Phase 2`, `auth`). If empty, list all phases with completion percentages and prompt the user to pick one.
+
+---
+
+## Step 1 — Identify the target phase
+
+Read `docs/GO_LIVE/DEV.md` in full.
+
+For **every phase** in the document, count:
+- **total tasks**: every line that starts with `- [ ]` or `- [x]`
+- **done tasks**: lines that start with `- [x]`
+- **completion %**: `round(done / total * 100)` (show 100% only if every task is done)
+
+### If `$ARGUMENTS` is empty
+
+Print a table of all phases that have at least one incomplete task (`- [ ]`), sorted by phase number:
+
+```
+Phases with outstanding work in docs/GO_LIVE/DEV.md
+─────────────────────────────────────────────────────
+ #    Phase title                          Done
+─────────────────────────────────────────────────────
+ 1    Infrastructure & Hosting Decision    12%
+ 2    Authentication & Identity             0%
+ …
+```
+
+Then ask: **"Which phase would you like to tackle? (enter number or name)"**
+
+Wait for the user's reply before continuing. Set the chosen phase as the working target.
+
+### If `$ARGUMENTS` is provided
+
+Match the argument (case-insensitive, partial match on number or title words) to a phase in the document. Print a single-phase summary:
+
+```
+Phase 1 — Infrastructure & Hosting Decision
+Completion: 12%  (3 / 25 tasks done)
+
+Outstanding tasks
+  § 1.1  Hosting + DB decision finalised
+  § 1.2  GCP Foundation …
+  …
+```
+
+Set this as the working target.
+
+---
+
+## Step 2 — Confirm planning mode
+
+Print this message verbatim:
+
+```
+─────────────────────────────────────────────────────
+  PLANNING MODE REQUIRED
+  I'm about to draft an implementation plan for:
+  Phase <N> — <title>
+
+  If you are not already in planning mode (Shift+Tab
+  toggles it in the Claude Code CLI), switch now.
+
+  When you're ready, reply "go", "continue", or "plan".
+─────────────────────────────────────────────────────
+```
+
+**Pause and wait** for the user to reply before doing anything else.
+Do not proceed past this step until the user sends a message containing "go", "continue", "plan", or any affirmative (yes / ok / proceed / start / let's go).
+
+---
+
+## Step 3 — Enter planning mode and draft the plan
+
+Use `EnterPlanMode` to switch into plan mode.
+
+Draft a step-by-step implementation plan that covers **only the incomplete tasks** (`- [ ]`) in the target phase. The plan must include:
+
+1. **Context** — one paragraph: what this phase achieves, why it matters for go-live, and any cross-phase dependencies noted in the document.
+2. **Scope** — bullet list of the specific `- [ ]` items being addressed (copy the text verbatim from the document).
+3. **Implementation steps** — ordered, actionable steps a developer can execute. Each step must reference the relevant section number (e.g. `§1.2`) and the concrete artifact to produce (file path, Terraform resource, workflow name, etc.).
+4. **Out of scope** — anything explicitly deferred or owned by a non-DEV role.
+5. **Acceptance criteria** — how we know the phase tasks are done (tests pass, `- [x]` in DEV.md, PR merged).
+
+Use `ExitPlanMode` to present the plan for approval.
+
+Ask: **"Does this plan look good? Reply 'approved' to start execution, or give feedback to revise."**
+
+Wait for approval. If the user requests changes, revise the plan and ask again. Do not start execution until the user explicitly approves.
+
+---
+
+## Step 4 — Set up a worktree and feature branch
+
+Once the plan is approved:
+
+Derive branch and directory names from the phase:
+- branch: `feat/golive-phase-<N>` (e.g. `feat/golive-phase-1-4` for §1.4, `feat/golive-phase-2` for Phase 2)
+- worktree path: `/tmp/ra-golive-phase-<N>`
+
+Run:
+```bash
+git worktree add -b feat/golive-phase-<N> /tmp/ra-golive-phase-<N> dev
+```
+
+All file edits from this point forward happen inside that worktree directory. Do **not** modify files in the main working directory.
+
+---
+
+## Step 5 — Execute the plan
+
+Work through each implementation step from the approved plan inside the worktree.
+
+**Conventions:**
+- Terraform files go under `infra/` following the layout described in §1.4 of DEV.md.
+- GitHub Actions workflows go under `.github/workflows/`.
+- Application code goes in the relevant `apps/` or `pkgs/` subdirectory.
+- Do not create documentation files or READMEs unless the phase explicitly requires one.
+- Do not add code comments that explain *what* the code does; only add a comment when the *why* is non-obvious.
+
+As you complete each task, immediately mark the corresponding line in `docs/GO_LIVE/DEV.md` from `- [ ]` to `- [x]`.
+
+---
+
+## Step 6 — Create the phase TODO file
+
+After all tasks are attempted, create (or update) `docs/GO_LIVE/PHASE_<N>_TODO.md` inside the worktree with:
+
+```markdown
+# Phase <N> — <title>: Outstanding Items
+
+> Auto-generated by /golive-phase on <date>. Update manually as tasks are completed.
+
+## Completed this session
+- list of tasks just marked [x]
+
+## Still outstanding
+- list of any tasks that remain [ ] (if all done, write "None — phase complete.")
+
+## Blockers / notes
+- anything that couldn't be automated (requires GCP console access, external KYC, legal review, etc.)
+```
+
+---
+
+## Step 7 — Commit and push
+
+Stage all changes in the worktree and create a single commit:
+
+```
+feat(golive): Phase <N> — <title> implementation
+
+Covers: <brief one-line summary of what was done>
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+```
+
+Push the branch to origin.
+
+---
+
+## Step 8 — Open a pull request
+
+Run:
+```bash
+gh pr create \
+  --base dev \
+  --title "feat(golive): Phase <N> — <title>" \
+  --body "$(cat <<'EOF'
+## Summary
+
+Phase <N> — <title>
+
+<2-3 bullet points describing the concrete changes>
+
+## Go-live checklist items addressed
+
+<!-- copy the - [x] lines from DEV.md that were completed -->
+
+## Still outstanding in this phase
+
+<!-- copy any - [ ] lines that remain, or write "None — phase complete." -->
+
+## Test plan
+
+- [ ] Terraform plan runs clean (`terraform plan` shows no errors)
+- [ ] GitHub Actions workflows validate (`act` dry-run or CI)
+- [ ] DEV.md updated with completed checkboxes
+- [ ] PHASE_<N>_TODO.md created/updated
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code) via /golive-phase
+EOF
+)"
+```
+
+Print the PR URL so the user can open it directly.
+
+---
+
+## Done
+
+Print:
+```
+Phase <N> — <title>
+PR: <url>
+Worktree: /tmp/ra-golive-phase-<N>  (clean up with: git worktree remove /tmp/ra-golive-phase-<N>)
+```
