@@ -14,6 +14,12 @@ variable "github_token" {
   sensitive = true
 }
 
+variable "github_owner" {
+  description = "GitHub username of the repository owner, used as required reviewer on the production environment."
+  type        = string
+  default     = "raisingatlantic-dev"
+}
+
 variable "stripe_api_key" {
   description = "Stripe LIVE-mode secret key. Only used in prod."
   type        = string

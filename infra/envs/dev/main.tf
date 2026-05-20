@@ -218,24 +218,24 @@ provider "pagerduty" {
 
 # ---------------------------------------------------------------------------
 # GitHub — branch protection for dev branch
-# TODO(OPS): uncomment after GitHub provider token is configured
+# Requires the CI jobs defined in .github/workflows/ci.yml to pass before merge.
 # ---------------------------------------------------------------------------
-# resource "github_branch_protection" "dev" {
-#   repository_id = "raisingatlantic-mono"
-#   pattern       = "dev"
-#
-#   required_status_checks {
-#     strict   = true
-#     contexts = ["API Tests", "Web Build", "Lint"]
-#   }
-#
-#   required_pull_request_reviews {
-#     dismiss_stale_reviews = true
-#     required_approving_review_count = 1
-#   }
-#
-#   enforce_admins = false
-# }
+resource "github_branch_protection" "dev" {
+  repository_id = "raisingatlantic-mono"
+  pattern       = "dev"
+
+  required_status_checks {
+    strict   = true
+    contexts = ["Lint", "API Tests", "Web Build"]
+  }
+
+  required_pull_request_reviews {
+    dismiss_stale_reviews           = true
+    required_approving_review_count = 1
+  }
+
+  enforce_admins = false
+}
 
 # ---------------------------------------------------------------------------
 # BetterStack — uptime monitors (dev)

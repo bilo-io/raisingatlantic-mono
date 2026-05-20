@@ -1,0 +1,174 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, test, main]
+  push:
+    branches: [dev, test, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Lint ──────────────────────────────────────────────────────────────────
+  Lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            src/apps/api/package-lock.json
+            src/apps/web/package-lock.json
+      - name: Install Moon
+        run: npm install -g @moonrepo/cli
+      - name: Install deps
+        run: moon run :install
+      - name: Lint
+        run: moon run :lint
+
+  # ── API Tests ─────────────────────────────────────────────────────────────
+  API Tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: raisingatlantic
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/apps/api/package-lock.json
+      - name: Install Moon
+        run: npm install -g @moonrepo/cli
+      - name: Install API deps
+        run: moon run api:install
+      - name: Run API tests
+        run: moon run api:test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5433/raisingatlantic
+          DB_HOST: localhost
+          DB_PORT: 5433
+          DB_NAME: raisingatlantic
+          DB_USER: postgres
+          DB_PASS: postgres
+          NODE_ENV: test
+          JWT_SECRET: ci-test-secret
+
+  # ── Web Build ─────────────────────────────────────────────────────────────
+  Web Build:
+    name: Web Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            src/pkgs/ui/package-lock.json
+            src/pkgs/types/package-lock.json
+            src/apps/web/package-lock.json
+      - name: Install Moon
+        run: npm install -g @moonrepo/cli
+      - name: Install deps
+        run: moon run pkgs/ui:install pkgs/types:install web:install
+      - name: Build shared packages
+        run: moon run pkgs/ui:build pkgs/types:build
+      - name: Build web
+        run: moon run web:build
+        env:
+          NEXT_PUBLIC_USE_API: "false"
+
+  # ── Typecheck ─────────────────────────────────────────────────────────────
+  Typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/apps/api/package-lock.json
+      - name: Install Moon
+        run: npm install -g @moonrepo/cli
+      - name: Install API deps
+        run: moon run api:install
+      - name: Typecheck API
+        run: moon run api:typecheck
+
+  # ── Security Audit ────────────────────────────────────────────────────────
+  Security Audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/apps/api/package-lock.json
+      - name: Install API deps
+        working-directory: src/apps/api
+        run: npm ci
+      - name: Audit dependencies
+        working-directory: src/apps/api
+        run: npm audit --audit-level=high --omit=dev
+
+  # ── Mobile Typecheck ──────────────────────────────────────────────────────
+  Mobile Typecheck:
+    name: Mobile Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/apps/mobile/package-lock.json
+      - name: Install Moon
+        run: npm install -g @moonrepo/cli
+      - name: Install mobile deps
+        run: moon run mobile:install
+      - name: Typecheck mobile
+        run: moon run mobile:lint
+
+  # ── EAS Preview Build (optional — needs EXPO_TOKEN) ───────────────────────
+  EAS Preview:
+    name: EAS Preview
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' && secrets.EXPO_TOKEN != '' }}
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Expo CLI + EAS CLI
+        run: npm install -g expo-cli eas-cli
+      - name: Install mobile deps
+        working-directory: src/apps/mobile
+        run: npm ci --legacy-peer-deps
+      - name: Build preview
+        working-directory: src/apps/mobile
+        run: eas build --platform all --profile preview --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
