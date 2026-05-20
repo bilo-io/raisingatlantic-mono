@@ -37,10 +37,10 @@ jobs:
         run: npm install -g @moonrepo/cli
 
       - name: Install deps
-        run: moon run pkgs/ui:install pkgs/types:install web:install
+        run: moon run ui:install types:install web:install
 
       - name: Build shared packages
-        run: moon run pkgs/ui:build pkgs/types:build
+        run: moon run ui:build types:build
 
       - name: Build web (mock mode)
         run: moon run web:build
