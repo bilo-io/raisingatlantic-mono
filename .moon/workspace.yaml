@@ -20,5 +20,5 @@ projects:
   tests: 'tests'
 
 vcs:
-  defaultBranch: 'master'
+  defaultBranch: 'dev'
   provider: 'github'
