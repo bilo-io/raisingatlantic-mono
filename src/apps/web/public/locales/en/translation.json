@@ -106,5 +106,10 @@
   "privacyPolicy": "Privacy Policy",
   "termsOfService": "Terms of Service",
   "eula": "EULA",
-  "cookiePolicy": "Cookie Policy"
+  "cookiePolicy": "Cookie Policy",
+  "acceptableUsePolicy": "Acceptable Use Policy",
+  "disclaimer": "Disclaimer",
+  "clinicianServiceAgreement": "Clinician Service Agreement",
+  "masterServicesAgreement": "Master Services Agreement",
+  "dataProcessingAgreement": "Data Processing Agreement"
 }
