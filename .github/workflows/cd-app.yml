@@ -194,6 +194,31 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
+  # ── 2a-smoke. Cypress smoke → dev ────────────────────────────────────────
+  cypress-smoke-dev:
+    name: Cypress Smoke → dev
+    needs: deploy-dev
+    if: github.ref_name == 'dev'
+    runs-on: ubuntu-latest
+    continue-on-error: true  # soft-fail until dev environment is fully stable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/test/cypress/package-lock.json
+      - name: Install Moon
+        run: npm install -g @moonrepo/cli
+      - name: Install Cypress deps
+        run: moon run cypress:install
+      - name: Run smoke suite
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: src/test/cypress
+          browser: chrome
+          config: baseUrl=https://raisingatlantic-web-dev.vercel.app
+
   # ── 2b. Deploy to staging (auto — branch: test) ───────────────────────────
   deploy-staging:
     name: Deploy → staging
@@ -246,6 +271,31 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  # ── 2b-smoke. Cypress smoke → staging ────────────────────────────────────
+  cypress-smoke-staging:
+    name: Cypress Smoke → staging
+    needs: deploy-staging
+    if: github.ref_name == 'test'
+    runs-on: ubuntu-latest
+    continue-on-error: true  # soft-fail until staging environment is fully stable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/test/cypress/package-lock.json
+      - name: Install Moon
+        run: npm install -g @moonrepo/cli
+      - name: Install Cypress deps
+        run: moon run cypress:install
+      - name: Run smoke suite
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: src/test/cypress
+          browser: chrome
+          config: baseUrl=https://raisingatlantic-web-test.vercel.app
 
   # ── 2c. Deploy to prod (manual approval — branch: main) ───────────────────
   deploy-prod:
@@ -358,3 +408,27 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  # ── 2c-smoke. Cypress smoke → prod ───────────────────────────────────────
+  cypress-smoke-prod:
+    name: Cypress Smoke → prod
+    needs: deploy-prod
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/test/cypress/package-lock.json
+      - name: Install Moon
+        run: npm install -g @moonrepo/cli
+      - name: Install Cypress deps
+        run: moon run cypress:install
+      - name: Run smoke suite
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: src/test/cypress
+          browser: chrome
+          config: baseUrl=https://raisingatlantic-web.vercel.app

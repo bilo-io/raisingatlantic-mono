@@ -93,6 +93,22 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "\\.module\\.ts$",
+      "\\.dto\\.ts$",
+      "\\.entity\\.ts$",
+      "main\\.ts$",
+      "db/migrations/"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 70,
+        "functions": 70,
+        "branches": 70,
+        "statements": 70
+      }
+    },
     "testEnvironment": "node"
   }
 }
