@@ -14,17 +14,23 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.use(cookieParser());
   const isProd = process.env.NODE_ENV === 'production';
-  const allowedOrigins = [
+  const builtInOrigins = [
     'http://localhost:9002',
     'https://raisingatlantic-web.vercel.app',
+    'https://raisingatlantic-web-dev.vercel.app',
     'https://raisingatlantic-dev.vercel.app',
     'https://raisingatlantic-staging.vercel.app',
     'https://raisingatlantic-prod.vercel.app',
     'https://raisingatlantic.vercel.app',
   ];
+  const extraOrigins = (process.env.ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  const allowedOrigins = [...new Set([...builtInOrigins, ...extraOrigins])];
   app.enableCors({
     // In dev: allow any origin (LAN IPs from mobile sim/device, Expo Go, etc.).
-    // In prod: enforce explicit allowlist.
+    // In prod: enforce explicit allowlist; extend via ALLOWED_ORIGINS env var.
     origin: isProd ? allowedOrigins : true,
     credentials: true,
   });
