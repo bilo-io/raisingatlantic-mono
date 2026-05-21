@@ -37,10 +37,11 @@ export class AppController {
   
   @Get('health')
   getHealth() {
-    return { 
-      status: 'ok', 
+    return {
+      status: 'ok',
+      env: process.env.NODE_ENV ?? 'unknown',
       timestamp: new Date().toISOString(),
-      uptime: process.uptime()
+      uptime: process.uptime(),
     };
   }
 }
