@@ -23,8 +23,13 @@
 						},
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/examples",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "examples"]
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"examples"
+							]
 						}
 					}
 				},
@@ -34,8 +39,13 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/examples",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "examples"]
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"examples"
+							]
 						}
 					}
 				},
@@ -45,8 +55,14 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/examples/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "examples", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"examples",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -72,8 +88,14 @@
 						},
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/examples/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "examples", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"examples",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -89,8 +111,14 @@
 						"method": "DELETE",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/examples/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "examples", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"examples",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -121,8 +149,13 @@
 						},
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/users",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "users"]
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"users"
+							]
 						}
 					}
 				},
@@ -132,8 +165,13 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/users",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "users"]
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"users"
+							]
 						}
 					}
 				},
@@ -143,8 +181,14 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/users/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "users", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"users",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -170,8 +214,14 @@
 						},
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/users/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "users", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"users",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -187,8 +237,14 @@
 						"method": "DELETE",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/users/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "users", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"users",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -219,8 +275,13 @@
 						},
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/tenants",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "tenants"]
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"tenants"
+							]
 						}
 					}
 				},
@@ -230,8 +291,13 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/tenants",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "tenants"]
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"tenants"
+							]
 						}
 					}
 				},
@@ -241,8 +307,14 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/tenants/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "tenants", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"tenants",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -268,8 +340,14 @@
 						},
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/tenants/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "tenants", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"tenants",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -285,8 +363,14 @@
 						"method": "DELETE",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/tenants/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "tenants", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"tenants",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -317,8 +401,13 @@
 						},
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/practices",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "practices"]
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"practices"
+							]
 						}
 					}
 				},
@@ -328,8 +417,13 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/practices",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "practices"]
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"practices"
+							]
 						}
 					}
 				},
@@ -339,8 +433,14 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/practices/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "practices", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"practices",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -366,8 +466,14 @@
 						},
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/practices/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "practices", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"practices",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -383,8 +489,14 @@
 						"method": "DELETE",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/practices/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "practices", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"practices",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -415,8 +527,13 @@
 						},
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/children",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "children"]
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"children"
+							]
 						}
 					}
 				},
@@ -426,8 +543,13 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/children",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "children"]
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"children"
+							]
 						}
 					}
 				},
@@ -437,8 +559,14 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/children/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "children", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"children",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -454,8 +582,15 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/children/:id/records",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "children", ":id", "records"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"children",
+								":id",
+								"records"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -481,8 +616,14 @@
 						},
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/children/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "children", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"children",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -498,8 +639,14 @@
 						"method": "DELETE",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/children/:id",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "children", ":id"],
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"children",
+								":id"
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -520,8 +667,14 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/master-data/milestones",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "master-data", "milestones"]
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"master-data",
+								"milestones"
+							]
 						}
 					}
 				},
@@ -531,8 +684,14 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/master-data/vaccinations",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "master-data", "vaccinations"]
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"master-data",
+								"vaccinations"
+							]
 						}
 					}
 				}
@@ -547,8 +706,14 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/verifications/clinicians",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "verifications", "clinicians"]
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"verifications",
+								"clinicians"
+							]
 						}
 					}
 				},
@@ -558,8 +723,333 @@
 						"method": "GET",
 						"url": {
 							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/verifications/records",
-							"host": ["{{API_BASE_URL}}"],
-							"path": ["{{API_VERSION}}", "verifications", "records"]
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"verifications",
+								"records"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('status 200', () => pm.response.to.have.status(200));",
+									"pm.test('body has ok status', () => { const b = pm.response.json(); pm.expect(b.status).to.eql('ok'); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/health",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Leads",
+			"item": [
+				{
+					"name": "Submit Lead (happy path)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('accepted', () => pm.expect([200,201]).to.include(pm.response.code));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"qa@example.com\",\n    \"name\": \"QA Tester\",\n    \"subject\": \"Postman contract\",\n    \"message\": \"This is an automated contract test message.\"\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/leads",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"leads"
+							]
+						}
+					}
+				},
+				{
+					"name": "Submit Lead \u2014 invalid email (400)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('rejects invalid', () => pm.expect([400,422]).to.include(pm.response.code));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"not-an-email\",\n    \"message\": \"short\"\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/leads",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"leads"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Appointments",
+			"item": [
+				{
+					"name": "Create Appointment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"6-month check-up\",\n    \"scheduledAt\": \"2026-06-01T09:00:00.000Z\",\n    \"childId\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/appointments",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"appointments"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Appointments",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/appointments",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"appointments"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Appointment By ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/appointments/:id",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"appointments",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Appointment",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Rescheduled\"\n}"
+						},
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/appointments/:id",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"appointments",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Appointment",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/appointments/:id",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"appointments",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "System Logs",
+			"item": [
+				{
+					"name": "Get System Logs (admin)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/system-logs",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"system-logs"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Error cases",
+			"item": [
+				{
+					"name": "Get Tenant \u2014 invalid id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('rejects invalid id', () => pm.expect([400,404,500]).to.include(pm.response.code));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/tenants/not-a-uuid",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"tenants",
+								"not-a-uuid"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User \u2014 unknown id returns 404",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('returns 404', () => pm.response.to.have.status(404));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{API_BASE_URL}}/{{API_VERSION}}/users/00000000-0000-0000-0000-000000000000",
+							"host": [
+								"{{API_BASE_URL}}"
+							],
+							"path": [
+								"{{API_VERSION}}",
+								"users",
+								"00000000-0000-0000-0000-000000000000"
+							]
 						}
 					}
 				}
