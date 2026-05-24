@@ -68,7 +68,14 @@ async function bootstrap(): Promise<NestExpressApplication> {
 }
 
 async function getApp(): Promise<NestExpressApplication> {
-  if (!appPromise) appPromise = bootstrap();
+  if (!appPromise) {
+    // Reset on failure so the next invocation can retry instead of
+    // serving the same rejected promise for the lifetime of the lambda.
+    appPromise = bootstrap().catch((err) => {
+      appPromise = null;
+      throw err;
+    });
+  }
   return appPromise;
 }
 
@@ -81,7 +88,9 @@ async function handler(req: Request, res: Response): Promise<void> {
   expressInstance(req, res);
 }
 
-export default handler;
+// @vercel/node probes module.exports and module.exports.default for the
+// request handler. Using CommonJS assignment directly (no `export default`)
+// avoids tsc's `exports.default = ...` being clobbered by the next line.
 module.exports = handler;
 module.exports.default = handler;
 
