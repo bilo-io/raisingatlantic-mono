@@ -37,5 +37,8 @@ tasks:
       - '**/*.{js,ts,html}'
 
   test:
-    # Tests not yet configured; placeholder prevents :test from failing graph resolution
-    command: 'echo "No tests configured for web"'
+    command: 'npx vitest run'
+    inputs:
+      - 'src/**/*'
+      - 'test/**/*'
+      - 'vitest.config.ts'

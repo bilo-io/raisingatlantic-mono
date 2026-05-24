@@ -33,6 +33,18 @@ tasks:
       - 'src/**/*'
       - 'test/**/*'
 
+  test-e2e:
+    command: 'npm run test:e2e'
+    inputs:
+      - 'src/**/*'
+      - 'test/**/*'
+
+  typecheck:
+    command: 'npx tsc --noEmit'
+    inputs:
+      - 'src/**/*.ts'
+      - 'tsconfig.json'
+
   db-start:
     command: 'npm run db:start'
 
