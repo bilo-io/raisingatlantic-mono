@@ -35,11 +35,13 @@ async function bootstrap() {
     credentials: true,
   });
   app.setGlobalPrefix('v1');
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   // Swagger Setup
   const config = new DocumentBuilder()

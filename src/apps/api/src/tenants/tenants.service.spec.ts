@@ -82,7 +82,9 @@ describe('TenantsService', () => {
 
     it('throws NotFoundException when missing', async () => {
       repo.findOneBy.mockResolvedValue(null);
-      await expect(service.findOne('missing')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('missing')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -101,7 +103,9 @@ describe('TenantsService', () => {
 
     it('propagates NotFoundException from findOne', async () => {
       repo.findOneBy.mockResolvedValue(null);
-      await expect(service.update('missing', {} as any)).rejects.toThrow(NotFoundException);
+      await expect(service.update('missing', {} as any)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -117,7 +121,9 @@ describe('TenantsService', () => {
 
     it('throws NotFoundException for unknown id', async () => {
       repo.findOneBy.mockResolvedValue(null);
-      await expect(service.remove('missing')).rejects.toThrow(NotFoundException);
+      await expect(service.remove('missing')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

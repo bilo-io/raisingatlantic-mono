@@ -34,7 +34,9 @@ describe('GcpLoggerService', () => {
 
   it('error() includes trace + context', () => {
     logger.error('boom', 'stack-trace', { req: 'x' });
-    expect(error).toHaveBeenCalledWith('[GCP ERROR] boom', 'stack-trace', { req: 'x' });
+    expect(error).toHaveBeenCalledWith('[GCP ERROR] boom', 'stack-trace', {
+      req: 'x',
+    });
   });
 
   it('warn() and debug() route to the right console method', () => {
@@ -62,26 +64,34 @@ describe('GcpTracingService', () => {
     const span = tracer.startSpan('Service.method');
     expect(span.name).toBe('Service.method');
     expect(typeof span.startTime).toBe('number');
-    expect(log).toHaveBeenCalledWith('[GCP TRACE] Started span: Service.method');
+    expect(log).toHaveBeenCalledWith(
+      '[GCP TRACE] Started span: Service.method',
+    );
   });
 
   it('endSpan logs duration', () => {
     const span = tracer.startSpan('s');
     span.startTime -= 25; // simulate elapsed time
     tracer.endSpan(span);
-    expect(log).toHaveBeenCalledWith(expect.stringMatching(/\[GCP TRACE\] Ended span: s \(Duration: \d+ms\)/));
+    expect(log).toHaveBeenCalledWith(
+      expect.stringMatching(/\[GCP TRACE\] Ended span: s \(Duration: \d+ms\)/),
+    );
   });
 
   it('recordException logs the message but does not throw', () => {
     const span = tracer.startSpan('s');
     expect(() => tracer.recordException(span, new Error('x'))).not.toThrow();
-    expect(log).toHaveBeenCalledWith('[GCP TRACE] Exception recorded on span s: x');
+    expect(log).toHaveBeenCalledWith(
+      '[GCP TRACE] Exception recorded on span s: x',
+    );
   });
 
   it('setAttribute logs the key/value pair', () => {
     const span = tracer.startSpan('s');
     tracer.setAttribute(span, 'user.id', 'abc');
-    expect(log).toHaveBeenCalledWith('[GCP TRACE] Set attribute on span s: user.id = abc');
+    expect(log).toHaveBeenCalledWith(
+      '[GCP TRACE] Set attribute on span s: user.id = abc',
+    );
   });
 });
 
@@ -100,7 +110,10 @@ describe('GcpMetricService', () => {
 
   it('incrementCounter defaults the value to 1', () => {
     metric.incrementCounter('user.created');
-    expect(log).toHaveBeenCalledWith('[GCP METRIC] Incrementing counter: user.created by 1', '');
+    expect(log).toHaveBeenCalledWith(
+      '[GCP METRIC] Incrementing counter: user.created by 1',
+      '',
+    );
   });
 
   it('incrementCounter forwards explicit value + attributes', () => {
@@ -114,8 +127,14 @@ describe('GcpMetricService', () => {
   it('recordValue and recordHistogram emit prefixed logs', () => {
     metric.recordValue('latency.ms', 42, { route: '/v1/users' });
     metric.recordHistogram('latency.histogram', 100);
-    expect(log).toHaveBeenCalledWith('[GCP METRIC] Recording value for latency.ms: 42', { route: '/v1/users' });
-    expect(log).toHaveBeenCalledWith('[GCP METRIC] Recording histogram for latency.histogram: 100', '');
+    expect(log).toHaveBeenCalledWith(
+      '[GCP METRIC] Recording value for latency.ms: 42',
+      { route: '/v1/users' },
+    );
+    expect(log).toHaveBeenCalledWith(
+      '[GCP METRIC] Recording histogram for latency.histogram: 100',
+      '',
+    );
   });
 });
 
@@ -134,17 +153,26 @@ describe('GcpErrorReportingService', () => {
 
   it('report() handles a string error', () => {
     reporter.report('something bad');
-    expect(error).toHaveBeenCalledWith('[GCP ERROR REPORT] Reported: something bad', '');
+    expect(error).toHaveBeenCalledWith(
+      '[GCP ERROR REPORT] Reported: something bad',
+      '',
+    );
   });
 
   it('report() unwraps an Error instance to message', () => {
     reporter.report(new Error('boom'), { ctx: 'x' });
-    expect(error).toHaveBeenCalledWith('[GCP ERROR REPORT] Reported: boom', { ctx: 'x' });
+    expect(error).toHaveBeenCalledWith('[GCP ERROR REPORT] Reported: boom', {
+      ctx: 'x',
+    });
   });
 
   it('reportException logs the exception object', () => {
     const ex = new Error('explode');
     reporter.reportException(ex, { trace: 'abc' });
-    expect(error).toHaveBeenCalledWith('[GCP EXCEPTION REPORT] Reported Exception', ex, { trace: 'abc' });
+    expect(error).toHaveBeenCalledWith(
+      '[GCP EXCEPTION REPORT] Reported Exception',
+      ex,
+      { trace: 'abc' },
+    );
   });
 });

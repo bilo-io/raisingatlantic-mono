@@ -17,9 +17,7 @@ describe('AppointmentsController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AppointmentsController],
-      providers: [
-        { provide: AppointmentsService, useValue: service },
-      ],
+      providers: [{ provide: AppointmentsService, useValue: service }],
     }).compile();
 
     controller = module.get<AppointmentsController>(AppointmentsController);
@@ -40,7 +38,11 @@ describe('AppointmentsController', () => {
   describe('findAll', () => {
     it('should call service.findAll', async () => {
       await controller.findAll(undefined, undefined, undefined);
-      expect(service.findAll).toHaveBeenCalledWith({ childId: undefined, clinicianId: undefined, practiceId: undefined });
+      expect(service.findAll).toHaveBeenCalledWith({
+        childId: undefined,
+        clinicianId: undefined,
+        practiceId: undefined,
+      });
     });
   });
 });

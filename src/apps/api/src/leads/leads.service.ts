@@ -25,11 +25,13 @@ export class LeadsService {
         'admin@raisingatlantic.com', // Admin notification
         `Lead: ${finalSubject}`,
         `New lead from ${finalName} (${email}):\n\n${message}`,
-        finalName
+        finalName,
       );
     } catch (error) {
-      this.logger.error(`Error sending lead notification email: ${error.message}`);
-      // We don't throw here to ensure the log is still created, 
+      this.logger.error(
+        `Error sending lead notification email: ${error.message}`,
+      );
+      // We don't throw here to ensure the log is still created,
       // but in a real app you might want to handle this differently.
     }
 

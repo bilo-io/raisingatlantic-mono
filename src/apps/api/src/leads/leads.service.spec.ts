@@ -46,7 +46,10 @@ describe('LeadsService', () => {
       expect.objectContaining({
         type: 'LEAD_CONTACT',
         ipAddress: '127.0.0.1',
-        metadata: expect.objectContaining({ email: 'jane@example.com', name: 'Jane' }),
+        metadata: expect.objectContaining({
+          email: 'jane@example.com',
+          name: 'Jane',
+        }),
       }),
     );
     expect(result).toEqual(
@@ -76,10 +79,13 @@ describe('LeadsService', () => {
     systemLogs.createLog.mockResolvedValue({} as any);
 
     await expect(
-      service.create(
-        { email: 'a@b.com', message: 'Something here please' } as any,
-      ),
-    ).resolves.toEqual(expect.objectContaining({ message: 'Lead submitted successfully' }));
+      service.create({
+        email: 'a@b.com',
+        message: 'Something here please',
+      } as any),
+    ).resolves.toEqual(
+      expect.objectContaining({ message: 'Lead submitted successfully' }),
+    );
 
     expect(systemLogs.createLog).toHaveBeenCalledTimes(1);
   });

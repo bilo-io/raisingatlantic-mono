@@ -6,12 +6,16 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
   HttpCode,
   HttpStatus,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { BlogService } from './blog.service';
 import { CreateBlogPostDto, UpdateBlogPostDto } from './dto/blog.dto';
 import { BlogPost } from './blog.model';
@@ -72,7 +76,10 @@ export class BlogController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a blog post' })
   @ApiResponse({ status: HttpStatus.OK, type: BlogPost })
-  update(@Param('id') id: string, @Body() updateBlogPostDto: UpdateBlogPostDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateBlogPostDto: UpdateBlogPostDto,
+  ) {
     return this.blogService.update(id, updateBlogPostDto);
   }
 

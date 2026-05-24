@@ -12,7 +12,10 @@ describe('SystemLogsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SystemLogsService,
-        { provide: getRepositoryToken(SystemLog), useValue: createMockRepository() },
+        {
+          provide: getRepositoryToken(SystemLog),
+          useValue: createMockRepository(),
+        },
       ],
     }).compile();
 

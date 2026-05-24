@@ -21,31 +21,37 @@ export class ReportsService {
   async create(dto: CreateReportDto): Promise<Report> {
     let child: Child | null = null;
     if (isUUID(dto.childId)) {
-      child = await this.childrenRepository.findOne({ where: { id: dto.childId } });
+      child = await this.childrenRepository.findOne({
+        where: { id: dto.childId },
+      });
     } else {
       const nameMatch = dto.childId.replace('child-', '').replace(/-/g, ' ');
-      child = await this.childrenRepository.findOne({ 
+      child = await this.childrenRepository.findOne({
         where: [
           { name: ILike(`%${nameMatch}%`) },
           { firstName: ILike(`%${nameMatch}%`) },
-          { name: ILike(dto.childId.replace(/-/g, ' ')) }
-        ] 
+          { name: ILike(dto.childId.replace(/-/g, ' ')) },
+        ],
       });
     }
-    
+
     if (!child) throw new NotFoundException('Child not found');
 
     let generatedBy: User | null = null;
     if (dto.generatedById) {
       if (isUUID(dto.generatedById)) {
-        generatedBy = await this.usersRepository.findOne({ where: { id: dto.generatedById } });
+        generatedBy = await this.usersRepository.findOne({
+          where: { id: dto.generatedById },
+        });
       } else {
-        const nameMatch = dto.generatedById.replace('clinician-', '').replace(/-/g, ' ');
+        const nameMatch = dto.generatedById
+          .replace('clinician-', '')
+          .replace(/-/g, ' ');
         generatedBy = await this.usersRepository.findOne({
           where: [
             { email: ILike(`%${dto.generatedById}%`) },
-            { name: ILike(`%${nameMatch}%`) }
-          ]
+            { name: ILike(`%${nameMatch}%`) },
+          ],
         });
       }
     }
@@ -64,7 +70,8 @@ export class ReportsService {
   }
 
   async findAll(filters: { childId?: string }): Promise<Report[]> {
-    const query = this.reportsRepository.createQueryBuilder('report')
+    const query = this.reportsRepository
+      .createQueryBuilder('report')
       .leftJoinAndSelect('report.child', 'child')
       .leftJoinAndSelect('report.generatedBy', 'user');
 
@@ -72,7 +79,10 @@ export class ReportsService {
       if (isUUID(filters.childId)) {
         query.andWhere('child.id = :childId', { childId: filters.childId });
       } else {
-        query.andWhere('(child.name ILIKE :cName OR child.firstName ILIKE :cName)', { cName: `%${filters.childId}%` });
+        query.andWhere(
+          '(child.name ILIKE :cName OR child.firstName ILIKE :cName)',
+          { cName: `%${filters.childId}%` },
+        );
       }
     }
 
@@ -87,7 +97,7 @@ export class ReportsService {
         relations: ['child', 'generatedBy'],
       });
     }
-    
+
     if (!report) throw new NotFoundException('Report not found');
     return report;
   }

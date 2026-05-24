@@ -42,7 +42,9 @@ describe('App (e2e smoke)', () => {
   });
 
   it('GET /api/dashboard defaults the user id when no cookie is set', async () => {
-    const res = await request(app.getHttpServer()).get('/api/dashboard').expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/api/dashboard')
+      .expect(200);
     expect(res.body).toMatchObject({ userId: 'user-1', isLoadedFromApi: true });
   });
 });

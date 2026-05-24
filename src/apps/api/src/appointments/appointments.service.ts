@@ -2,7 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
 import { Appointment } from './appointments.model';
-import { CreateAppointmentDto, UpdateAppointmentDto } from './dto/create-appointment.dto';
+import {
+  CreateAppointmentDto,
+  UpdateAppointmentDto,
+} from './dto/create-appointment.dto';
 import { Child } from '../children/children.model';
 import { User } from '../users/users.model';
 import { Practice } from '../practices/practices.model';
@@ -24,15 +27,17 @@ export class AppointmentsService {
   async create(dto: CreateAppointmentDto): Promise<Appointment> {
     let child: Child | null = null;
     if (isUUID(dto.childId)) {
-      child = await this.childrenRepository.findOne({ where: { id: dto.childId } });
+      child = await this.childrenRepository.findOne({
+        where: { id: dto.childId },
+      });
     } else {
       const nameMatch = dto.childId.replace('child-', '').replace(/-/g, ' ');
-      child = await this.childrenRepository.findOne({ 
+      child = await this.childrenRepository.findOne({
         where: [
           { name: ILike(`%${nameMatch}%`) },
           { firstName: ILike(`%${nameMatch}%`) },
-          { name: ILike(dto.childId.replace(/-/g, ' ')) }
-        ] 
+          { name: ILike(dto.childId.replace(/-/g, ' ')) },
+        ],
       });
     }
     if (!child) throw new NotFoundException('Child not found');
@@ -40,14 +45,18 @@ export class AppointmentsService {
     let clinician: User | null = null;
     if (dto.clinicianId) {
       if (isUUID(dto.clinicianId)) {
-        clinician = await this.usersRepository.findOne({ where: { id: dto.clinicianId } });
+        clinician = await this.usersRepository.findOne({
+          where: { id: dto.clinicianId },
+        });
       } else {
-        const nameMatch = dto.clinicianId.replace('clinician-', '').replace(/-/g, ' ');
+        const nameMatch = dto.clinicianId
+          .replace('clinician-', '')
+          .replace(/-/g, ' ');
         clinician = await this.usersRepository.findOne({
           where: [
             { email: ILike(`%${dto.clinicianId}%`) },
-            { name: ILike(`%${nameMatch}%`) }
-          ]
+            { name: ILike(`%${nameMatch}%`) },
+          ],
         });
       }
     }
@@ -55,14 +64,18 @@ export class AppointmentsService {
     let practice: Practice | null = null;
     if (dto.practiceId) {
       if (isUUID(dto.practiceId)) {
-        practice = await this.practiceRepository.findOne({ where: { id: dto.practiceId } });
+        practice = await this.practiceRepository.findOne({
+          where: { id: dto.practiceId },
+        });
       } else {
-        const nameMatch = dto.practiceId.replace('practice-', '').replace(/-/g, ' ');
+        const nameMatch = dto.practiceId
+          .replace('practice-', '')
+          .replace(/-/g, ' ');
         practice = await this.practiceRepository.findOne({
           where: [
             { name: ILike(`%${nameMatch}%`) },
-            { name: ILike(`%${dto.practiceId}%`) }
-          ]
+            { name: ILike(`%${dto.practiceId}%`) },
+          ],
         });
       }
     }
@@ -79,8 +92,13 @@ export class AppointmentsService {
     return await this.appointmentsRepository.save(appointment);
   }
 
-  async findAll(filters: { childId?: string; clinicianId?: string; practiceId?: string }): Promise<Appointment[]> {
-    const query = this.appointmentsRepository.createQueryBuilder('appointment')
+  async findAll(filters: {
+    childId?: string;
+    clinicianId?: string;
+    practiceId?: string;
+  }): Promise<Appointment[]> {
+    const query = this.appointmentsRepository
+      .createQueryBuilder('appointment')
       .leftJoinAndSelect('appointment.child', 'child')
       .leftJoinAndSelect('appointment.clinician', 'user')
       .leftJoinAndSelect('appointment.practice', 'practice');
@@ -89,23 +107,34 @@ export class AppointmentsService {
       if (isUUID(filters.childId)) {
         query.andWhere('child.id = :childId', { childId: filters.childId });
       } else {
-        query.andWhere('(child.name ILIKE :cName OR child.firstName ILIKE :cName)', { cName: `%${filters.childId}%` });
+        query.andWhere(
+          '(child.name ILIKE :cName OR child.firstName ILIKE :cName)',
+          { cName: `%${filters.childId}%` },
+        );
       }
     }
-    
+
     if (filters.clinicianId) {
       if (isUUID(filters.clinicianId)) {
-        query.andWhere('user.id = :clinicianId', { clinicianId: filters.clinicianId });
+        query.andWhere('user.id = :clinicianId', {
+          clinicianId: filters.clinicianId,
+        });
       } else {
-        query.andWhere('user.name ILIKE :uName', { uName: `%${filters.clinicianId}%` });
+        query.andWhere('user.name ILIKE :uName', {
+          uName: `%${filters.clinicianId}%`,
+        });
       }
     }
-    
+
     if (filters.practiceId) {
       if (isUUID(filters.practiceId)) {
-        query.andWhere('practice.id = :practiceId', { practiceId: filters.practiceId });
+        query.andWhere('practice.id = :practiceId', {
+          practiceId: filters.practiceId,
+        });
       } else {
-        query.andWhere('practice.name ILIKE :pName', { pName: `%${filters.practiceId}%` });
+        query.andWhere('practice.name ILIKE :pName', {
+          pName: `%${filters.practiceId}%`,
+        });
       }
     }
 
@@ -120,7 +149,7 @@ export class AppointmentsService {
         relations: ['child', 'clinician', 'practice'],
       });
     }
-    
+
     if (!appointment) throw new NotFoundException('Appointment not found');
     return appointment;
   }

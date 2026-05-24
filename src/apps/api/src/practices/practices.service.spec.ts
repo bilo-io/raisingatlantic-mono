@@ -4,7 +4,13 @@ import { PracticesService } from './practices.service';
 import { Practice } from './practices.model';
 import { NotFoundException } from '@nestjs/common';
 import { ResourceStatus } from '../common/enums';
-import { createMockRepository, createMockLogger, createMockTracer, createMockMetrics, createMockErrorReporter } from '../common/test/test-utils';
+import {
+  createMockRepository,
+  createMockLogger,
+  createMockTracer,
+  createMockMetrics,
+  createMockErrorReporter,
+} from '../common/test/test-utils';
 
 describe('PracticesService', () => {
   let service: PracticesService;
@@ -21,7 +27,10 @@ describe('PracticesService', () => {
         { provide: 'ILoggerService', useValue: createMockLogger() },
         { provide: 'ITracingService', useValue: createMockTracer() },
         { provide: 'IMetricService', useValue: createMockMetrics() },
-        { provide: 'IErrorReportingService', useValue: createMockErrorReporter() },
+        {
+          provide: 'IErrorReportingService',
+          useValue: createMockErrorReporter(),
+        },
       ],
     }).compile();
 
@@ -36,7 +45,13 @@ describe('PracticesService', () => {
   describe('findAllPublic', () => {
     it('should return masked practices', async () => {
       const practices = [
-        { id: '1', name: 'Practice 1', manager: 'John Doe', email: 'john@example.com', status: ResourceStatus.ACTIVE },
+        {
+          id: '1',
+          name: 'Practice 1',
+          manager: 'John Doe',
+          email: 'john@example.com',
+          status: ResourceStatus.ACTIVE,
+        },
       ];
       repository.find.mockResolvedValue(practices);
 
@@ -44,9 +59,11 @@ describe('PracticesService', () => {
 
       expect(result[0].manager).toBe('Restricted Access');
       expect(result[0].email).toBe('Restricted Access');
-      expect(repository.find).toHaveBeenCalledWith(expect.objectContaining({
-        where: { status: ResourceStatus.ACTIVE }
-      }));
+      expect(repository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { status: ResourceStatus.ACTIVE },
+        }),
+      );
     });
   });
 

@@ -23,7 +23,7 @@ tasks:
       persistent: true
 
   lint:
-    command: 'eslint .'
+    command: 'npx eslint .'
     inputs:
       - '**/*.{ts,js}'
 

@@ -6,7 +6,14 @@ import { ITracingService } from '@core/telemetry/interfaces/tracer.interface';
 import { IMetricService } from '@core/telemetry/interfaces/metric.interface';
 import { IErrorReportingService } from '@core/telemetry/interfaces/error-reporter.interface';
 import { isUUID } from '../common/utils/id-validator';
-import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination, Allergy, MedicalCondition } from './children.model';
+import {
+  Child,
+  GrowthRecord,
+  CompletedMilestone,
+  CompletedVaccination,
+  Allergy,
+  MedicalCondition,
+} from './children.model';
 import { User } from '../users/users.model';
 import { CreateChildDto } from './dto/create-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
@@ -18,16 +25,22 @@ import { CreateCompletedVaccinationDto } from './dto/create-completed-vaccinatio
 export class ChildrenService {
   constructor(
     @InjectRepository(Child) private readonly childRepo: Repository<Child>,
-    @InjectRepository(GrowthRecord) private readonly growthRepo: Repository<GrowthRecord>,
-    @InjectRepository(CompletedMilestone) private readonly milestoneRepo: Repository<CompletedMilestone>,
-    @InjectRepository(CompletedVaccination) private readonly vaccineRepo: Repository<CompletedVaccination>,
-    @InjectRepository(Allergy) private readonly allergyRepo: Repository<Allergy>,
-    @InjectRepository(MedicalCondition) private readonly conditionRepo: Repository<MedicalCondition>,
+    @InjectRepository(GrowthRecord)
+    private readonly growthRepo: Repository<GrowthRecord>,
+    @InjectRepository(CompletedMilestone)
+    private readonly milestoneRepo: Repository<CompletedMilestone>,
+    @InjectRepository(CompletedVaccination)
+    private readonly vaccineRepo: Repository<CompletedVaccination>,
+    @InjectRepository(Allergy)
+    private readonly allergyRepo: Repository<Allergy>,
+    @InjectRepository(MedicalCondition)
+    private readonly conditionRepo: Repository<MedicalCondition>,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     @Inject('ILoggerService') private readonly logger: ILoggerService,
     @Inject('ITracingService') private readonly tracer: ITracingService,
     @Inject('IMetricService') private readonly metric: IMetricService,
-    @Inject('IErrorReportingService') private readonly errorReporter: IErrorReportingService,
+    @Inject('IErrorReportingService')
+    private readonly errorReporter: IErrorReportingService,
   ) {}
 
   async create(dto: CreateChildDto): Promise<Child> {
@@ -39,30 +52,38 @@ export class ChildrenService {
         parent = await this.userRepo.findOne({ where: { id: dto.parentId } });
       } else {
         // Mock ID support: match by name/email in user table
-        const nameMatch = dto.parentId.replace('parent-', '').replace(/-/g, ' ');
+        const nameMatch = dto.parentId
+          .replace('parent-', '')
+          .replace(/-/g, ' ');
         parent = await this.userRepo.findOne({
           where: [
             { email: ILike(`%${dto.parentId}%`) },
-            { name: ILike(`%${nameMatch}%`) }
-          ]
+            { name: ILike(`%${nameMatch}%`) },
+          ],
         });
       }
-      if (!parent) throw new NotFoundException(`Parent with ID ${dto.parentId} not found`);
+      if (!parent)
+        throw new NotFoundException(`Parent with ID ${dto.parentId} not found`);
 
       // Resolve Clinician (Optional)
       let clinician: User | undefined = undefined;
       if (dto.clinicianId) {
         if (isUUID(dto.clinicianId)) {
-          clinician = await this.userRepo.findOne({ where: { id: dto.clinicianId } }) || undefined;
+          clinician =
+            (await this.userRepo.findOne({ where: { id: dto.clinicianId } })) ||
+            undefined;
         } else {
           // Mock ID support for clinician
-          const nameMatch = dto.clinicianId.replace('clinician-', '').replace(/-/g, ' ');
-          clinician = await this.userRepo.findOne({
-            where: [
-              { email: ILike(`%${dto.clinicianId}%`) },
-              { name: ILike(`%${nameMatch}%`) }
-            ]
-          }) || undefined;
+          const nameMatch = dto.clinicianId
+            .replace('clinician-', '')
+            .replace(/-/g, ' ');
+          clinician =
+            (await this.userRepo.findOne({
+              where: [
+                { email: ILike(`%${dto.clinicianId}%`) },
+                { name: ILike(`%${nameMatch}%`) },
+              ],
+            })) || undefined;
         }
       }
 
@@ -77,8 +98,12 @@ export class ChildrenService {
     }
   }
 
-  async findAll(filters?: { tenantId?: string; clinicianId?: string }): Promise<Child[]> {
-    const query = this.childRepo.createQueryBuilder('child')
+  async findAll(filters?: {
+    tenantId?: string;
+    clinicianId?: string;
+  }): Promise<Child[]> {
+    const query = this.childRepo
+      .createQueryBuilder('child')
       .leftJoinAndSelect('child.parent', 'parent')
       .leftJoinAndSelect('child.clinician', 'clinician')
       .leftJoinAndSelect('clinician.clinicianProfile', 'clinicianProfile')
@@ -97,27 +122,42 @@ export class ChildrenService {
         query.andWhere('tenant.id = :tenantId', { tenantId: filters.tenantId });
       } else {
         // Mock ID support: match by common name in our seeds
-        if (filters.tenantId === 'tenant-raising-atlantic' || filters.tenantId === 'tenant-1') {
-           query.andWhere('tenant.name = :tName', { tName: 'Raising Atlantic Health' });
+        if (
+          filters.tenantId === 'tenant-raising-atlantic' ||
+          filters.tenantId === 'tenant-1'
+        ) {
+          query.andWhere('tenant.name = :tName', {
+            tName: 'Raising Atlantic Health',
+          });
         } else {
-           // Fallback for other mock IDs - search by name or slug
-           query.andWhere('tenant.name ILIKE :tName', { tName: `%${filters.tenantId}%` });
+          // Fallback for other mock IDs - search by name or slug
+          query.andWhere('tenant.name ILIKE :tName', {
+            tName: `%${filters.tenantId}%`,
+          });
         }
       }
     }
 
     if (filters?.clinicianId) {
       if (filters.clinicianId.includes('@')) {
-        query.andWhere('clinician.email = :email', { email: filters.clinicianId });
+        query.andWhere('clinician.email = :email', {
+          email: filters.clinicianId,
+        });
       } else if (isUUID(filters.clinicianId)) {
         // Likely a UUID
-        query.andWhere('clinician.id = :clinicianId', { clinicianId: filters.clinicianId });
+        query.andWhere('clinician.id = :clinicianId', {
+          clinicianId: filters.clinicianId,
+        });
       } else {
         // Fallback or mock ID - try matching name or email prefix if needed
         if (filters.clinicianId === 'clinician-dr-smith') {
-           query.andWhere('clinician.email = :email', { email: 'dr.smith@clinician.com' });
+          query.andWhere('clinician.email = :email', {
+            email: 'dr.smith@clinician.com',
+          });
         } else {
-           query.andWhere('clinician.name ILIKE :cName', { cName: `%${filters.clinicianId}%` });
+          query.andWhere('clinician.name ILIKE :cName', {
+            cName: `%${filters.clinicianId}%`,
+          });
         }
       }
     }
@@ -127,13 +167,13 @@ export class ChildrenService {
 
   async findOne(id: string): Promise<Child> {
     const relations = [
-      'parent', 
-      'clinician', 
-      'growthRecords', 
-      'completedMilestones', 
+      'parent',
+      'clinician',
+      'growthRecords',
+      'completedMilestones',
       'completedVaccinations',
       'allergies',
-      'medicalConditions'
+      'medicalConditions',
     ];
 
     let child: Child | null = null;
@@ -151,7 +191,7 @@ export class ChildrenService {
           { name: ILike(id) },
           { firstName: ILike(id) },
           { name: ILike(id.replace(/-/g, ' ')) },
-          { name: ILike(`%${id}%`) } // Fuzzy match for things like "Alex Doe" vs "alex-doe"
+          { name: ILike(`%${id}%`) }, // Fuzzy match for things like "Alex Doe" vs "alex-doe"
         ],
         relations,
       });
@@ -168,7 +208,10 @@ export class ChildrenService {
     return await this.allergyRepo.save(allergy);
   }
 
-  async addCompletedVaccination(childId: string, dto: CreateCompletedVaccinationDto): Promise<CompletedVaccination> {
+  async addCompletedVaccination(
+    childId: string,
+    dto: CreateCompletedVaccinationDto,
+  ): Promise<CompletedVaccination> {
     const child = await this.findOne(childId);
     const record = this.vaccineRepo.create({
       ...dto,
@@ -181,12 +224,17 @@ export class ChildrenService {
   }
 
   // Medical Condition Methods
-  async addMedicalCondition(childId: string, dto: CreateMedicalConditionDto): Promise<MedicalCondition> {
+  async addMedicalCondition(
+    childId: string,
+    dto: CreateMedicalConditionDto,
+  ): Promise<MedicalCondition> {
     const child = await this.findOne(childId);
-    const condition = this.conditionRepo.create({ 
-      ...dto, 
+    const condition = this.conditionRepo.create({
+      ...dto,
       child,
-      diagnosisDate: dto.diagnosisDate ? new Date(dto.diagnosisDate) : undefined 
+      diagnosisDate: dto.diagnosisDate
+        ? new Date(dto.diagnosisDate)
+        : undefined,
     });
     return await this.conditionRepo.save(condition);
   }
@@ -204,16 +252,23 @@ export class ChildrenService {
 
   async findUnifiedRecords(childId: string): Promise<any[]> {
     const child = await this.findOne(childId);
-    
+
     return [
-      ...child.growthRecords.map(r => ({ ...r, type: 'Growth' })),
-      ...child.completedMilestones.map(r => ({ ...r, type: 'Milestone' })),
-      ...child.completedVaccinations.map(r => ({ ...r, type: 'Vaccination' })),
-      ...child.allergies.map(r => ({ ...r, type: 'Allergy' })),
-      ...child.medicalConditions.map(r => ({ ...r, type: 'Condition' })),
+      ...child.growthRecords.map((r) => ({ ...r, type: 'Growth' })),
+      ...child.completedMilestones.map((r) => ({ ...r, type: 'Milestone' })),
+      ...child.completedVaccinations.map((r) => ({
+        ...r,
+        type: 'Vaccination',
+      })),
+      ...child.allergies.map((r) => ({ ...r, type: 'Allergy' })),
+      ...child.medicalConditions.map((r) => ({ ...r, type: 'Condition' })),
     ].sort((a: any, b: any) => {
-      const dateA = new Date(a.date || a.dateAchieved || a.dateAdministered || (a as any).createdAt).getTime();
-      const dateB = new Date(b.date || b.dateAchieved || b.dateAdministered || (b as any).createdAt).getTime();
+      const dateA = new Date(
+        a.date || a.dateAchieved || a.dateAdministered || a.createdAt,
+      ).getTime();
+      const dateB = new Date(
+        b.date || b.dateAchieved || b.dateAdministered || b.createdAt,
+      ).getTime();
       return dateB - dateA;
     });
   }

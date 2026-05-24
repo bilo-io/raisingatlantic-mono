@@ -10,7 +10,12 @@ export class SystemLogsService {
     private systemLogRepository: Repository<SystemLog>,
   ) {}
 
-  async createLog(data: { type: string; message: string; metadata?: any; ipAddress?: string }) {
+  async createLog(data: {
+    type: string;
+    message: string;
+    metadata?: any;
+    ipAddress?: string;
+  }) {
     const log = this.systemLogRepository.create(data);
     return this.systemLogRepository.save(log);
   }

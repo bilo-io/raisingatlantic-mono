@@ -3,7 +3,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { AxiosInstance } from 'axios';
 import { createResourceHooks } from './createResourceHooks';
-import { renderWithProviders, createTestQueryClient } from '../../../test/renderWithProviders';
+import { createTestQueryClient } from '../../../test/renderWithProviders';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ApiError } from './errors';
 

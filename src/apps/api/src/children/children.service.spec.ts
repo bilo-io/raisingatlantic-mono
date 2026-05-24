@@ -22,8 +22,6 @@ import {
 describe('ChildrenService', () => {
   let service: ChildrenService;
   let childRepo: any;
-  let growthRepo: any;
-  let milestoneRepo: any;
   let vaccineRepo: any;
   let allergyRepo: any;
   let conditionRepo: any;
@@ -33,24 +31,43 @@ describe('ChildrenService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ChildrenService,
-        { provide: getRepositoryToken(Child), useValue: createMockRepository() },
-        { provide: getRepositoryToken(GrowthRecord), useValue: createMockRepository() },
-        { provide: getRepositoryToken(CompletedMilestone), useValue: createMockRepository() },
-        { provide: getRepositoryToken(CompletedVaccination), useValue: createMockRepository() },
-        { provide: getRepositoryToken(Allergy), useValue: createMockRepository() },
-        { provide: getRepositoryToken(MedicalCondition), useValue: createMockRepository() },
+        {
+          provide: getRepositoryToken(Child),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(GrowthRecord),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(CompletedMilestone),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(CompletedVaccination),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(Allergy),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(MedicalCondition),
+          useValue: createMockRepository(),
+        },
         { provide: getRepositoryToken(User), useValue: createMockRepository() },
         { provide: 'ILoggerService', useValue: createMockLogger() },
         { provide: 'ITracingService', useValue: createMockTracer() },
         { provide: 'IMetricService', useValue: createMockMetrics() },
-        { provide: 'IErrorReportingService', useValue: createMockErrorReporter() },
+        {
+          provide: 'IErrorReportingService',
+          useValue: createMockErrorReporter(),
+        },
       ],
     }).compile();
 
     service = module.get<ChildrenService>(ChildrenService);
     childRepo = module.get(getRepositoryToken(Child));
-    growthRepo = module.get(getRepositoryToken(GrowthRecord));
-    milestoneRepo = module.get(getRepositoryToken(CompletedMilestone));
     vaccineRepo = module.get(getRepositoryToken(CompletedVaccination));
     allergyRepo = module.get(getRepositoryToken(Allergy));
     conditionRepo = module.get(getRepositoryToken(MedicalCondition));
@@ -81,7 +98,9 @@ describe('ChildrenService', () => {
       const result = await service.create(baseDto);
 
       expect(result.id).toBe('c-1');
-      expect(userRepo.findOne).toHaveBeenCalledWith({ where: { id: baseDto.parentId } });
+      expect(userRepo.findOne).toHaveBeenCalledWith({
+        where: { id: baseDto.parentId },
+      });
       expect(childRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({ parent, clinician: undefined }),
       );
@@ -108,7 +127,9 @@ describe('ChildrenService', () => {
     it('attaches a clinician when clinicianId is supplied and found', async () => {
       const parent = { id: baseDto.parentId };
       const clinician = { id: 'clin-uuid', name: 'Dr Smith' };
-      userRepo.findOne.mockResolvedValueOnce(parent).mockResolvedValueOnce(clinician);
+      userRepo.findOne
+        .mockResolvedValueOnce(parent)
+        .mockResolvedValueOnce(clinician);
       childRepo.create.mockImplementation((x: any) => x);
       childRepo.save.mockResolvedValue({ id: 'c-3' });
 
@@ -117,11 +138,15 @@ describe('ChildrenService', () => {
         clinicianId: '550e8400-e29b-41d4-a716-446655440099',
       });
 
-      expect(childRepo.create).toHaveBeenCalledWith(expect.objectContaining({ clinician }));
+      expect(childRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ clinician }),
+      );
     });
 
     it('leaves clinician undefined when clinicianId is supplied but not found', async () => {
-      userRepo.findOne.mockResolvedValueOnce({ id: baseDto.parentId }).mockResolvedValueOnce(null);
+      userRepo.findOne
+        .mockResolvedValueOnce({ id: baseDto.parentId })
+        .mockResolvedValueOnce(null);
       childRepo.create.mockImplementation((x: any) => x);
       childRepo.save.mockResolvedValue({ id: 'c-4' });
 
@@ -149,11 +174,15 @@ describe('ChildrenService', () => {
       const qb = childRepo.createQueryBuilder();
       qb.getMany.mockResolvedValue([]);
 
-      await service.findAll({ tenantId: '550e8400-e29b-41d4-a716-446655440000' });
+      await service.findAll({
+        tenantId: '550e8400-e29b-41d4-a716-446655440000',
+      });
 
       expect(qb.andWhere).toHaveBeenCalledWith(
         'tenant.id = :tenantId',
-        expect.objectContaining({ tenantId: '550e8400-e29b-41d4-a716-446655440000' }),
+        expect.objectContaining({
+          tenantId: '550e8400-e29b-41d4-a716-446655440000',
+        }),
       );
     });
 
@@ -189,7 +218,9 @@ describe('ChildrenService', () => {
 
     it('throws NotFoundException when missing', async () => {
       childRepo.findOne.mockResolvedValue(null);
-      await expect(service.findOne('missing')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('missing')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -212,7 +243,9 @@ describe('ChildrenService', () => {
       const child = { id: 'c-1' };
       childRepo.findOne.mockResolvedValue(child);
       vaccineRepo.create.mockImplementation((x: any) => x);
-      vaccineRepo.save.mockImplementation(async (x: any) => ({ id: 'v-1', ...x }));
+      vaccineRepo.save.mockImplementation((x: any) =>
+        Promise.resolve({ id: 'v-1', ...x }),
+      );
 
       const result = await service.addCompletedVaccination('c-1', {
         vaccineId: 'hexaxim3',
@@ -231,7 +264,7 @@ describe('ChildrenService', () => {
       const child = { id: 'c-1' };
       childRepo.findOne.mockResolvedValue(child);
       vaccineRepo.create.mockImplementation((x: any) => x);
-      vaccineRepo.save.mockImplementation(async (x: any) => x);
+      vaccineRepo.save.mockImplementation((x: any) => Promise.resolve(x));
 
       const result = await service.addCompletedVaccination('c-1', {
         vaccineId: 'opv',
@@ -249,7 +282,7 @@ describe('ChildrenService', () => {
     it('saves the condition with an optional diagnosis date', async () => {
       childRepo.findOne.mockResolvedValue({ id: 'c-1' });
       conditionRepo.create.mockImplementation((x: any) => x);
-      conditionRepo.save.mockImplementation(async (x: any) => x);
+      conditionRepo.save.mockImplementation((x: any) => Promise.resolve(x));
 
       const result = await service.addMedicalCondition('c-1', {
         name: 'Asthma',
@@ -262,9 +295,11 @@ describe('ChildrenService', () => {
     it('leaves diagnosisDate undefined when not supplied', async () => {
       childRepo.findOne.mockResolvedValue({ id: 'c-1' });
       conditionRepo.create.mockImplementation((x: any) => x);
-      conditionRepo.save.mockImplementation(async (x: any) => x);
+      conditionRepo.save.mockImplementation((x: any) => Promise.resolve(x));
 
-      const result = await service.addMedicalCondition('c-1', { name: 'Eczema' } as any);
+      const result = await service.addMedicalCondition('c-1', {
+        name: 'Eczema',
+      } as any);
       expect(result.diagnosisDate).toBeUndefined();
     });
   });
@@ -277,7 +312,9 @@ describe('ChildrenService', () => {
       childRepo.merge.mockReturnValue(merged);
       childRepo.save.mockResolvedValue(merged);
 
-      await expect(service.update('c-1', { firstName: 'New' } as any)).resolves.toEqual(merged);
+      await expect(
+        service.update('c-1', { firstName: 'New' } as any),
+      ).resolves.toEqual(merged);
     });
   });
 
@@ -306,7 +343,11 @@ describe('ChildrenService', () => {
 
       const result = await service.findUnifiedRecords('c1');
 
-      expect(result.map((r: any) => r.type)).toEqual(['Vaccination', 'Milestone', 'Growth']);
+      expect(result.map((r: any) => r.type)).toEqual([
+        'Vaccination',
+        'Milestone',
+        'Growth',
+      ]);
     });
 
     it('handles a child with no records', async () => {

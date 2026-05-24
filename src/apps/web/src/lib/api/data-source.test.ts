@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useApi, withDataSource } from './data-source';
 
 const ORIGINAL = process.env.NEXT_PUBLIC_USE_API;

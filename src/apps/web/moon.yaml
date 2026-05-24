@@ -32,7 +32,7 @@ tasks:
     command: 'rm -rf .next node_modules'
 
   lint:
-    command: 'eslint .'
+    command: 'npx eslint .'
     inputs:
       - '**/*.{js,ts,html}'
 

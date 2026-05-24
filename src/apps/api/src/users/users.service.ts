@@ -19,7 +19,8 @@ export class UsersService {
     @Inject('ILoggerService') private readonly logger: ILoggerService,
     @Inject('ITracingService') private readonly tracer: ITracingService,
     @Inject('IMetricService') private readonly metric: IMetricService,
-    @Inject('IErrorReportingService') private readonly errorReporter: IErrorReportingService,
+    @Inject('IErrorReportingService')
+    private readonly errorReporter: IErrorReportingService,
   ) {}
 
   async create(dto: CreateUserDto): Promise<User> {
@@ -47,7 +48,9 @@ export class UsersService {
     const span = this.tracer.startSpan('UsersService.findAll');
     this.logger.log('Fetching all users');
     try {
-      return await this.usersRepository.find({ relations: ['clinicianProfile'] });
+      return await this.usersRepository.find({
+        relations: ['clinicianProfile'],
+      });
     } finally {
       this.tracer.endSpan(span);
     }
@@ -77,7 +80,8 @@ export class UsersService {
     this.logger.log(`Fetching user with ID: ${id}`);
     try {
       // Basic UUID format check to avoid 500 error from TypeORM/Postgres
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(id)) {
         this.logger.warn(`Invalid UUID format provided: ${id}`);
         throw new NotFoundException(`User with ID: ${id} not found`);

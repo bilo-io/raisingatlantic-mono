@@ -1,4 +1,10 @@
-import { IsString, IsDateString, IsEnum, IsInt, IsOptional, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsOptional,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { ResourceStatus } from '../../common/enums';
 
@@ -7,7 +13,10 @@ export class CreateChildDto {
   @IsString()
   parentId: string;
 
-  @ApiProperty({ example: 'eb8c8f5d-d922-4a0b-9c8a-788b77098e9b', required: false })
+  @ApiProperty({
+    example: 'eb8c8f5d-d922-4a0b-9c8a-788b77098e9b',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   clinicianId?: string;
@@ -37,7 +46,11 @@ export class CreateChildDto {
   @IsString()
   imageUrl?: string;
 
-  @ApiProperty({ enum: ResourceStatus, example: ResourceStatus.ACTIVE, required: false })
+  @ApiProperty({
+    enum: ResourceStatus,
+    example: ResourceStatus.ACTIVE,
+    required: false,
+  })
   @IsOptional()
   @IsEnum(ResourceStatus)
   status?: ResourceStatus;

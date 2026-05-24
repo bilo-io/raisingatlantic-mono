@@ -1,6 +1,13 @@
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete,
-  HttpCode, HttpStatus,
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ExamplesService } from './examples.service';
 import { CreateExampleDto } from './dto/create-example.dto';
@@ -27,7 +34,10 @@ export class ExamplesController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateExampleDto): Promise<Example> {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateExampleDto,
+  ): Promise<Example> {
     return this.examplesService.update(id, dto);
   }
 

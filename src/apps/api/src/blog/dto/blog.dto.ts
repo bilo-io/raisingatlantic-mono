@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, MaxLength, IsUrl } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsBoolean,
+  MaxLength,
+} from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class CreateBlogPostDto {
@@ -14,7 +20,9 @@ export class CreateBlogPostDto {
   @MaxLength(255)
   slug: string;
 
-  @ApiProperty({ example: 'Discover how digital tools are transforming childcare.' })
+  @ApiProperty({
+    example: 'Discover how digital tools are transforming childcare.',
+  })
   @IsString()
   @IsNotEmpty()
   shortDescription: string;
@@ -24,7 +32,9 @@ export class CreateBlogPostDto {
   @IsOptional()
   imageUrl?: string;
 
-  @ApiProperty({ example: 'This post explores the advent of AI in South African clinics.' })
+  @ApiProperty({
+    example: 'This post explores the advent of AI in South African clinics.',
+  })
   @IsString()
   @IsNotEmpty()
   synopsis: string;

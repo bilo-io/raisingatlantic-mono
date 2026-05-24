@@ -23,9 +23,18 @@ describe('VerificationsService', () => {
       providers: [
         VerificationsService,
         { provide: getRepositoryToken(User), useValue: createMockRepository() },
-        { provide: getRepositoryToken(GrowthRecord), useValue: createMockRepository() },
-        { provide: getRepositoryToken(CompletedMilestone), useValue: createMockRepository() },
-        { provide: getRepositoryToken(CompletedVaccination), useValue: createMockRepository() },
+        {
+          provide: getRepositoryToken(GrowthRecord),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(CompletedMilestone),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(CompletedVaccination),
+          useValue: createMockRepository(),
+        },
       ],
     }).compile();
 
@@ -55,15 +64,23 @@ describe('VerificationsService', () => {
 
     it('returns an empty array when no clinicians are found', async () => {
       userRepo.find.mockResolvedValue([]);
-      await expect(service.findAllCliniciansForVerification()).resolves.toEqual([]);
+      await expect(service.findAllCliniciansForVerification()).resolves.toEqual(
+        [],
+      );
     });
   });
 
   describe('findAllRecordsForVerification', () => {
     it('aggregates PENDING_ASSESSMENT growth, milestone and vaccination records and tags each with a type', async () => {
-      growthRepo.find.mockResolvedValue([{ id: 'g1', status: ResourceStatus.PENDING_ASSESSMENT }]);
-      milestoneRepo.find.mockResolvedValue([{ id: 'm1', status: ResourceStatus.PENDING_ASSESSMENT }]);
-      vaccineRepo.find.mockResolvedValue([{ id: 'v1', status: ResourceStatus.PENDING_ASSESSMENT }]);
+      growthRepo.find.mockResolvedValue([
+        { id: 'g1', status: ResourceStatus.PENDING_ASSESSMENT },
+      ]);
+      milestoneRepo.find.mockResolvedValue([
+        { id: 'm1', status: ResourceStatus.PENDING_ASSESSMENT },
+      ]);
+      vaccineRepo.find.mockResolvedValue([
+        { id: 'v1', status: ResourceStatus.PENDING_ASSESSMENT },
+      ]);
 
       const result = await service.findAllRecordsForVerification();
 
@@ -88,12 +105,16 @@ describe('VerificationsService', () => {
       const result = await service.findAllRecordsForVerification();
 
       expect(result).toEqual([]);
-      expect(growthRepo.find.mock.calls[0][0].where.status).toBe(ResourceStatus.PENDING_ASSESSMENT);
+      expect(growthRepo.find.mock.calls[0][0].where.status).toBe(
+        ResourceStatus.PENDING_ASSESSMENT,
+      );
     });
 
     it('propagates a repository failure', async () => {
       growthRepo.find.mockRejectedValue(new Error('db down'));
-      await expect(service.findAllRecordsForVerification()).rejects.toThrow('db down');
+      await expect(service.findAllRecordsForVerification()).rejects.toThrow(
+        'db down',
+      );
     });
   });
 });
