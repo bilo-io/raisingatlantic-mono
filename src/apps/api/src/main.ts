@@ -9,10 +9,17 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { Request, Response } from 'express';
 
-async function bootstrap() {
+let appPromise: Promise<NestExpressApplication> | null = null;
+
+async function bootstrap(): Promise<NestExpressApplication> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.useStaticAssets(join(__dirname, '..', 'public'));
+
+  if (!process.env.VERCEL) {
+    app.useStaticAssets(join(__dirname, '..', 'public'));
+  }
+
   app.use(cookieParser());
+
   const isProd = process.env.NODE_ENV === 'production';
   const builtInOrigins = [
     'http://localhost:9002',
@@ -41,7 +48,6 @@ async function bootstrap() {
     transform: true,
   }));
 
-  // Swagger Setup
   const config = new DocumentBuilder()
     .setTitle('Raising Atlantic API')
     .setDescription('The Raising Atlantic API description')
@@ -53,11 +59,34 @@ async function bootstrap() {
     customfavIcon: '/favicon.ico',
   });
 
-  // Allow exporting the raw JSON
   app.getHttpAdapter().get('/v1/api-json', (req: Request, res: Response) => {
     res.json(document);
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.init();
+  return app;
 }
-bootstrap();
+
+async function getApp(): Promise<NestExpressApplication> {
+  if (!appPromise) appPromise = bootstrap();
+  return appPromise;
+}
+
+async function handler(req: Request, res: Response): Promise<void> {
+  const app = await getApp();
+  const expressInstance = app.getHttpAdapter().getInstance() as (
+    req: Request,
+    res: Response,
+  ) => void;
+  expressInstance(req, res);
+}
+
+export default handler;
+module.exports = handler;
+module.exports.default = handler;
+
+if (!process.env.VERCEL) {
+  getApp().then(async (app) => {
+    await app.listen(process.env.PORT ?? 3000);
+  });
+}
