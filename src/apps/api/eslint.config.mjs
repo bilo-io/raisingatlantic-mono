@@ -71,6 +71,9 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/unbound-method': 'off',
+      // Tests use `require()` for `jest.isolateModules` and similar dynamic
+      // load patterns — e.g. main.spec.ts smoke-loads the compiled bundle.
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
 );
