@@ -12,6 +12,11 @@ export default tseslint.config(
       'coverage/**',
       'node_modules/**',
       'db/migrations/**',
+      // Generated / config JS files at the project root (nest-cli emits
+      // webpack.config.js when `webpack: true`; vercel adds vercel.json).
+      'webpack.config.js',
+      '*.config.js',
+      '*.config.mjs',
     ],
   },
   eslint.configs.recommended,
