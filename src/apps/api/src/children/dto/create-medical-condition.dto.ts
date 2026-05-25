@@ -1,4 +1,9 @@
-import { IsOptional, IsString, IsNotEmpty, IsDateString } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsNotEmpty,
+  IsDateString,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateMedicalConditionDto {

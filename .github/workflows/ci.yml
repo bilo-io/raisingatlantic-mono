@@ -12,11 +12,13 @@ concurrency:
 
 jobs:
   # ── Lint ──────────────────────────────────────────────────────────────────
-  Lint:
+  lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -32,7 +34,7 @@ jobs:
         run: moon run :lint
 
   # ── API Tests ─────────────────────────────────────────────────────────────
-  API Tests:
+  api-tests:
     name: API Tests
     runs-on: ubuntu-latest
     services:
@@ -51,6 +53,8 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -60,7 +64,7 @@ jobs:
         run: npm install -g @moonrepo/cli
       - name: Install API deps
         run: moon run api:install
-      - name: Run API tests
+      - name: Run API unit tests
         run: moon run api:test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5433/raisingatlantic
@@ -71,13 +75,60 @@ jobs:
           DB_PASS: postgres
           NODE_ENV: test
           JWT_SECRET: ci-test-secret
+      - name: Run API e2e smoke (no-DB harness)
+        run: moon run api:test-e2e
+        env:
+          NODE_ENV: test
+          JWT_SECRET: ci-test-secret
+
+  # ── Web Tests (Vitest) ────────────────────────────────────────────────────
+  web-tests:
+    name: Web Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/apps/web/package-lock.json
+      - name: Install Moon
+        run: npm install -g @moonrepo/cli
+      - name: Install web deps
+        run: moon run web:install
+      - name: Run web tests
+        run: moon run web:test
+
+  # ── Mobile Tests (jest-expo) ──────────────────────────────────────────────
+  mobile-tests:
+    name: Mobile Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/apps/mobile/package-lock.json
+      - name: Install Moon
+        run: npm install -g @moonrepo/cli
+      - name: Install mobile deps
+        run: moon run mobile:install
+      - name: Run mobile tests
+        run: moon run mobile:test
 
   # ── Web Build ─────────────────────────────────────────────────────────────
-  Web Build:
+  web-build:
     name: Web Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -89,20 +140,22 @@ jobs:
       - name: Install Moon
         run: npm install -g @moonrepo/cli
       - name: Install deps
-        run: moon run pkgs/ui:install pkgs/types:install web:install
+        run: moon run ui:install types:install web:install
       - name: Build shared packages
-        run: moon run pkgs/ui:build pkgs/types:build
+        run: moon run ui:build types:build
       - name: Build web
         run: moon run web:build
         env:
           NEXT_PUBLIC_USE_API: "false"
 
   # ── Typecheck ─────────────────────────────────────────────────────────────
-  Typecheck:
+  typecheck:
     name: Typecheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -116,11 +169,13 @@ jobs:
         run: moon run api:typecheck
 
   # ── Security Audit ────────────────────────────────────────────────────────
-  Security Audit:
+  security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -134,11 +189,13 @@ jobs:
         run: npm audit --audit-level=high --omit=dev
 
   # ── Mobile Typecheck ──────────────────────────────────────────────────────
-  Mobile Typecheck:
+  mobile-typecheck:
     name: Mobile Typecheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -152,22 +209,41 @@ jobs:
         run: moon run mobile:lint
 
   # ── EAS Preview Build (optional — needs EXPO_TOKEN) ───────────────────────
-  EAS Preview:
+  # NOTE: job IDs cannot contain spaces (GitHub Actions limitation). The previous
+  # `EAS Preview:` key (with a space) caused the entire workflow file to fail to
+  # parse — every CI run on `dev` since 2026-05-21 reported zero jobs. Renamed
+  # to `eas-preview`; the display name still goes through `name:`.
+  eas-preview:
     name: EAS Preview
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request' && secrets.EXPO_TOKEN != '' }}
+    if: ${{ github.event_name == 'pull_request' }}
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check EXPO_TOKEN availability
+        id: check_token
+        run: |
+          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+            echo "has_token=false" >> "$GITHUB_OUTPUT"
+            echo "EXPO_TOKEN not configured — skipping EAS preview build"
+          else
+            echo "has_token=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@v4
+        if: steps.check_token.outputs.has_token == 'true'
         with:
           node-version: 20
       - name: Install Expo CLI + EAS CLI
+        if: steps.check_token.outputs.has_token == 'true'
         run: npm install -g expo-cli eas-cli
       - name: Install mobile deps
+        if: steps.check_token.outputs.has_token == 'true'
         working-directory: src/apps/mobile
         run: npm ci --legacy-peer-deps
       - name: Build preview
+        if: steps.check_token.outputs.has_token == 'true'
         working-directory: src/apps/mobile
         run: eas build --platform all --profile preview --non-interactive
         env:

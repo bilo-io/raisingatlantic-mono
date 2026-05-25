@@ -17,10 +17,19 @@ describe('AppointmentsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AppointmentsService,
-        { provide: getRepositoryToken(Appointment), useValue: createMockRepository() },
-        { provide: getRepositoryToken(Child), useValue: createMockRepository() },
+        {
+          provide: getRepositoryToken(Appointment),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(Child),
+          useValue: createMockRepository(),
+        },
         { provide: getRepositoryToken(User), useValue: createMockRepository() },
-        { provide: getRepositoryToken(Practice), useValue: createMockRepository() },
+        {
+          provide: getRepositoryToken(Practice),
+          useValue: createMockRepository(),
+        },
       ],
     }).compile();
 
@@ -35,7 +44,11 @@ describe('AppointmentsService', () => {
 
   describe('create', () => {
     it('should create an appointment', async () => {
-      const dto = { childId: 'c1', scheduledAt: '2023-01-01', status: 'Pending' };
+      const dto = {
+        childId: 'c1',
+        scheduledAt: '2023-01-01',
+        status: 'Pending',
+      };
       childrenRepo.findOne.mockResolvedValue({ id: 'c1' });
       appointmentsRepo.create.mockReturnValue(dto);
       appointmentsRepo.save.mockResolvedValue({ id: 'a1', ...dto });
@@ -47,7 +60,9 @@ describe('AppointmentsService', () => {
 
     it('should throw NotFoundException if child not found', async () => {
       childrenRepo.findOne.mockResolvedValue(null);
-      await expect(service.create({ childId: 'invalid' } as any)).rejects.toThrow(NotFoundException);
+      await expect(
+        service.create({ childId: 'invalid' } as any),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

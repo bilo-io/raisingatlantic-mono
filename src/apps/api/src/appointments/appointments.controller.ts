@@ -1,6 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
-import { CreateAppointmentDto, UpdateAppointmentDto } from './dto/create-appointment.dto';
+import {
+  CreateAppointmentDto,
+  UpdateAppointmentDto,
+} from './dto/create-appointment.dto';
 import { Appointment } from './appointments.model';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -24,7 +39,11 @@ export class AppointmentsController {
     @Query('clinicianId') clinicianId?: string,
     @Query('practiceId') practiceId?: string,
   ): Promise<Appointment[]> {
-    return this.appointmentsService.findAll({ childId, clinicianId, practiceId });
+    return this.appointmentsService.findAll({
+      childId,
+      clinicianId,
+      practiceId,
+    });
   }
 
   @Get(':id')
@@ -34,7 +53,10 @@ export class AppointmentsController {
 
   @Patch(':id')
   @Roles(UserRole.ADMIN, UserRole.CLINICIAN)
-  update(@Param('id') id: string, @Body() dto: UpdateAppointmentDto): Promise<Appointment> {
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateAppointmentDto,
+  ): Promise<Appointment> {
     return this.appointmentsService.update(id, dto);
   }
 

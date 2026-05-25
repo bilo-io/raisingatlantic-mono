@@ -1,5 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
-import { MasterDataService, MilestoneAgeGroup, Vaccination } from './master-data.service';
+import {
+  MasterDataService,
+  MilestoneAgeGroup,
+  Vaccination,
+} from './master-data.service';
 
 @Controller('records')
 export class MasterDataController {

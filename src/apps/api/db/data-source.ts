@@ -6,7 +6,14 @@ import { User } from '../src/users/users.model';
 import { ClinicianProfile } from '../src/users/clinician-profile.model';
 import { Tenant } from '../src/tenants/tenants.model';
 import { Practice } from '../src/practices/practices.model';
-import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination, Allergy, MedicalCondition } from '../src/children/children.model';
+import {
+  Child,
+  GrowthRecord,
+  CompletedMilestone,
+  CompletedVaccination,
+  Allergy,
+  MedicalCondition,
+} from '../src/children/children.model';
 import { Report } from '../src/reports/reports.model';
 import { Appointment } from '../src/appointments/appointments.model';
 import { BlogPost } from '../src/blog/blog.model';

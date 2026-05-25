@@ -46,8 +46,12 @@ tasks:
       - 'tsconfig.json'
 
   test:
-    # Placeholder until Jest is configured for React Native
-    command: 'echo "No tests configured for mobile"'
+    command: 'npx jest'
+    inputs:
+      - 'auth/**/*'
+      - 'lib/**/*'
+      - 'jest.config.js'
+      - 'jest.setup.ts'
 
   clean:
     command: 'rm -rf .expo node_modules dist'

@@ -4,7 +4,13 @@ import { UsersService } from './users.service';
 import { User } from './users.model';
 import { UserRole } from './constants';
 import { NotFoundException } from '@nestjs/common';
-import { createMockRepository, createMockLogger, createMockTracer, createMockMetrics, createMockErrorReporter } from '../common/test/test-utils';
+import {
+  createMockRepository,
+  createMockLogger,
+  createMockTracer,
+  createMockMetrics,
+  createMockErrorReporter,
+} from '../common/test/test-utils';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -21,7 +27,10 @@ describe('UsersService', () => {
         { provide: 'ILoggerService', useValue: createMockLogger() },
         { provide: 'ITracingService', useValue: createMockTracer() },
         { provide: 'IMetricService', useValue: createMockMetrics() },
-        { provide: 'IErrorReportingService', useValue: createMockErrorReporter() },
+        {
+          provide: 'IErrorReportingService',
+          useValue: createMockErrorReporter(),
+        },
       ],
     }).compile();
 
@@ -35,7 +44,11 @@ describe('UsersService', () => {
 
   describe('create', () => {
     it('should successfully create a user', async () => {
-      const dto = { email: 'test@example.com', phone: '1234567890', role: UserRole.PARENT };
+      const dto = {
+        email: 'test@example.com',
+        phone: '1234567890',
+        role: UserRole.PARENT,
+      };
       const user = { id: 'uuid', ...dto };
       repository.create.mockReturnValue(user);
       repository.save.mockResolvedValue(user);
@@ -69,7 +82,12 @@ describe('UsersService', () => {
   describe('findCliniciansPublic', () => {
     it('should return masked clinicians', async () => {
       const clinicians = [
-        { id: '1', email: 'clinician1@example.com', phone: '0821234567', role: UserRole.CLINICIAN },
+        {
+          id: '1',
+          email: 'clinician1@example.com',
+          phone: '0821234567',
+          role: UserRole.CLINICIAN,
+        },
       ];
       repository.find.mockResolvedValue(clinicians);
 
@@ -77,9 +95,11 @@ describe('UsersService', () => {
 
       expect(result[0].email).toContain('***');
       expect(result[0].phone).toContain('***');
-      expect(repository.find).toHaveBeenCalledWith(expect.objectContaining({
-        where: { role: UserRole.CLINICIAN }
-      }));
+      expect(repository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { role: UserRole.CLINICIAN },
+        }),
+      );
     });
   });
 });

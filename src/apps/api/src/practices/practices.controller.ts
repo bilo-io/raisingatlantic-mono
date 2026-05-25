@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { PracticesService } from './practices.service';
 import { CreatePracticeDto } from './dto/create-practice.dto';
 import { UpdatePracticeDto } from './dto/update-practice.dto';
@@ -36,7 +47,10 @@ export class PracticesController {
 
   @Patch(':id')
   @Roles(UserRole.SUPER_ADMIN)
-  async update(@Param('id') id: string, @Body() dto: UpdatePracticeDto): Promise<Practice> {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdatePracticeDto,
+  ): Promise<Practice> {
     return this.practicesService.update(id, dto);
   }
 
@@ -47,4 +61,3 @@ export class PracticesController {
     return this.practicesService.remove(id);
   }
 }
-

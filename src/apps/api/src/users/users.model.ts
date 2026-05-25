@@ -4,7 +4,6 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
   OneToOne,
 } from 'typeorm';
 import { UserRole } from './constants';
@@ -45,6 +44,8 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToOne(() => ClinicianProfile, (profile) => profile.user, { nullable: true })
+  @OneToOne(() => ClinicianProfile, (profile) => profile.user, {
+    nullable: true,
+  })
   clinicianProfile?: ClinicianProfile;
 }

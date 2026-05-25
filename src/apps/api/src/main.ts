@@ -42,11 +42,13 @@ async function bootstrap(): Promise<NestExpressApplication> {
     credentials: true,
   });
   app.setGlobalPrefix('v1');
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   const config = new DocumentBuilder()
     .setTitle('Raising Atlantic API')

@@ -8,18 +8,20 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
     if (!requiredRoles) {
       return true;
     }
     const { user } = context.switchToHttp().getRequest();
-    
+
     // Fallback for development if no user is attached to request yet
     if (!user) {
-      console.warn('RolesGuard: No user found in request. Allowing for development.');
+      console.warn(
+        'RolesGuard: No user found in request. Allowing for development.',
+      );
       return true;
     }
 

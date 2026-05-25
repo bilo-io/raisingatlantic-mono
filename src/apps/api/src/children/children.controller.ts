@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ChildrenService } from './children.service';
 import { CreateChildDto } from './dto/create-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
@@ -48,19 +60,28 @@ export class ChildrenController {
 
   @Post(':id/conditions')
   @Roles(UserRole.ADMIN, UserRole.CLINICIAN)
-  async addCondition(@Param('id') id: string, @Body() dto: CreateMedicalConditionDto) {
+  async addCondition(
+    @Param('id') id: string,
+    @Body() dto: CreateMedicalConditionDto,
+  ) {
     return this.childrenService.addMedicalCondition(id, dto);
   }
 
   @Post(':id/vaccinations')
   @Roles(UserRole.ADMIN, UserRole.CLINICIAN, UserRole.PARENT)
-  async addCompletedVaccination(@Param('id') id: string, @Body() dto: CreateCompletedVaccinationDto) {
+  async addCompletedVaccination(
+    @Param('id') id: string,
+    @Body() dto: CreateCompletedVaccinationDto,
+  ) {
     return this.childrenService.addCompletedVaccination(id, dto);
   }
 
   @Patch(':id')
   @Roles(UserRole.ADMIN, UserRole.CLINICIAN)
-  async update(@Param('id') id: string, @Body() dto: UpdateChildDto): Promise<Child> {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateChildDto,
+  ): Promise<Child> {
     return this.childrenService.update(id, dto);
   }
 
@@ -71,4 +92,3 @@ export class ChildrenController {
     return this.childrenService.remove(id);
   }
 }
-

@@ -79,7 +79,9 @@ export class GrowthRecord {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Child, (child) => child.growthRecords, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Child, (child) => child.growthRecords, {
+    onDelete: 'CASCADE',
+  })
   child: Child;
 
   @Column({ type: 'date' })
@@ -119,7 +121,9 @@ export class CompletedMilestone {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Child, (child) => child.completedMilestones, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Child, (child) => child.completedMilestones, {
+    onDelete: 'CASCADE',
+  })
   child: Child;
 
   @Column({ type: 'varchar', length: 255 })
@@ -155,7 +159,9 @@ export class CompletedVaccination {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Child, (child) => child.completedVaccinations, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Child, (child) => child.completedVaccinations, {
+    onDelete: 'CASCADE',
+  })
   child: Child;
 
   @Column({ type: 'varchar', length: 255 })
@@ -203,7 +209,6 @@ export class CompletedVaccination {
   updatedAt: Date;
 }
 
-
 @Entity('allergies')
 export class Allergy {
   @PrimaryGeneratedColumn('uuid')
@@ -215,7 +220,11 @@ export class Allergy {
   @Column({ type: 'varchar', length: 255 })
   allergen: string;
 
-  @Column({ type: 'enum', enum: ['mild', 'moderate', 'severe'], default: 'mild' })
+  @Column({
+    type: 'enum',
+    enum: ['mild', 'moderate', 'severe'],
+    default: 'mild',
+  })
   severity: 'mild' | 'moderate' | 'severe';
 
   @Column({ type: 'text', nullable: true })
@@ -240,7 +249,9 @@ export class MedicalCondition {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Child, (child) => child.medicalConditions, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Child, (child) => child.medicalConditions, {
+    onDelete: 'CASCADE',
+  })
   child: Child;
 
   @Column({ type: 'varchar', length: 255 })
@@ -265,4 +276,3 @@ export class MedicalCondition {
   @UpdateDateColumn()
   updatedAt: Date;
 }
-

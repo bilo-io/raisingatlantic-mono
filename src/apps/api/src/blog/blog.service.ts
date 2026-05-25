@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BlogPost } from './blog.model';
@@ -12,7 +16,9 @@ export class BlogService {
   ) {}
 
   async create(createBlogPostDto: CreateBlogPostDto): Promise<BlogPost> {
-    const existing = await this.blogRepository.findOne({ where: { slug: createBlogPostDto.slug } });
+    const existing = await this.blogRepository.findOne({
+      where: { slug: createBlogPostDto.slug },
+    });
     if (existing) {
       throw new ConflictException('Blog post with this slug already exists');
     }
@@ -47,7 +53,10 @@ export class BlogService {
     return post;
   }
 
-  async update(id: string, updateBlogPostDto: UpdateBlogPostDto): Promise<BlogPost> {
+  async update(
+    id: string,
+    updateBlogPostDto: UpdateBlogPostDto,
+  ): Promise<BlogPost> {
     const post = await this.findOne(id);
     Object.assign(post, updateBlogPostDto);
     return this.blogRepository.save(post);

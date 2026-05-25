@@ -14,7 +14,14 @@ import { Tenant } from './tenants/tenants.model';
 import { PracticesModule } from './practices/practices.module';
 import { Practice } from './practices/practices.model';
 import { ChildrenModule } from './children/children.module';
-import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination, Allergy, MedicalCondition } from './children/children.model';
+import {
+  Child,
+  GrowthRecord,
+  CompletedMilestone,
+  CompletedVaccination,
+  Allergy,
+  MedicalCondition,
+} from './children/children.model';
 import { Report } from './reports/reports.model';
 import { Appointment } from './appointments/appointments.model';
 import { MasterDataModule } from './master-data/master-data.module';
@@ -36,10 +43,12 @@ import { SystemLog } from './common/models/system-log.model';
     }),
 
     // Rate limiting configuration (1 request per minute by default for tagged endpoints)
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 1,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 1,
+      },
+    ]),
 
     // TypeORM configured from .env via ConfigService.
     // Prefers DATABASE_URL (Neon / Vercel-Postgres style); falls back to discrete

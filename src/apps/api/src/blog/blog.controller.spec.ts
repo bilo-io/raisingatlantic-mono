@@ -30,7 +30,13 @@ describe('BlogController', () => {
 
   describe('create', () => {
     it('should call service.create with dto', async () => {
-      const dto = { title: 'Test', slug: 'test', shortDescription: 'd', synopsis: 's', body: 'b' };
+      const dto = {
+        title: 'Test',
+        slug: 'test',
+        shortDescription: 'd',
+        synopsis: 's',
+        body: 'b',
+      };
       await controller.create(dto as any);
       expect(service.create).toHaveBeenCalledWith(dto);
     });

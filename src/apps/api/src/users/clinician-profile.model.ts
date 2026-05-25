@@ -7,7 +7,6 @@ import {
   OneToOne,
   JoinColumn,
   ManyToMany,
-  JoinTable,
 } from 'typeorm';
 import { User } from './users.model';
 import { Practice } from '../practices/practices.model';
