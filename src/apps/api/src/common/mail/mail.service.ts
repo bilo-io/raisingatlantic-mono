@@ -25,12 +25,21 @@ export class MailService {
       });
       this.logger.log('Mail service initialized with SMTP');
     } else {
-      this.logger.warn('SMTP credentials not fully provided. Mail service will only log to console.');
+      this.logger.warn(
+        'SMTP credentials not fully provided. Mail service will only log to console.',
+      );
     }
   }
 
-  async sendMail(to: string, subject: string, message: string, fromName?: string) {
-    const fromAddress = this.configService.get<string>('MAIL_FROM') || 'no-reply@raisingatlantic.com';
+  async sendMail(
+    to: string,
+    subject: string,
+    message: string,
+    fromName?: string,
+  ) {
+    const fromAddress =
+      this.configService.get<string>('MAIL_FROM') ||
+      'no-reply@raisingatlantic.com';
     const finalFromName = fromName || 'Raising Atlantic';
 
     if (this.transporter) {
@@ -48,7 +57,9 @@ export class MailService {
         throw error;
       }
     } else {
-      this.logger.log(`[MOCK EMAIL] TO: ${to} | SUBJECT: ${subject} | MESSAGE: ${message}`);
+      this.logger.log(
+        `[MOCK EMAIL] TO: ${to} | SUBJECT: ${subject} | MESSAGE: ${message}`,
+      );
     }
   }
 }

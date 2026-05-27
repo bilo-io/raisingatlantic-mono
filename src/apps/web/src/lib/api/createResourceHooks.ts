@@ -22,8 +22,11 @@ export type ResourceCopy = {
 export type ResourceConfig<
   T,
   ListParams = void,
-  CreateDto = Partial<T>,
-  UpdateDto = Partial<T>,
+  // The DTO type parameters are surfaced to consumers via `ResourceHooks<...>`
+  // but are not referenced inside this config shape itself. Prefix with `_`
+  // to opt out of `no-unused-vars` while keeping the public generic surface.
+  _CreateDto = Partial<T>,
+  _UpdateDto = Partial<T>,
   ListResult = T[],
 > = {
   resource: string;

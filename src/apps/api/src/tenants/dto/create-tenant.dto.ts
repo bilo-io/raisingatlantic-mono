@@ -20,12 +20,19 @@ export class CreateTenantDto {
   @IsString()
   phone: string;
 
-  @ApiProperty({ example: 'https://mainhospital.com/logo.png', required: false })
+  @ApiProperty({
+    example: 'https://mainhospital.com/logo.png',
+    required: false,
+  })
   @IsOptional()
   @IsUrl()
   imageUrl?: string;
 
-  @ApiProperty({ enum: ResourceStatus, example: ResourceStatus.ACTIVE, required: false })
+  @ApiProperty({
+    enum: ResourceStatus,
+    example: ResourceStatus.ACTIVE,
+    required: false,
+  })
   @IsOptional()
   @IsEnum(ResourceStatus)
   status?: ResourceStatus;

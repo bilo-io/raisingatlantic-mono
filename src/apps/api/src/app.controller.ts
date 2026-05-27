@@ -17,7 +17,7 @@ export class AppController {
     // In dev: process.cwd() is project root, look in public/
     // In prod: process.cwd() still root, nest-cli copies assets to dist/public/
     const isProd = process.env.NODE_ENV === 'production';
-    const filePath = isProd 
+    const filePath = isProd
       ? join(process.cwd(), 'dist', 'public', 'favicon.ico')
       : join(process.cwd(), 'public', 'favicon.ico');
     res.sendFile(filePath);
@@ -34,13 +34,14 @@ export class AppController {
       // In a real scenario, this would dynamically determine role and return correct stats.
     };
   }
-  
+
   @Get('health')
   getHealth() {
-    return { 
-      status: 'ok', 
+    return {
+      status: 'ok',
+      env: process.env.NODE_ENV ?? 'unknown',
       timestamp: new Date().toISOString(),
-      uptime: process.uptime()
+      uptime: process.uptime(),
     };
   }
 }

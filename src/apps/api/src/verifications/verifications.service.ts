@@ -4,15 +4,22 @@ import { Repository } from 'typeorm';
 import { User } from '../users/users.model';
 import { UserRole } from '../users/constants';
 import { ResourceStatus } from '../common/enums';
-import { GrowthRecord, CompletedMilestone, CompletedVaccination } from '../children/children.model';
+import {
+  GrowthRecord,
+  CompletedMilestone,
+  CompletedVaccination,
+} from '../children/children.model';
 
 @Injectable()
 export class VerificationsService {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
-    @InjectRepository(GrowthRecord) private readonly growthRepo: Repository<GrowthRecord>,
-    @InjectRepository(CompletedMilestone) private readonly milestoneRepo: Repository<CompletedMilestone>,
-    @InjectRepository(CompletedVaccination) private readonly vaccineRepo: Repository<CompletedVaccination>,
+    @InjectRepository(GrowthRecord)
+    private readonly growthRepo: Repository<GrowthRecord>,
+    @InjectRepository(CompletedMilestone)
+    private readonly milestoneRepo: Repository<CompletedMilestone>,
+    @InjectRepository(CompletedVaccination)
+    private readonly vaccineRepo: Repository<CompletedVaccination>,
   ) {}
 
   async findAllCliniciansForVerification(): Promise<User[]> {
@@ -41,9 +48,9 @@ export class VerificationsService {
     });
 
     return [
-      ...growth.map(r => ({ ...r, type: 'Growth' })),
-      ...milestones.map(r => ({ ...r, type: 'Milestone' })),
-      ...vaccinations.map(r => ({ ...r, type: 'Vaccination' })),
+      ...growth.map((r) => ({ ...r, type: 'Growth' })),
+      ...milestones.map((r) => ({ ...r, type: 'Milestone' })),
+      ...vaccinations.map((r) => ({ ...r, type: 'Vaccination' })),
     ];
   }
 }

@@ -7,7 +7,11 @@ export class CreateAllergyDto {
   @IsNotEmpty()
   allergen: string;
 
-  @ApiProperty({ enum: ['mild', 'moderate', 'severe'], example: 'mild', required: false })
+  @ApiProperty({
+    enum: ['mild', 'moderate', 'severe'],
+    example: 'mild',
+    required: false,
+  })
   @IsEnum(['mild', 'moderate', 'severe'])
   @IsOptional()
   severity?: 'mild' | 'moderate' | 'severe';

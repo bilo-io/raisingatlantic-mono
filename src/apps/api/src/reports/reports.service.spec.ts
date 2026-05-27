@@ -16,8 +16,14 @@ describe('ReportsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ReportsService,
-        { provide: getRepositoryToken(Report), useValue: createMockRepository() },
-        { provide: getRepositoryToken(Child), useValue: createMockRepository() },
+        {
+          provide: getRepositoryToken(Report),
+          useValue: createMockRepository(),
+        },
+        {
+          provide: getRepositoryToken(Child),
+          useValue: createMockRepository(),
+        },
         { provide: getRepositoryToken(User), useValue: createMockRepository() },
       ],
     }).compile();
@@ -46,7 +52,9 @@ describe('ReportsService', () => {
 
     it('should throw NotFoundException if child not found', async () => {
       childrenRepo.findOne.mockResolvedValue(null);
-      await expect(service.create({ childId: 'invalid' } as any)).rejects.toThrow(NotFoundException);
+      await expect(
+        service.create({ childId: 'invalid' } as any),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

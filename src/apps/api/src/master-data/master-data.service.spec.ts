@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { MasterDataService } from './master-data.service';
-import { GrowthRecord, CompletedMilestone, CompletedVaccination } from '../children/children.model';
+import {
+  GrowthRecord,
+  CompletedMilestone,
+  CompletedVaccination,
+} from '../children/children.model';
 import { createMockRepository } from '../common/test/test-utils';
 
 describe('MasterDataService', () => {

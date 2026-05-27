@@ -14,9 +14,7 @@ describe('MasterDataController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MasterDataController],
-      providers: [
-        { provide: MasterDataService, useValue: service },
-      ],
+      providers: [{ provide: MasterDataService, useValue: service }],
     }).compile();
 
     controller = module.get<MasterDataController>(MasterDataController);

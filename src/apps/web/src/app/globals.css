@@ -4,69 +4,6 @@
 
 @layer base {
   :root {
-    /* Warm Dark Theme (resembling Claude Dark) */
-    --background: #1F1D1B;
-    --foreground: #F3F1E9;
-
-    --muted: #2A2825;
-    --muted-foreground: #9A958A;
-
-    --popover: #262421;
-    --popover-foreground: #F3F1E9;
-
-    --card: #262421;
-    --card-foreground: #F3F1E9;
-
-    --border: #383530;
-    --input: #383530;
-
-    --primary: #E2896D;
-    --primary-foreground: #1F1D1B;
-
-    --secondary: #33302B;
-    --secondary-foreground: #F3F1E9;
-
-    --primary-gradient: linear-gradient(135deg, #E2896D 0%, #D97757 100%);
-
-    --accent: #2A2825;
-    --accent-foreground: #F3F1E9;
-
-    --destructive: #EF4444;
-    --destructive-foreground: #FAFAFA;
-
-    --ring: #E2896D;
-    --radius: 0.5rem;
-
-    /* Chart colors - dark theme */
-    --chart-1: #E2896D;
-    --chart-2: #34D399;
-    --chart-3: #F97316;
-    --chart-4: #E9C46A;
-    --chart-5: #F4A261;
-
-    /* Sidebar specific dark */
-    --sidebar-background: #2A2825;
-    --sidebar-foreground: #F3F1E9;
-    --sidebar-primary: #E2896D;
-    --sidebar-primary-foreground: #1F1D1B;
-    --sidebar-accent: #383530;
-    --sidebar-accent-foreground: #F3F1E9;
-    --sidebar-border: #383530;
-    --sidebar-ring: #E2896D;
-
-    /* Avatar Colors */
-    --avatar-bg-saturation: 60%;
-    --avatar-bg-lightness: 40%;
-    --avatar-fg-saturation: 60%;
-    --avatar-fg-lightness: 95%;
-
-    /* Google Branding */
-    --google-gradient: linear-gradient(90deg, #4285F4 0%, #EA4335 25%, #FBBC05 50%, #34A853 75%, #4285F4 100%);
-    --google-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    --google-glow: 0 0 15px rgba(66, 133, 244, 0.4), 0 0 15px rgba(234, 67, 53, 0.4), 0 0 15px rgba(251, 188, 5, 0.4), 0 0 15px rgba(52, 168, 83, 0.4);
-  }
-
-  .dark {
     /* Light Theme */
     --background: #FFFFFF;
     --foreground: #1A1915;
@@ -98,15 +35,16 @@
     --destructive-foreground: #FAFAFA;
 
     --ring: #D97757;
+    --radius: 0.5rem;
 
-    /* Chart colors - kept generic but can be themed */
+    /* Chart colors - light theme */
     --chart-1: #D97757;
     --chart-2: #2A9D8F;
     --chart-3: #264653;
     --chart-4: #E9C46A;
     --chart-5: #F4A261;
 
-    /* Sidebar specific */
+    /* Sidebar specific light */
     --sidebar-background: #F9FAFB;
     --sidebar-foreground: #1A1915;
     --sidebar-primary: #D97757;
@@ -122,9 +60,72 @@
     --avatar-fg-saturation: 80%;
     --avatar-fg-lightness: 20%;
 
-    --google-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    /* Google Branding */
     --google-gradient: linear-gradient(90deg, #4285F4 0%, #EA4335 25%, #FBBC05 50%, #34A853 75%, #4285F4 100%);
+    --google-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --google-glow: 0 0 10px rgba(66, 133, 244, 0.3), 0 0 10px rgba(234, 67, 53, 0.3), 0 0 10px rgba(251, 188, 5, 0.3), 0 0 10px rgba(52, 168, 83, 0.3);
+  }
+
+  .dark {
+    /* Warm Dark Theme (resembling Claude Dark) */
+    --background: #1F1D1B;
+    --foreground: #F3F1E9;
+
+    --muted: #2A2825;
+    --muted-foreground: #9A958A;
+
+    --popover: #262421;
+    --popover-foreground: #F3F1E9;
+
+    --card: #262421;
+    --card-foreground: #F3F1E9;
+
+    --border: #383530;
+    --input: #383530;
+
+    --primary: #E2896D;
+    --primary-foreground: #1F1D1B;
+
+    --secondary: #33302B;
+    --secondary-foreground: #F3F1E9;
+
+    --primary-gradient: linear-gradient(135deg, #E2896D 0%, #D97757 100%);
+
+    --accent: #2A2825;
+    --accent-foreground: #F3F1E9;
+
+    --destructive: #EF4444;
+    --destructive-foreground: #FAFAFA;
+
+    --ring: #E2896D;
+
+    /* Chart colors - dark theme */
+    --chart-1: #E2896D;
+    --chart-2: #34D399;
+    --chart-3: #F97316;
+    --chart-4: #E9C46A;
+    --chart-5: #F4A261;
+
+    /* Sidebar specific dark */
+    --sidebar-background: #2A2825;
+    --sidebar-foreground: #F3F1E9;
+    --sidebar-primary: #E2896D;
+    --sidebar-primary-foreground: #1F1D1B;
+    --sidebar-accent: #383530;
+    --sidebar-accent-foreground: #F3F1E9;
+    --sidebar-border: #383530;
+    --sidebar-ring: #E2896D;
+
+    /* Avatar Colors */
+    --avatar-bg-saturation: 60%;
+    --avatar-bg-lightness: 40%;
+    --avatar-fg-saturation: 60%;
+    --avatar-fg-lightness: 95%;
+
+    /* Google Branding */
+    --google-gradient: linear-gradient(90deg, #4285F4 0%, #EA4335 25%, #FBBC05 50%, #34A853 75%, #4285F4 100%);
+    --google-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --google-glow: 0 0 15px rgba(66, 133, 244, 0.4), 0 0 15px rgba(234, 67, 53, 0.4), 0 0 15px rgba(251, 188, 5, 0.4), 0 0 15px rgba(52, 168, 83, 0.4);
   }
 }
 

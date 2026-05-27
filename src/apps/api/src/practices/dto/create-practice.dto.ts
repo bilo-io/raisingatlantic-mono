@@ -49,7 +49,11 @@ export class CreatePracticeDto {
   @IsOptional()
   longitude?: number;
 
-  @ApiProperty({ enum: ResourceStatus, example: ResourceStatus.ACTIVE, required: false })
+  @ApiProperty({
+    enum: ResourceStatus,
+    example: ResourceStatus.ACTIVE,
+    required: false,
+  })
   @IsOptional()
   @IsEnum(ResourceStatus)
   status?: ResourceStatus;

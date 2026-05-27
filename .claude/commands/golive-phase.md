@@ -204,9 +204,33 @@ Print the PR URL so the user can open it directly.
 
 ## Done
 
-Print:
+Print the following block:
+
 ```
 Phase <N> — <title>
 PR: <url>
-Worktree: /tmp/ra-golive-phase-<N>  (clean up with: git worktree remove /tmp/ra-golive-phase-<N>)
+Worktree: /tmp/ra-golive-phase-<N>
+  └─ clean up with: git worktree remove /tmp/ra-golive-phase-<N>
 ```
+
+Then print a session summary in this exact style — concise, scannable, one line per item:
+
+---
+
+Done. Here's what was checked off in [docs/GO_LIVE/DEV.md](docs/GO_LIVE/DEV.md):
+
+✅ **Marked complete** (code exists in this PR):
+
+- <short description of each task just marked `[x]`, matching the DEV.md wording>
+
+⬜ **Left unchecked** (require a manual, external, or non-DEV action):
+
+- <short description of each task still `[ ]`, with a one-phrase reason: e.g. "needs live GCP account", "awaiting legal sign-off", "requires Stripe KYC">
+
+---
+
+Rules for this summary:
+- Keep each bullet to one line — trim the DEV.md prose to its essential noun phrase.
+- If every task in the phase is complete, replace the ⬜ block with: `⬜ Nothing outstanding — phase complete.`
+- Do not invent items; only reflect what is actually in DEV.md for this phase.
+- The ✅ / ⬜ distinction is the most important signal — make it visually obvious.

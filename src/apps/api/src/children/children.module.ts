@@ -1,6 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Child, GrowthRecord, CompletedMilestone, CompletedVaccination, Allergy, MedicalCondition } from './children.model';
+import {
+  Child,
+  GrowthRecord,
+  CompletedMilestone,
+  CompletedVaccination,
+  Allergy,
+  MedicalCondition,
+} from './children.model';
 import { User } from '../users/users.model';
 import { GcpLoggerService } from '@core/telemetry/gcp/logger.service';
 import { GcpTracingService } from '@core/telemetry/gcp/tracer.service';
@@ -10,15 +17,17 @@ import { ChildrenService } from './children.service';
 import { ChildrenController } from './children.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([
-    Child, 
-    GrowthRecord, 
-    CompletedMilestone, 
-    CompletedVaccination,
-    Allergy,
-    MedicalCondition,
-    User
-  ])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Child,
+      GrowthRecord,
+      CompletedMilestone,
+      CompletedVaccination,
+      Allergy,
+      MedicalCondition,
+      User,
+    ]),
+  ],
   controllers: [ChildrenController],
   providers: [
     ChildrenService,

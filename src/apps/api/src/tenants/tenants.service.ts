@@ -17,7 +17,8 @@ export class TenantsService {
     @Inject('ILoggerService') private readonly logger: ILoggerService,
     @Inject('ITracingService') private readonly tracer: ITracingService,
     @Inject('IMetricService') private readonly metric: IMetricService,
-    @Inject('IErrorReportingService') private readonly errorReporter: IErrorReportingService,
+    @Inject('IErrorReportingService')
+    private readonly errorReporter: IErrorReportingService,
   ) {}
 
   async create(dto: CreateTenantDto): Promise<Tenant> {

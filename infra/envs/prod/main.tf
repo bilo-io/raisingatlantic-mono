@@ -181,24 +181,80 @@ provider "pagerduty" {
 
 # ---------------------------------------------------------------------------
 # GitHub — production branch protection
-# TODO(OPS): uncomment after GitHub provider is configured
+# Requires CI jobs from ci.yml + Cypress E2E to pass; enforces admins so
+# even the repo owner cannot bypass the gate on main.
 # ---------------------------------------------------------------------------
-# resource "github_branch_protection" "main" {
-#   repository_id = "raisingatlantic-mono"
-#   pattern       = "main"
-#
-#   required_status_checks {
-#     strict   = true
-#     contexts = ["API Tests", "Web Build", "Lint", "Cypress E2E"]
-#   }
-#
-#   required_pull_request_reviews {
-#     dismiss_stale_reviews           = true
-#     required_approving_review_count = 1
-#   }
-#
-#   enforce_admins = true
-# }
+resource "github_branch_protection" "main" {
+  repository_id = "raisingatlantic-mono"
+  pattern       = "main"
+
+  required_status_checks {
+    strict   = true
+    contexts = ["Lint", "API Tests", "Web Build", "Cypress E2E"]
+  }
+
+  required_pull_request_reviews {
+    dismiss_stale_reviews           = true
+    required_approving_review_count = 1
+  }
+
+  enforce_admins = true
+}
+
+# ---------------------------------------------------------------------------
+# GitHub Environment — production
+# The cd-app.yml deploy-prod job uses this environment; the required_reviewer
+# gate means no push to main auto-deploys to prod without an explicit approval.
+# ---------------------------------------------------------------------------
+data "github_user" "owner" {
+  username = var.github_owner
+}
+
+resource "github_repository_environment" "production" {
+  repository  = "raisingatlantic-mono"
+  environment = "production"
+
+  reviewers {
+    users = [data.github_user.owner.id]
+  }
+
+  deployment_branch_policy {
+    protected_branches     = true
+    custom_branch_policies = false
+  }
+}
+
+resource "github_repository_environment" "staging" {
+  repository  = "raisingatlantic-mono"
+  environment = "staging"
+
+  deployment_branch_policy {
+    protected_branches     = false
+    custom_branch_policies = true
+  }
+}
+
+resource "github_repository_environment_deployment_policy" "staging_test_branch" {
+  repository     = "raisingatlantic-mono"
+  environment    = github_repository_environment.staging.environment
+  branch_pattern = "test"
+}
+
+resource "github_repository_environment" "dev_env" {
+  repository  = "raisingatlantic-mono"
+  environment = "dev"
+
+  deployment_branch_policy {
+    protected_branches     = false
+    custom_branch_policies = true
+  }
+}
+
+resource "github_repository_environment_deployment_policy" "dev_branch" {
+  repository     = "raisingatlantic-mono"
+  environment    = github_repository_environment.dev_env.environment
+  branch_pattern = "dev"
+}
 
 # ---------------------------------------------------------------------------
 # Stripe — prod products and webhook

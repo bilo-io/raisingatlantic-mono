@@ -1,4 +1,10 @@
-import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateCompletedVaccinationDto {
@@ -36,7 +42,11 @@ export class CreateCompletedVaccinationDto {
   @IsOptional()
   clinicName?: string;
 
-  @ApiProperty({ enum: ['CLINICIAN', 'PARENT'], default: 'CLINICIAN', required: false })
+  @ApiProperty({
+    enum: ['CLINICIAN', 'PARENT'],
+    default: 'CLINICIAN',
+    required: false,
+  })
   @IsEnum(['CLINICIAN', 'PARENT'])
   @IsOptional()
   source?: 'CLINICIAN' | 'PARENT';

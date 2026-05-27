@@ -20,9 +20,7 @@ describe('ChildrenController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ChildrenController],
-      providers: [
-        { provide: ChildrenService, useValue: service },
-      ],
+      providers: [{ provide: ChildrenService, useValue: service }],
     }).compile();
 
     controller = module.get<ChildrenController>(ChildrenController);

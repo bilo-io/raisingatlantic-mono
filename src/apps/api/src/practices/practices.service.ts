@@ -18,7 +18,8 @@ export class PracticesService {
     @Inject('ILoggerService') private readonly logger: ILoggerService,
     @Inject('ITracingService') private readonly tracer: ITracingService,
     @Inject('IMetricService') private readonly metric: IMetricService,
-    @Inject('IErrorReportingService') private readonly errorReporter: IErrorReportingService,
+    @Inject('IErrorReportingService')
+    private readonly errorReporter: IErrorReportingService,
   ) {}
 
   async create(dto: CreatePracticeDto): Promise<Practice> {
@@ -34,7 +35,9 @@ export class PracticesService {
   async findAll(): Promise<Practice[]> {
     const span = this.tracer.startSpan('PracticesService.findAll');
     try {
-      return await this.practicesRepository.find({ relations: ['tenant', 'clinicians', 'clinicians.user'] });
+      return await this.practicesRepository.find({
+        relations: ['tenant', 'clinicians', 'clinicians.user'],
+      });
     } finally {
       this.tracer.endSpan(span);
     }

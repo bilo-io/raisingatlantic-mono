@@ -13,7 +13,10 @@ describe('BlogService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         BlogService,
-        { provide: getRepositoryToken(BlogPost), useValue: createMockRepository() },
+        {
+          provide: getRepositoryToken(BlogPost),
+          useValue: createMockRepository(),
+        },
       ],
     }).compile();
 
@@ -27,7 +30,14 @@ describe('BlogService', () => {
 
   describe('create', () => {
     it('should create and return a blog post', async () => {
-      const dto = { title: 'Test', slug: 'test', shortDescription: 'desc', synopsis: 'syn', body: 'body', isPublished: false };
+      const dto = {
+        title: 'Test',
+        slug: 'test',
+        shortDescription: 'desc',
+        synopsis: 'syn',
+        body: 'body',
+        isPublished: false,
+      };
       repo.findOne.mockResolvedValue(null);
       repo.create.mockReturnValue(dto);
       repo.save.mockResolvedValue({ id: 'uuid1', ...dto });
@@ -39,7 +49,9 @@ describe('BlogService', () => {
 
     it('should throw ConflictException if slug already exists', async () => {
       repo.findOne.mockResolvedValue({ id: 'existing', slug: 'test' });
-      await expect(service.create({ slug: 'test' } as any)).rejects.toThrow(ConflictException);
+      await expect(service.create({ slug: 'test' } as any)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 
@@ -47,14 +59,18 @@ describe('BlogService', () => {
     it('should return only published posts when publishedOnly=true', async () => {
       repo.find.mockResolvedValue([{ id: '1', isPublished: true }]);
       const result = await service.findAll(true);
-      expect(repo.find).toHaveBeenCalledWith(expect.objectContaining({ where: { isPublished: true } }));
+      expect(repo.find).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { isPublished: true } }),
+      );
       expect(result.length).toBe(1);
     });
 
     it('should return all posts when publishedOnly=false', async () => {
       repo.find.mockResolvedValue([{ id: '1' }, { id: '2' }]);
       const result = await service.findAll(false);
-      expect(repo.find).toHaveBeenCalledWith(expect.objectContaining({ where: {} }));
+      expect(repo.find).toHaveBeenCalledWith(
+        expect.objectContaining({ where: {} }),
+      );
       expect(result.length).toBe(2);
     });
   });
@@ -69,7 +85,9 @@ describe('BlogService', () => {
 
     it('should throw NotFoundException if slug not found', async () => {
       repo.findOne.mockResolvedValue(null);
-      await expect(service.findOneBySlug('missing')).rejects.toThrow(NotFoundException);
+      await expect(service.findOneBySlug('missing')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -83,7 +101,9 @@ describe('BlogService', () => {
 
     it('should throw NotFoundException if id not found', async () => {
       repo.findOne.mockResolvedValue(null);
-      await expect(service.findOne('missing-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('missing-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

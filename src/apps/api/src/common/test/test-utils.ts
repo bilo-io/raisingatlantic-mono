@@ -23,7 +23,7 @@ export const createMockErrorReporter = () => ({
   reportException: jest.fn(),
 });
 
-export const createMockRepository = <T = any>() => ({
+export const createMockRepository = () => ({
   find: jest.fn(),
   findOne: jest.fn(),
   create: jest.fn(),
@@ -41,4 +41,6 @@ export const createMockRepository = <T = any>() => ({
   }),
 });
 
-export type MockRepository<T extends ObjectLiteral = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
+export type MockRepository<T extends ObjectLiteral = any> = Partial<
+  Record<keyof Repository<T>, jest.Mock>
+>;

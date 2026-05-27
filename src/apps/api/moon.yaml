@@ -23,15 +23,29 @@ tasks:
       persistent: true
 
   lint:
-    command: 'eslint .'
+    command: 'npx eslint .'
     inputs:
       - '**/*.{ts,js}'
 
   test:
     command: 'npm run test'
+    deps:
+      - 'build'
     inputs:
       - 'src/**/*'
       - 'test/**/*'
+
+  test-e2e:
+    command: 'npm run test:e2e'
+    inputs:
+      - 'src/**/*'
+      - 'test/**/*'
+
+  typecheck:
+    command: 'npx tsc --noEmit'
+    inputs:
+      - 'src/**/*.ts'
+      - 'tsconfig.json'
 
   db-start:
     command: 'npm run db:start'

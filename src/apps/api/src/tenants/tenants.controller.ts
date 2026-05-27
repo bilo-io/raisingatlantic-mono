@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { TenantsService } from './tenants.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
@@ -31,7 +42,10 @@ export class TenantsController {
 
   @Patch(':id')
   @Roles(UserRole.SUPER_ADMIN)
-  async update(@Param('id') id: string, @Body() dto: UpdateTenantDto): Promise<Tenant> {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateTenantDto,
+  ): Promise<Tenant> {
     return this.tenantsService.update(id, dto);
   }
 
@@ -42,4 +56,3 @@ export class TenantsController {
     return this.tenantsService.remove(id);
   }
 }
-

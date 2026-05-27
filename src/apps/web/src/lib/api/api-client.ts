@@ -4,9 +4,17 @@ import { toApiError } from './errors';
 
 const baseURL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000') + '/v1';
 
+// Sent on every request when deploying to a Vercel preview environment that has
+// SSO deployment protection enabled. The secret must match VERCEL_AUTOMATION_BYPASS_SECRET
+// on the API project. Never set this var in Production.
+const vercelBypassToken = process.env.NEXT_PUBLIC_VERCEL_BYPASS_TOKEN;
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL,
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    ...(vercelBypassToken ? { 'x-vercel-protection-bypass': vercelBypassToken } : {}),
+  },
   timeout: 15_000,
 });
 

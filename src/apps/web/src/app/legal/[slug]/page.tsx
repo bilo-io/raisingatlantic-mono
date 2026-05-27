@@ -12,6 +12,11 @@ async function getLegalDocumentContent(slug: string, locale: string = 'en'): Pro
     'terms-of-service': 'terms-of-service.md',
     'eula': 'eula.md',
     'cookie-policy': 'cookie-policy.md',
+    'acceptable-use-policy': 'acceptable-use-policy.md',
+    'disclaimer': 'disclaimer.md',
+    'clinician-service-agreement': 'clinician-service-agreement.md',
+    'master-services-agreement': 'master-services-agreement.md',
+    'data-processing-agreement': 'data-processing-agreement.md',
   };
 
   const filename = validSlugs[slug];
@@ -96,7 +101,11 @@ export default async function LegalDocumentPage({ params }: { params: { slug: st
 }
 
 export async function generateStaticParams() {
-  const legalSlugs = ['privacy-policy', 'terms-of-service', 'eula', 'cookie-policy'];
+  const legalSlugs = [
+    'privacy-policy', 'terms-of-service', 'eula', 'cookie-policy',
+    'acceptable-use-policy', 'disclaimer', 'clinician-service-agreement',
+    'master-services-agreement', 'data-processing-agreement',
+  ];
   return legalSlugs.map(slug => ({ slug }));
 }
 

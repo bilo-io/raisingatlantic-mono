@@ -1,4 +1,10 @@
-import { IsEnum, IsOptional, IsString, IsObject, IsNotEmpty } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsObject,
+  IsNotEmpty,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { ReportType } from '../reports.model';
 

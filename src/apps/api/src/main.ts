@@ -9,33 +9,47 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { Request, Response } from 'express';
 
-async function bootstrap() {
+let appPromise: Promise<NestExpressApplication> | null = null;
+
+async function bootstrap(): Promise<NestExpressApplication> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.useStaticAssets(join(__dirname, '..', 'public'));
+
+  if (!process.env.VERCEL) {
+    app.useStaticAssets(join(__dirname, '..', 'public'));
+  }
+
   app.use(cookieParser());
+
   const isProd = process.env.NODE_ENV === 'production';
-  const allowedOrigins = [
+  const builtInOrigins = [
     'http://localhost:9002',
     'https://raisingatlantic-web.vercel.app',
+    'https://raisingatlantic-web-dev.vercel.app',
     'https://raisingatlantic-dev.vercel.app',
     'https://raisingatlantic-staging.vercel.app',
     'https://raisingatlantic-prod.vercel.app',
     'https://raisingatlantic.vercel.app',
   ];
+  const extraOrigins = (process.env.ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  const allowedOrigins = [...new Set([...builtInOrigins, ...extraOrigins])];
   app.enableCors({
     // In dev: allow any origin (LAN IPs from mobile sim/device, Expo Go, etc.).
-    // In prod: enforce explicit allowlist.
+    // In prod: enforce explicit allowlist; extend via ALLOWED_ORIGINS env var.
     origin: isProd ? allowedOrigins : true,
     credentials: true,
   });
   app.setGlobalPrefix('v1');
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
-  // Swagger Setup
   const config = new DocumentBuilder()
     .setTitle('Raising Atlantic API')
     .setDescription('The Raising Atlantic API description')
@@ -47,11 +61,43 @@ async function bootstrap() {
     customfavIcon: '/favicon.ico',
   });
 
-  // Allow exporting the raw JSON
   app.getHttpAdapter().get('/v1/api-json', (req: Request, res: Response) => {
     res.json(document);
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.init();
+  return app;
 }
-bootstrap();
+
+async function getApp(): Promise<NestExpressApplication> {
+  if (!appPromise) {
+    // Reset on failure so the next invocation can retry instead of
+    // serving the same rejected promise for the lifetime of the lambda.
+    appPromise = bootstrap().catch((err) => {
+      appPromise = null;
+      throw err;
+    });
+  }
+  return appPromise;
+}
+
+async function handler(req: Request, res: Response): Promise<void> {
+  const app = await getApp();
+  const expressInstance = app.getHttpAdapter().getInstance() as (
+    req: Request,
+    res: Response,
+  ) => void;
+  expressInstance(req, res);
+}
+
+// @vercel/node probes module.exports and module.exports.default for the
+// request handler. Using CommonJS assignment directly (no `export default`)
+// avoids tsc's `exports.default = ...` being clobbered by the next line.
+module.exports = handler;
+module.exports.default = handler;
+
+if (!process.env.VERCEL) {
+  getApp().then(async (app) => {
+    await app.listen(process.env.PORT ?? 3000);
+  });
+}

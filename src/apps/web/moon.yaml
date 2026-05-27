@@ -32,10 +32,13 @@ tasks:
     command: 'rm -rf .next node_modules'
 
   lint:
-    command: 'eslint .'
+    command: 'npx eslint .'
     inputs:
       - '**/*.{js,ts,html}'
 
   test:
-    # Tests not yet configured; placeholder prevents :test from failing graph resolution
-    command: 'echo "No tests configured for web"'
+    command: 'npx vitest run'
+    inputs:
+      - 'src/**/*'
+      - 'test/**/*'
+      - 'vitest.config.ts'
