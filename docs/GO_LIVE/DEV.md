@@ -175,10 +175,10 @@ The single biggest pre-launch decision: stay on Vercel or migrate to [Google Clo
 #### 1.1 Vercel vs GCP: Decision Framework
 In plain terms: Vercel is fast to ship on but charges premium prices, has no native data residency in South Africa, and is awkward for long-running NestJS workloads. GCP gives us [`africa-south1`](https://cloud.google.com/about/locations#africa) (Johannesburg) for POPIA-friendly residency, predictable enterprise pricing, and far more control, but we take on more ops work.
 
-- [ ] Decide hosting target (recommendation: **GCP `africa-south1`** for production, keep Vercel only for marketing preview deploys)
-- [ ] Document the decision and rationale in `docs/ADR/0001-hosting.md`
-- [ ] Inventory every Vercel-specific assumption in code (Edge runtime, [Vercel KV](https://vercel.com/docs/storage/vercel-kv), image optimization, ISR) and confirm portability
-- [ ] Estimate 12-month cost on each platform at projected traffic
+- [x] Decide hosting target (recommendation: **GCP `africa-south1`** for production, keep Vercel only for marketing preview deploys)
+- [x] Document the decision and rationale in `docs/ADR/0001-hosting.md`
+- [x] Inventory every Vercel-specific assumption in code (Edge runtime, [Vercel KV](https://vercel.com/docs/storage/vercel-kv), image optimization, ISR) and confirm portability
+- [x] Estimate 12-month cost on each platform at projected traffic
 
 #### 1.2 GCP Foundation (recommended path)
 If we go with GCP, we set up the bones once and never have to revisit them. This is the "boring infrastructure" everything else sits on top of. **Hard rule: every item below is provisioned via Terraform from the start (see [§1.4](#14-infrastructure-as-code-terraform--github-actions)), no click-ops in the GCP console for anything that touches a deployable environment.**
@@ -244,7 +244,7 @@ Most things we need a Terraform provider for are already first-class. Some are n
 - [x] **[`vercel/vercel`](https://registry.terraform.io/providers/vercel/vercel/latest/docs)**: if we keep marketing on Vercel, manage projects + envs from Terraform
 - [x] **[`neondatabase/neon`](https://registry.terraform.io/providers/kislerdm/neon/latest/docs)** (community), if we stay on Neon
 - [x] **[`PagerDuty`](https://registry.terraform.io/providers/PagerDuty/pagerduty/latest/docs) / [`BetterStack`](https://registry.terraform.io/providers/BetterStackHQ/better-uptime/latest/docs) / [`Sentry`](https://registry.terraform.io/providers/jianyuan/sentry/latest/docs) / [`SendGrid`](https://registry.terraform.io/providers/Trois-Six/sendgrid/latest/docs) / [`1Password`](https://registry.terraform.io/providers/1Password/onepassword/latest/docs)**: every SaaS in our stack with a TF provider goes in IaC
-- [ ] Use the **[`tfe` / Terraform Cloud provider](https://registry.terraform.io/providers/hashicorp/tfe/latest/docs)** only if we want [Terraform Cloud](https://cloud.hashicorp.com/products/terraform) as backend, otherwise GCS is fine
+- [x] Use the **[`tfe` / Terraform Cloud provider](https://registry.terraform.io/providers/hashicorp/tfe/latest/docs)** only if we want [Terraform Cloud](https://cloud.hashicorp.com/products/terraform) as backend, otherwise GCS is fine
 
 ##### GitHub Actions ↔ GCP authentication
 We should **never** put a GCP service-account JSON key in a GitHub secret. Use [Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation) instead, short-lived OIDC tokens, no long-lived keys.
@@ -305,10 +305,10 @@ Treat this as the contract. If it's in production and not in this list, document
 ##### What Terraform does **not** manage
 Out of scope is just as important as in-scope.
 
-- [ ] Application code deploys (that's the app pipeline, TF only manages the Cloud Run service shell, not the image tag of each release)
-- [ ] Database schema ([TypeORM](https://typeorm.io) migrations remain the schema source of truth)
-- [ ] User-generated data, blog content, runtime feature flags
-- [ ] Per-developer GCP IAM grants for ad-hoc debugging (use just-in-time access via `gcloud iam service-accounts add-iam-policy-binding` with a 1-hour TTL, not a permanent TF binding)
+- [x] Application code deploys (that's the app pipeline, TF only manages the Cloud Run service shell, not the image tag of each release)
+- [x] Database schema ([TypeORM](https://typeorm.io) migrations remain the schema source of truth)
+- [x] User-generated data, blog content, runtime feature flags
+- [x] Per-developer GCP IAM grants for ad-hoc debugging (use just-in-time access via `gcloud iam service-accounts add-iam-policy-binding` with a 1-hour TTL, not a permanent TF binding)
 
 ##### Drift & policy
 Even with IaC discipline, things drift. Catch it early.
@@ -321,13 +321,13 @@ Even with IaC discipline, things drift. Catch it early.
 #### 1.5 Database: Neon vs Cloud SQL
 We're currently on Neon. Neon is excellent for dev velocity (branches, serverless) but has two issues for this project: (1) data lives in `eu-central-1` / `us-east-2`: not South Africa, which is awkward under POPIA, and (2) it's a third-party processor we'll need a DPA from.
 
-- [ ] Decide: stay on Neon (sign DPA, document cross-border transfer) **or** migrate to [Cloud SQL Postgres](https://cloud.google.com/sql/postgresql) in `africa-south1`
+- [x] Decide: stay on Neon (sign DPA, document cross-border transfer) **or** migrate to [Cloud SQL Postgres](https://cloud.google.com/sql/postgresql) in `africa-south1`
 - [ ] If staying on Neon: confirm region, sign DPA, configure point-in-time recovery, set up read replica
 - [ ] If migrating: provision Cloud SQL Postgres 15, enable HA + automated backups + 7-day PITR, run a one-time `pg_dump | pg_restore` rehearsal in staging
 - [ ] Lock down access: private IP only, [Cloud SQL Auth Proxy](https://cloud.google.com/sql/docs/postgres/sql-proxy) from Cloud Run, no public IP
 - [ ] Generate strong rotating credentials in Secret Manager (never in `.env`)
 - [ ] Set up nightly logical backups exported to a separate GCS bucket with object versioning + 30-day retention
-- [ ] Replace `synchronize: true` with explicit migrations for production (already partially done in `db/migrations/`)
+- [x] Replace `synchronize: true` with explicit migrations for production (already partially done in `db/migrations/`)
 - [ ] Test a full DR drill: drop the database, restore from backup, confirm RTO < 1h and RPO < 15min
 
 ---
