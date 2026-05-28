@@ -1,7 +1,7 @@
 {
   "ci": {
     "collect": {
-      "startServerCommand": "node src/apps/web/.next/standalone/server.js",
+      "startServerCommand": "node src/apps/web/.next/standalone/src/apps/web/server.js",
       "startServerReadyPattern": "Listening on",
       "startServerReadyTimeout": 30000,
       "url": [
