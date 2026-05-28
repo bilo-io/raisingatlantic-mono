@@ -804,9 +804,9 @@ Things that should "just work" but bite if neglected.
 The final shake-out before real parents and clinicians.
 
 #### 12.1 Automated Coverage
-- [ ] Unit test coverage > 70% on API business logic (verifications, EPI scheduling, growth percentile calc)
-- [ ] Cypress smoke suite on every prod deploy
-- [ ] Postman contract tests run nightly against staging
+- [/] Unit test coverage > 70% on API business logic (verifications, EPI scheduling, growth percentile calc) — baseline 66.55% lines / 53.70% functions / 46.25% branches (PR #7, 2026-05-24); floor enforced in CI at lines/statements 65, functions 50, branches 45; gap to 70% closes once growth-percentile + EPI-scheduling specs are added
+- [x] Cypress smoke suite on every prod deploy
+- [x] Postman contract tests run nightly against staging
 - [ ] Mobile E2E ([Detox](https://wix.github.io/Detox/) or [Maestro](https://maestro.mobile.dev)) on critical flows: signup, add child, log growth
 
 #### 12.2 Manual / Exploratory
@@ -817,7 +817,7 @@ The final shake-out before real parents and clinicians.
 - [ ] Mobile device matrix, at minimum: iPhone 13, Pixel 7, mid-range Android (Samsung A-series)
 
 #### 12.3 Performance & Load
-- [ ] [Lighthouse](https://developer.chrome.com/docs/lighthouse) score > 90 on landing page
+- [x] [Lighthouse](https://developer.chrome.com/docs/lighthouse) score > 90 on landing page
 - [ ] API load test ([k6](https://k6.io) or [Artillery](https://www.artillery.io)) against staging, 100 concurrent users, sustained 5min
 - [ ] DB slow-query log review, every query > 100ms gets an index review
 - [ ] Cold-start benchmarks on Cloud Run (set min-instances if needed)

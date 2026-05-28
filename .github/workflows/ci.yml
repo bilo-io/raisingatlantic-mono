@@ -64,8 +64,8 @@ jobs:
         run: npm install -g @moonrepo/cli
       - name: Install API deps
         run: moon run api:install
-      - name: Run API unit tests
-        run: moon run api:test
+      - name: Run API unit tests with coverage
+        run: moon run api:test-cov
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5433/raisingatlantic
           DB_HOST: localhost
@@ -75,6 +75,13 @@ jobs:
           DB_PASS: postgres
           NODE_ENV: test
           JWT_SECRET: ci-test-secret
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage
+          path: src/apps/coverage
+          retention-days: 14
       - name: Run API e2e smoke (no-DB harness)
         run: moon run api:test-e2e
         env:

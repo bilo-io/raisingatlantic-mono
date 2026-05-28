@@ -1,0 +1,32 @@
+name: Postman Nightly — Staging
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # 01:00 UTC = 03:00 SAST; quiet window between deploys
+  workflow_dispatch:
+
+jobs:
+  postman:
+    name: Contract Tests → staging
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/test/postman/package-lock.json
+
+      - name: Install Moon
+        run: npm install -g @moonrepo/cli
+
+      - name: Install Postman deps
+        run: moon run postman:install
+
+      - name: Run contract tests against staging
+        run: moon run postman:test-staging
+        # soft-fail until the staging Cloud Run API is live; tighten to
+        # continue-on-error: false once ra-api-staging is consistently reachable
+        continue-on-error: true
