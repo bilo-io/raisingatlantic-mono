@@ -4,9 +4,11 @@ import {
   IsString,
   IsObject,
   IsNotEmpty,
+  Validate,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { ReportType } from '../reports.model';
+import { MaxObjectDepth } from '../../common/validators/max-object-depth.validator';
 
 export class CreateReportDto {
   @ApiProperty({ example: 'child-alex-doe' })
@@ -21,7 +23,8 @@ export class CreateReportDto {
   @ApiProperty({ example: { diagnosis: 'Healthy' } })
   @IsOptional()
   @IsObject()
-  content?: any;
+  @Validate(MaxObjectDepth, [4, 200])
+  content?: Record<string, unknown>;
 
   @ApiProperty({ example: 'https://storage.com/report.pdf' })
   @IsOptional()

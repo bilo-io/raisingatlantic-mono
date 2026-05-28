@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 import * as cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -21,6 +22,18 @@ async function bootstrap(): Promise<NestExpressApplication> {
   app.use(cookieParser());
 
   const isProd = process.env.NODE_ENV === 'production';
+  // CSP is intentionally disabled: this is a JSON API and Swagger UI ships
+  // inline scripts. The Next.js web app owns CSP separately.
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+      hsts: isProd
+        ? { maxAge: 31536000, includeSubDomains: true, preload: true }
+        : false,
+    }),
+  );
+
   const builtInOrigins = [
     'http://localhost:9002',
     'https://raisingatlantic-web.vercel.app',

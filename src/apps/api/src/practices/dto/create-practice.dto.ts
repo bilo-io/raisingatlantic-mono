@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsEnum, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsUUID,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { ResourceStatus } from '../../common/enums';
 
@@ -43,10 +51,16 @@ export class CreatePracticeDto {
 
   @ApiProperty({ example: -26.2041, required: false })
   @IsOptional()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
   latitude?: number;
 
   @ApiProperty({ example: 28.0473, required: false })
   @IsOptional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
   longitude?: number;
 
   @ApiProperty({

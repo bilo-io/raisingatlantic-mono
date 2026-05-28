@@ -170,8 +170,17 @@ jobs:
 
   # ── Security Audit ────────────────────────────────────────────────────────
   security-audit:
-    name: Security Audit
+    name: Security Audit (${{ matrix.workspace.name }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace:
+          - { name: api, path: src/apps/api }
+          - { name: web, path: src/apps/web }
+          - { name: mobile, path: src/apps/mobile }
+          - { name: ui, path: src/pkgs/ui }
+          - { name: types, path: src/pkgs/types }
     steps:
       - uses: actions/checkout@v4
         with:
@@ -180,12 +189,12 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: src/apps/api/package-lock.json
-      - name: Install API deps
-        working-directory: src/apps/api
-        run: npm ci
+          cache-dependency-path: ${{ matrix.workspace.path }}/package-lock.json
+      - name: Install deps
+        working-directory: ${{ matrix.workspace.path }}
+        run: npm ci --ignore-scripts
       - name: Audit dependencies
-        working-directory: src/apps/api
+        working-directory: ${{ matrix.workspace.path }}
         run: npm audit --audit-level=high --omit=dev
 
   # ── Mobile Typecheck ──────────────────────────────────────────────────────

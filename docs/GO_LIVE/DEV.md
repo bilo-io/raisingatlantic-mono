@@ -501,15 +501,15 @@ The "make sure we don't end up on the front page of [News24](https://www.news24.
 #### 5.1 Application Security
 What lives in code.
 
-- [ ] [OWASP Top 10](https://owasp.org/www-project-top-ten/) audit (consider `/security-review` skill on every PR touching auth/data)
-- [ ] [Helmet](https://helmetjs.github.io) middleware on the NestJS API (CSP, HSTS, X-Frame-Options)
-- [ ] Strict CORS allowlist (no wildcard in prod)
-- [ ] Input validation via [`class-validator`](https://github.com/typestack/class-validator) on every DTO (mostly done, audit the gaps)
-- [ ] Output encoding / no raw `dangerouslySetInnerHTML` on user content
-- [ ] Rate limiting per-IP + per-user via `@nestjs/throttler` (already installed, tune limits)
-- [ ] Dependency scanning: [GitHub Dependabot](https://github.com/dependabot) + [`bun audit`](https://bun.sh/docs/cli/audit) in CI
-- [ ] Secret scanning: [GitHub secret-scanning](https://docs.github.com/en/code-security/secret-scanning) + [`trufflehog`](https://github.com/trufflesecurity/trufflehog) in pre-commit
-- [ ] No secrets in `.env.example` or in git history (run [`git-filter-repo`](https://github.com/newren/git-filter-repo) if any leaked)
+- [x] [OWASP Top 10](https://owasp.org/www-project-top-ten/) audit (consider `/security-review` skill on every PR touching auth/data)
+- [x] [Helmet](https://helmetjs.github.io) middleware on the NestJS API (CSP, HSTS, X-Frame-Options)
+- [x] Strict CORS allowlist (no wildcard in prod)
+- [x] Input validation via [`class-validator`](https://github.com/typestack/class-validator) on every DTO (mostly done, audit the gaps)
+- [x] Output encoding / no raw `dangerouslySetInnerHTML` on user content
+- [x] Rate limiting per-IP + per-user via `@nestjs/throttler` (already installed, tune limits)
+- [x] Dependency scanning: [GitHub Dependabot](https://github.com/dependabot) + [`bun audit`](https://bun.sh/docs/cli/audit) in CI
+- [x] Secret scanning: [GitHub secret-scanning](https://docs.github.com/en/code-security/secret-scanning) + [`trufflehog`](https://github.com/trufflesecurity/trufflehog) in pre-commit
+- [x] No secrets in `.env.example` or in git history (run [`git-filter-repo`](https://github.com/newren/git-filter-repo) if any leaked)
 
 #### 5.2 Infrastructure Security
 Network, hosts, perimeter.
