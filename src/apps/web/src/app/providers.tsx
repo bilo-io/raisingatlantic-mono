@@ -2,6 +2,7 @@
 
 import { ThemeProvider } from '@/components/theme-provider';
 import { I18nProvider } from '@/components/I18nProvider';
+import { SystemHealthCheck } from '@/components/SystemHealthCheck';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { QueryProvider } from '@/lib/api/QueryProvider';
 import type { ReactNode } from 'react';
@@ -18,7 +19,10 @@ export function Providers({ children }: { children: ReactNode }) {
     <I18nProvider>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         <QueryProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            <SystemHealthCheck />
+            {children}
+          </ToastProvider>
         </QueryProvider>
       </ThemeProvider>
     </I18nProvider>
