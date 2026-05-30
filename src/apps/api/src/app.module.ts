@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { UserAwareThrottlerGuard } from './common/guards/user-aware-throttler.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ExamplesModule } from './examples/examples.module';
@@ -42,12 +44,15 @@ import { SystemLog } from './common/models/system-log.model';
       envFilePath: '.env',
     }),
 
-    // Rate limiting configuration (1 request per minute by default for tagged endpoints)
+    // Rate limiting: three named tiers applied globally via APP_GUARD.
+    // - short:  burst protection (any single hot loop)
+    // - medium: sustained normal browsing
+    // - long:   long-window abuse detection
+    // Per-route overrides use @Throttle({ short: { limit, ttl } }) etc.
     ThrottlerModule.forRoot([
-      {
-        ttl: 60000,
-        limit: 1,
-      },
+      { name: 'short', ttl: 1000, limit: 10 },
+      { name: 'medium', ttl: 60000, limit: 60 },
+      { name: 'long', ttl: 3600000, limit: 1000 },
     ]),
 
     // TypeORM configured from .env via ConfigService.
@@ -120,6 +125,9 @@ import { SystemLog } from './common/models/system-log.model';
     SystemLogsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: UserAwareThrottlerGuard },
+  ],
 })
 export class AppModule {}

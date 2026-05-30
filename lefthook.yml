@@ -1,0 +1,24 @@
+# Lefthook config — runs locally on every commit/push.
+# Bypass when truly necessary with `git commit --no-verify`.
+
+pre-commit:
+  parallel: true
+  commands:
+    gitleaks:
+      # Scan only the staged diff; fails fast if a secret pattern is detected.
+      run: gitleaks protect --staged --redact --no-banner --config=.gitleaks.toml
+      skip:
+        - merge
+        - rebase
+      fail_text: |
+        🔒 gitleaks detected a likely secret in your staged changes.
+        Move it to GCP Secret Manager (or .env, which is gitignored) and re-stage.
+
+pre-push:
+  parallel: true
+  commands:
+    lint:
+      run: moon run :lint
+      skip:
+        - merge
+        - rebase

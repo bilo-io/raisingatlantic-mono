@@ -1,0 +1,100 @@
+version: 2
+
+updates:
+  # ── Application code: npm workspaces ────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: /src/apps/api
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Africa/Johannesburg
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    labels: [dependencies, api]
+
+  - package-ecosystem: npm
+    directory: /src/apps/web
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Africa/Johannesburg
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    labels: [dependencies, web]
+
+  - package-ecosystem: npm
+    directory: /src/apps/mobile
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Africa/Johannesburg
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    labels: [dependencies, mobile]
+
+  - package-ecosystem: npm
+    directory: /src/pkgs/ui
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    labels: [dependencies, pkgs]
+
+  - package-ecosystem: npm
+    directory: /src/pkgs/types
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    labels: [dependencies, pkgs]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    labels: [dependencies, root]
+
+  # ── CI / Actions ────────────────────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels: [dependencies, ci]
+
+  # ── Infrastructure as Code ──────────────────────────────────────────────────
+  - package-ecosystem: terraform
+    directory: /infra
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels: [dependencies, infra]
+
+  # ── Container images ────────────────────────────────────────────────────────
+  - package-ecosystem: docker
+    directory: /src/apps/api
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    labels: [dependencies, docker, api]
+
+  - package-ecosystem: docker
+    directory: /src/apps/web
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    labels: [dependencies, docker, web]
