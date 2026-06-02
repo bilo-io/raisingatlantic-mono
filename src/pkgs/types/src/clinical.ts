@@ -1,0 +1,28 @@
+import type { Vaccination } from "./records";
+
+export const standardVaccinationSchedule: Vaccination[] = [
+  { id: "hepB1", name: "Hepatitis B (HepB)", recommendedAge: "Birth", doseInfo: "1st dose", track: "EPI" },
+  { id: "hepB2", name: "Hepatitis B (HepB)", recommendedAge: "1-2 Months", doseInfo: "2nd dose", track: "EPI" },
+  { id: "rv1", name: "Rotavirus (RV)", recommendedAge: "2 Months", doseInfo: "1st dose", track: "EPI" },
+  { id: "dtap1", name: "DTaP", recommendedAge: "2 Months", doseInfo: "1st dose", track: "EPI" },
+  { id: "hib1", name: "Hib", recommendedAge: "2 Months", doseInfo: "1st dose", track: "EPI" },
+  { id: "pcv1", name: "PCV13", recommendedAge: "2 Months", doseInfo: "1st dose", track: "EPI" },
+  { id: "polio1", name: "IPV (Polio)", recommendedAge: "2 Months", doseInfo: "2nd dose", track: "EPI" },
+  { id: "rv2", name: "Rotavirus (RV)", recommendedAge: "4 Months", doseInfo: "2nd dose", track: "EPI" },
+  { id: "dtap2", name: "DTaP", recommendedAge: "4 Months", doseInfo: "2nd dose", track: "EPI" },
+  { id: "hib2", name: "Hib", recommendedAge: "4 Months", doseInfo: "2nd dose", track: "EPI" },
+  { id: "pcv2", name: "PCV13", recommendedAge: "4 Months", doseInfo: "2nd dose", track: "EPI" },
+  { id: "polio2", name: "IPV (Polio)", recommendedAge: "4 Months", doseInfo: "2nd dose", track: "EPI" },
+  { id: "hepB3", name: "Hepatitis B (HepB)", recommendedAge: "6-18 Months", doseInfo: "3rd dose", track: "EPI" },
+  { id: "dtap3", name: "DTaP", recommendedAge: "6 Months", doseInfo: "3rd dose", track: "EPI" },
+  { id: "hib3", name: "Hib", recommendedAge: "6 Months", doseInfo: "3rd dose (if needed)", track: "EPI" },
+  { id: "pcv3", name: "PCV13", recommendedAge: "6 Months", doseInfo: "3rd dose", track: "EPI" },
+  { id: "polio3", name: "IPV (Polio)", recommendedAge: "6-18 Months", doseInfo: "3rd dose", track: "EPI" },
+  { id: "flu", name: "Influenza (Flu)", recommendedAge: "Annually starting at 6 Months", doseInfo: "Yearly", track: "PRIVATE" },
+  { id: "mmr1", name: "MMR", recommendedAge: "12-15 Months", doseInfo: "1st dose", track: "EPI" },
+  { id: "varicella1", name: "Varicella (Chickenpox)", recommendedAge: "12-15 Months", doseInfo: "1st dose", track: "PRIVATE" },
+  { id: "hepA1", name: "Hepatitis A (HepA)", recommendedAge: "12-23 Months", doseInfo: "1st dose (2-dose series)", track: "PRIVATE" },
+  { id: "dtap4", name: "DTaP", recommendedAge: "15-18 Months", doseInfo: "4th dose", track: "EPI" },
+  { id: "hib4", name: "Hib", recommendedAge: "12-15 Months", doseInfo: "Booster", track: "EPI" },
+  { id: "pcv4", name: "PCV13", recommendedAge: "12-15 Months", doseInfo: "4th dose", track: "EPI" },
+];
