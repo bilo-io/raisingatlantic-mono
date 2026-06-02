@@ -8,7 +8,9 @@
     "customConditions": [],
     "paths": {
       "@raising-atlantic/types": ["../../pkgs/types/src/index.ts"],
-      "@raising-atlantic/types/*": ["../../pkgs/types/src/*"]
+      "@raising-atlantic/types/*": ["../../pkgs/types/src/*"],
+      "@raising-atlantic/clinical": ["../../pkgs/clinical/src/index.ts"],
+      "@raising-atlantic/clinical/*": ["../../pkgs/clinical/src/*"]
     }
   },
   "include": [

@@ -136,52 +136,52 @@ Parent is the primary persona for the SA launch. All six parent screens are curr
 #### M1.1 Children
 The list + add + edit flow for a parent's children. The active-child selector is the cross-cutting state that the rest of the parent flow reads from.
 
-- [ ] [children.tsx](../../src/apps/mobile/app/(app)/(parent)/children.tsx) — replace `ComingSoon` import with real implementation
-- [ ] Uses `useChildrenList`, `useChildCreate`, `useChildUpdate`, `useChildArchive` (soft-delete first per CLAUDE.md)
-- [ ] Active-child context provider (read by records, dashboard, messages)
-- [ ] Form validation matches API DTOs in [src/apps/api/src/children/dto/](../../src/apps/api/src/children/dto/)
-- [ ] Parental consent prompt before first child creation (per CLAUDE.md — non-negotiable POPIA flow)
+- [x] [children.tsx](../../src/apps/mobile/app/(app)/(parent)/children.tsx) — replace `ComingSoon` import with real implementation
+- [x] Uses `useChildrenList`, `useChildCreate`, `useChildUpdate`, `useChildArchive` (soft-delete first per CLAUDE.md)
+- [x] Active-child context provider (read by records, dashboard, messages)
+- [x] Form validation matches API DTOs in [src/apps/api/src/children/dto/](../../src/apps/api/src/children/dto/)
+- [x] Parental consent prompt before first child creation (per CLAUDE.md — non-negotiable POPIA flow)
 
 #### M1.2 Records (Growth · Milestones · Vaccinations)
 The domain-critical screen. EPI vaccine identifiers and age-gate logic are clinical-grade — do **not** invent them; source from a constants file or API seed.
 
-- [ ] [records.tsx](../../src/apps/mobile/app/(app)/(parent)/records.tsx) — tabbed `<TopTabs>` with three sub-views
-- [ ] **Growth tab**: weight/height entry, percentile chart (consider `react-native-svg-charts` or `victory-native`), birth-to-current-age timeline
-- [ ] **Milestones tab**: timeline grouped by category (locomotor / language / social / fine-motor); parent-logged entries enter `PENDING_ASSESSMENT` state until clinician verifies
-- [ ] **Vaccinations tab**: SA DoH EPI schedule rendered with age gates; "due now", "overdue", "complete" buckets; tap to log
-- [ ] EPI constants live in `pkgs/types` (or a new `pkgs/clinical`) — never inline in the screen
-- [ ] All new records default to `PENDING_ASSESSMENT` if logged by parent — load-bearing state per CLAUDE.md
+- [x] [records.tsx](../../src/apps/mobile/app/(app)/(parent)/records.tsx) — tabbed `<TopTabs>` with three sub-views
+- [x] **Growth tab**: weight/height entry, percentile chart (consider `react-native-svg-charts` or `victory-native`), birth-to-current-age timeline
+- [x] **Milestones tab**: timeline grouped by category (locomotor / language / social / fine-motor); parent-logged entries enter `PENDING_ASSESSMENT` state until clinician verifies
+- [x] **Vaccinations tab**: SA DoH EPI schedule rendered with age gates; "due now", "overdue", "complete" buckets; tap to log
+- [x] EPI constants live in `pkgs/types` (or a new `pkgs/clinical`) — never inline in the screen
+- [x] All new records default to `PENDING_ASSESSMENT` if logged by parent — load-bearing state per CLAUDE.md
 
 #### M1.3 Directory
 Find practices and clinicians. Read-only view onto the existing [practices controller](../../src/apps/api/src/practices/practices.controller.ts).
 
-- [ ] [directory.tsx](../../src/apps/mobile/app/(app)/(parent)/directory.tsx) — list view + search filter (city, specialty)
-- [ ] Uses `usePracticesList` (public endpoint — `/v1/practices/public` works without auth)
-- [ ] Tap → practice detail screen with clinicians, location, contact
+- [x] [directory.tsx](../../src/apps/mobile/app/(app)/(parent)/directory.tsx) — list view + search filter (city, specialty)
+- [x] Uses `usePracticesList` (public endpoint — `/v1/practices/public` works without auth)
+- [x] Tap → practice detail screen with clinicians, location, contact
 
 #### M1.4 Messages
 Conversation list + thread view. **Polling first (15s interval), WebSocket later** — the polling implementation is good enough for beta, and WebSocket wiring is Tier 3.
 
-- [ ] [messages.tsx](../../src/apps/mobile/app/(app)/(parent)/messages.tsx) — list of conversations
-- [ ] Thread view at `messages/[conversationId].tsx`
-- [ ] React Query `refetchInterval: 15000` for the open thread, `30000` for the list
-- [ ] Backend endpoints required — coordinate with [DEV.md §2.2](DEV.md#22-account-security-hardening) if not present yet (likely a Tier 3 blocker)
+- [x] [messages.tsx](../../src/apps/mobile/app/(app)/(parent)/messages.tsx) — list of conversations
+- [x] Thread view at `messages/[conversationId].tsx`
+- [x] React Query `refetchInterval: 15000` for the open thread, `30000` for the list
+- [ ] Backend endpoints required — coordinate with [DEV.md §2.2](DEV.md#22-account-security-hardening) if not present yet (likely a Tier 3 blocker) — **deferred (no API module yet; mobile ships fixture adapter)**
 
 #### M1.5 Dashboard
 Currently shows a generic role greeting via [DashboardHome.tsx](../../src/apps/mobile/components/DashboardHome.tsx). Replace placeholder cards with real summary data.
 
-- [ ] Split [DashboardHome.tsx](../../src/apps/mobile/components/DashboardHome.tsx) into role-specific components: `DashboardHomeParent`, `DashboardHomeClinician`, `DashboardHomeAdmin`
-- [ ] Parent dashboard cards: active child summary, next vaccine due (from EPI schedule), latest growth entry, unread messages count, quick actions (log growth, log milestone)
-- [ ] Empty states for parents with no children yet (CTA → children screen)
-- [ ] [dashboard.tsx](../../src/apps/mobile/app/(app)/(parent)/dashboard.tsx) routes to the parent variant
+- [x] Split [DashboardHome.tsx](../../src/apps/mobile/components/DashboardHome.tsx) into role-specific components: `DashboardHomeParent`, `DashboardHomeClinician`, `DashboardHomeAdmin`
+- [x] Parent dashboard cards: active child summary, next vaccine due (from EPI schedule), latest growth entry, unread messages count, quick actions (log growth, log milestone)
+- [x] Empty states for parents with no children yet (CTA → children screen)
+- [x] [dashboard.tsx](../../src/apps/mobile/app/(app)/(parent)/dashboard.tsx) routes to the parent variant
 
 #### M1.6 Profile
 Currently uses shared [ProfileScreen.tsx](../../src/apps/mobile/components/ProfileScreen.tsx) — name, email, role badge, theme switcher, sign-out. Extend with editable fields and POPIA controls.
 
-- [ ] Editable fields: display name, phone, preferred language (`en` / `af` / `zu`)
-- [ ] Preferences: notification opt-in/out per category (vaccine reminders, growth check-ins, messages)
-- [ ] **POPIA data-export trigger**: button that requests a DSAR export — see [DEV.md §4.2](DEV.md#42-consent--data-subject-rights)
-- [ ] **Account deletion request**: opens 30-day soft-delete flow per CLAUDE.md
+- [x] Editable fields: display name, phone, preferred language (`en` / `af` / `zu`)
+- [x] Preferences: notification opt-in/out per category (vaccine reminders, growth check-ins, messages)
+- [x] **POPIA data-export trigger**: button that requests a DSAR export — see [DEV.md §4.2](DEV.md#42-consent--data-subject-rights) — *UI-only; backend deferred to DEV.md §4.2*
+- [x] **Account deletion request**: opens 30-day soft-delete flow per CLAUDE.md — *UI-only; backend deferred to DEV.md §4.2*
 
 ---
 

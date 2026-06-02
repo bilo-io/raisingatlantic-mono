@@ -1,4 +1,4 @@
-import type { User, UserRole } from "@raising-atlantic/types";
+import type { UpdateUserInput, User, UserRole } from "@raising-atlantic/types";
 import { api } from "../client";
 import { useApi } from "../data-source";
 import { usersFixture } from "../fixtures/users";
@@ -34,4 +34,13 @@ export async function getMe(): Promise<User> {
     return res.data;
   }
   return usersFixture[0];
+}
+
+export async function updateUser(id: string, patch: UpdateUserInput): Promise<User> {
+  if (useApi()) {
+    const res = await api.patch<User>(`/users/${id}`, patch);
+    return res.data;
+  }
+  const existing = await getUserById(id);
+  return { ...existing, ...patch };
 }

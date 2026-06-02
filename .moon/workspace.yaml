@@ -10,6 +10,7 @@ projects:
   # Packages
   ui: 'src/pkgs/ui'
   types: 'src/pkgs/types'
+  clinical: 'src/pkgs/clinical'
   
   # Tests
   cypress: 'src/test/cypress'
