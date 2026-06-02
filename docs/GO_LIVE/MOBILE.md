@@ -82,45 +82,45 @@ The web app at [src/apps/web/src/lib/api/](../../src/apps/web/src/lib/api/) has 
 #### M0.1 Data layer port
 The `createResourceHooks` factory + per-domain adapters are the spine of the data layer. Port them verbatim from web; swap the toast layer for an Expo-friendly equivalent.
 
-- [ ] Port [createResourceHooks.ts](../../src/apps/web/src/lib/api/createResourceHooks.ts) to `src/apps/mobile/lib/api/createResourceHooks.ts`
-- [ ] Replace web's `toast` calls with a thin wrapper around `expo-toast` or an in-app banner ([components/ui/](../../src/apps/mobile/components/))
-- [ ] Adapters under `src/apps/mobile/lib/api/adapters/` for: `child`, `practice`, `verification`, `appointment`, `record`, `user`
-- [ ] Hooks under `src/apps/mobile/lib/api/hooks/` mirroring web's per-domain hook files
-- [ ] Each domain imports its type from [pkgs/types](../../pkgs/types/src/) — do **not** redefine `Child`, `Practice`, `Verification`, etc. inline
+- [x] Port [createResourceHooks.ts](../../src/apps/web/src/lib/api/createResourceHooks.ts) to `src/apps/mobile/lib/api/createResourceHooks.ts`
+- [x] Replace web's `toast` calls with a thin wrapper around `expo-toast` or an in-app banner ([components/ui/](../../src/apps/mobile/components/))
+- [x] Adapters under `src/apps/mobile/lib/api/adapters/` for: `child`, `practice`, `verification`, `appointment`, `record`, `user`
+- [x] Hooks under `src/apps/mobile/lib/api/hooks/` mirroring web's per-domain hook files
+- [x] Each domain imports its type from [pkgs/types](../../pkgs/types/src/) — do **not** redefine `Child`, `Practice`, `Verification`, etc. inline
 
 #### M0.2 Mock-vs-real toggle
 A single env-flag flips the entire app between mock fixtures and the live API.
 
-- [ ] Port [data-source.ts](../../src/apps/web/src/lib/api/data-source.ts) to mobile, gated by `EXPO_PUBLIC_USE_API`
-- [ ] Add `EXPO_PUBLIC_USE_API` to [app.json](../../src/apps/mobile/app.json) under `expo.extra`
-- [ ] Document the flag in [src/apps/mobile/README.md](../../src/apps/mobile/README.md)
-- [ ] Default to `false` (mock) for local dev; CI builds set it explicitly
+- [x] Port [data-source.ts](../../src/apps/web/src/lib/api/data-source.ts) to mobile, gated by `EXPO_PUBLIC_USE_API`
+- [x] Add `EXPO_PUBLIC_USE_API` to [app.json](../../src/apps/mobile/app.json) under `expo.extra`
+- [x] Document the flag in [src/apps/mobile/README.md](../../src/apps/mobile/README.md)
+- [x] Default to `false` (mock) for local dev; CI builds set it explicitly
 
 #### M0.3 Fixture seed data
 Realistic seed data is the difference between a usable beta and a demo that falls over the moment a tester taps anything.
 
-- [ ] `src/apps/mobile/lib/api/fixtures/children.ts` — 2–3 children at different ages with realistic DOB, sex, growth history
-- [ ] `src/apps/mobile/lib/api/fixtures/epi-schedule.ts` — full SA DoH 2024/2025 EPI schedule (vaccine IDs, age gates) — clinical-grade, not invented. Source from the existing API seed if present.
-- [ ] `src/apps/mobile/lib/api/fixtures/growth.ts` — weight/height records with valid percentile inputs
-- [ ] `src/apps/mobile/lib/api/fixtures/milestones.ts` — locomotor / language / social / fine-motor entries
-- [ ] `src/apps/mobile/lib/api/fixtures/patients.ts` — clinician patient roster with mixed `PENDING_ASSESSMENT` / verified states
-- [ ] `src/apps/mobile/lib/api/fixtures/verifications.ts` — pending HPCSA/SANC clinician verifications + pending record verifications
-- [ ] `src/apps/mobile/lib/api/fixtures/practices.ts` — directory entries spanning multiple SA cities
-- [ ] **No real PII** in fixtures, ever — synthetic names only, no real ID numbers, no real HPCSA numbers (use the format but invent the digits)
+- [x] `src/apps/mobile/lib/api/fixtures/children.ts` — 2–3 children at different ages with realistic DOB, sex, growth history
+- [x] `src/apps/mobile/lib/api/fixtures/epi-schedule.ts` — full SA DoH 2024/2025 EPI schedule (vaccine IDs, age gates) — clinical-grade, not invented. Source from the existing API seed if present.
+- [x] `src/apps/mobile/lib/api/fixtures/growth.ts` — weight/height records with valid percentile inputs
+- [x] `src/apps/mobile/lib/api/fixtures/milestones.ts` — locomotor / language / social / fine-motor entries
+- [x] `src/apps/mobile/lib/api/fixtures/patients.ts` — clinician patient roster with mixed `PENDING_ASSESSMENT` / verified states
+- [x] `src/apps/mobile/lib/api/fixtures/verifications.ts` — pending HPCSA/SANC clinician verifications + pending record verifications
+- [x] `src/apps/mobile/lib/api/fixtures/practices.ts` — directory entries spanning multiple SA cities
+- [x] **No real PII** in fixtures, ever — synthetic names only, no real ID numbers, no real HPCSA numbers (use the format but invent the digits)
 
 #### M0.4 Fixture auth hardening
 Real-API mode in dev needs a token the API will accept. Inject a deterministic dev-only JWT signed with the same key the dev API uses.
 
-- [ ] [AuthContext.tsx](../../src/apps/mobile/auth/AuthContext.tsx): when `signInAs(role)` runs in mock mode, also publish a fixture JWT to [auth-header.ts](../../src/apps/mobile/lib/api/auth-header.ts) via `setAuthBridge`
-- [ ] Fixture JWT payload mirrors the API's expected shape (`sub`, `role`, `tenantId`, `practiceIds`) — see API guards under [src/apps/api/src/auth/](../../src/apps/api/src/auth/)
-- [ ] Guard fixture-JWT injection behind `__DEV__` — never ship a fixture signer in a production bundle
+- [x] [AuthContext.tsx](../../src/apps/mobile/auth/AuthContext.tsx): when `signInAs(role)` runs in mock mode, also publish a fixture JWT to [auth-header.ts](../../src/apps/mobile/lib/api/auth-header.ts) via `setAuthBridge`
+- [x] Fixture JWT payload mirrors the API's expected shape (`sub`, `role`, `tenantId`, `practiceIds`) — see API guards under [src/apps/api/src/auth/](../../src/apps/api/src/auth/)
+- [x] Guard fixture-JWT injection behind `__DEV__` — never ship a fixture signer in a production bundle
 - [ ] The API dev environment must accept the fixture signing key — coordinate with [DEV.md §2](DEV.md#phase-2-authentication--identity)
 
 #### M0.5 Query client + provider
 Confirm React Query is mounted at the app root and devtools are reachable in dev.
 
-- [ ] [src/apps/mobile/app/_layout.tsx](../../src/apps/mobile/app/_layout.tsx) wraps the app in `<QueryClientProvider>` using the shared [query-client.ts](../../src/apps/mobile/lib/api/query-client.ts)
-- [ ] Confirm 30s `staleTime` / 5min `gcTime` defaults are sensible for mobile (longer than web — fewer refetches on tab switch)
+- [x] [src/apps/mobile/app/_layout.tsx](../../src/apps/mobile/app/_layout.tsx) wraps the app in `<QueryClientProvider>` using the shared [query-client.ts](../../src/apps/mobile/lib/api/query-client.ts)
+- [x] Confirm 30s `staleTime` / 5min `gcTime` defaults are sensible for mobile (longer than web — fewer refetches on tab switch)
 - [ ] Wire [`@tanstack/react-query-devtools`](https://tanstack.com/query/latest/docs/framework/react/devtools) or [Reactotron](https://github.com/infinitered/reactotron) for local debugging
 
 ---
