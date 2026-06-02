@@ -1,13 +1,6 @@
-import { ShieldCheck } from "lucide-react-native";
 import React from "react";
-import { ComingSoon } from "../../../components/ComingSoon";
+import { VerificationsQueue } from "../../../components/verifications/VerificationsQueue";
 
 export default function AdminVerificationsScreen() {
-  return (
-    <ComingSoon
-      title="Verifications"
-      Icon={ShieldCheck}
-      blurb="Oversee pending verifications across the platform."
-    />
-  );
+  return <VerificationsQueue scope="admin" />;
 }

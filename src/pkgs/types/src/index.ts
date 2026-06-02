@@ -7,3 +7,4 @@ export * from "./records";
 export * from "./verification";
 export * from "./appointment";
 export * from "./clinical";
+export * from "./system";

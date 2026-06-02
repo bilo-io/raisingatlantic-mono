@@ -2,7 +2,12 @@ import type { CreateUserInput, UpdateUserInput, User } from "@raising-atlantic/t
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../client";
 import { createResourceHooks } from "../createResourceHooks";
-import { getMe } from "../adapters/user.adapter";
+import {
+  getMe,
+  getUserById,
+  getUsers,
+  type UserListParams,
+} from "../adapters/user.adapter";
 
 export const usersResource = createResourceHooks<User, void, CreateUserInput, UpdateUserInput>({
   resource: "users",
@@ -23,6 +28,24 @@ export const {
   useUpdate: useUpdateUser,
   useDelete: useDeleteUser,
 } = usersResource;
+
+export function useUsers(params?: UserListParams) {
+  return useQuery({
+    queryKey: ["users", "list", params ?? null],
+    queryFn: () => getUsers(params),
+  });
+}
+
+export function useUserById(id: string | undefined | null) {
+  return useQuery({
+    queryKey: ["users", "detail", id ?? ""],
+    queryFn: () => {
+      if (!id) throw new Error("Missing user id");
+      return getUserById(id);
+    },
+    enabled: !!id,
+  });
+}
 
 export function useMe() {
   return useQuery({
