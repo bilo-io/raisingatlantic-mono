@@ -635,6 +635,8 @@ External-perspective monitoring.
 
 `nodemailer` is wired into the API but no real provider is configured. Almost every flow (signup, verification, password reset, vaccination reminder, billing) needs reliable transactional comms.
 
+> **Wrapper landed (2026-06-02):** framework-agnostic notification ports + dispatcher live at `src/core/notifications/`, wired into call sites with `TODO(phase-8)` seams. Provider swap is a single-file change in `src/apps/api/src/notifications/notifications.module.ts`. See [PHASE_8_TODO.md](./PHASE_8_TODO.md).
+
 #### 8.1 Transactional Email
 The "click here to verify your account" pipe.
 

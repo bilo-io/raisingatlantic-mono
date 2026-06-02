@@ -7,6 +7,14 @@ import { User } from '../users/users.model';
 import { Practice } from '../practices/practices.model';
 import { NotFoundException } from '@nestjs/common';
 import { createMockRepository } from '../common/test/test-utils';
+import { NOTIFICATION_TOKENS } from '@core/notifications/interfaces/tokens';
+
+const createMockDispatcher = () => ({
+  email: jest.fn().mockResolvedValue({ delivered: true, providerId: 'mock' }),
+  sms: jest.fn().mockResolvedValue({ delivered: true, providerId: 'mock' }),
+  push: jest.fn().mockResolvedValue({ delivered: true, providerId: 'mock' }),
+  notifyUser: jest.fn(),
+});
 
 describe('AppointmentsService', () => {
   let service: AppointmentsService;
@@ -29,6 +37,10 @@ describe('AppointmentsService', () => {
         {
           provide: getRepositoryToken(Practice),
           useValue: createMockRepository(),
+        },
+        {
+          provide: NOTIFICATION_TOKENS.Dispatcher,
+          useValue: createMockDispatcher(),
         },
       ],
     }).compile();

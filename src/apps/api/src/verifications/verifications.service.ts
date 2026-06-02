@@ -10,6 +10,10 @@ import {
   CompletedVaccination,
 } from '../children/children.model';
 
+// TODO(phase-8): when approve/reject mutation endpoints land here, inject
+// INotificationDispatcher (NOTIFICATION_TOKENS.Dispatcher) and email the
+// submitter on status change — see DEV.md §8.1 / §2.3 clinician verification.
+
 @Injectable()
 export class VerificationsService {
   constructor(

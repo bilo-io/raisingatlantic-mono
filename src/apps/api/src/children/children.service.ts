@@ -5,6 +5,8 @@ import { ILoggerService } from '@core/telemetry/interfaces/logger.interface';
 import { ITracingService } from '@core/telemetry/interfaces/tracer.interface';
 import { IMetricService } from '@core/telemetry/interfaces/metric.interface';
 import { IErrorReportingService } from '@core/telemetry/interfaces/error-reporter.interface';
+import { INotificationDispatcher } from '@core/notifications/interfaces/dispatcher.interface';
+import { NOTIFICATION_TOKENS } from '@core/notifications/interfaces/tokens';
 import { isUUID } from '../common/utils/id-validator';
 import {
   Child,
@@ -41,6 +43,8 @@ export class ChildrenService {
     @Inject('IMetricService') private readonly metric: IMetricService,
     @Inject('IErrorReportingService')
     private readonly errorReporter: IErrorReportingService,
+    @Inject(NOTIFICATION_TOKENS.Dispatcher)
+    private readonly notifications: INotificationDispatcher,
   ) {}
 
   async create(dto: CreateChildDto): Promise<Child> {
@@ -92,7 +96,12 @@ export class ChildrenService {
         parent,
         clinician,
       });
-      return await this.childRepo.save(child);
+      const saved = await this.childRepo.save(child);
+      // TODO(phase-8): confirm child profile created to parent via
+      // this.notifications.email({ ... }) (§8.1). The recurring vaccination
+      // reminder fan-out is a Cloud Scheduler job — out of scope here, see §8.3.
+      void this.notifications;
+      return saved;
     } finally {
       this.tracer.endSpan(span);
     }

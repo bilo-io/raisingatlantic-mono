@@ -37,6 +37,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await saveUser(next);
     setUser(next);
     setAuthBridge(next);
+    // TODO(phase-8): after a successful sign-in, request notification
+    // permissions, capture the Expo push token, and POST it to
+    // /v1/users/me/push-tokens. The API-side wrapper (src/core/notifications)
+    // is ready; this hook + the endpoint are what's left — see DEV.md §8.3.
   }, []);
 
   const signOut = useCallback(async () => {

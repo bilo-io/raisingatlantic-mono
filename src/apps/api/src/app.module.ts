@@ -35,6 +35,7 @@ import { BlogPost } from './blog/blog.model';
 import { LeadsModule } from './leads/leads.module';
 import { SystemLogsModule } from './system-logs/system-logs.module';
 import { SystemLog } from './common/models/system-log.model';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -111,6 +112,7 @@ import { SystemLog } from './common/models/system-log.model';
       },
     }),
 
+    NotificationsModule,
     ExamplesModule,
     UsersModule,
     TenantsModule,

@@ -18,6 +18,14 @@ import {
   createMockMetrics,
   createMockErrorReporter,
 } from '../common/test/test-utils';
+import { NOTIFICATION_TOKENS } from '@core/notifications/interfaces/tokens';
+
+const createMockDispatcher = () => ({
+  email: jest.fn().mockResolvedValue({ delivered: true, providerId: 'mock' }),
+  sms: jest.fn().mockResolvedValue({ delivered: true, providerId: 'mock' }),
+  push: jest.fn().mockResolvedValue({ delivered: true, providerId: 'mock' }),
+  notifyUser: jest.fn(),
+});
 
 describe('ChildrenService', () => {
   let service: ChildrenService;
@@ -62,6 +70,10 @@ describe('ChildrenService', () => {
         {
           provide: 'IErrorReportingService',
           useValue: createMockErrorReporter(),
+        },
+        {
+          provide: NOTIFICATION_TOKENS.Dispatcher,
+          useValue: createMockDispatcher(),
         },
       ],
     }).compile();
