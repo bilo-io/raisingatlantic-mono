@@ -8,10 +8,19 @@ import {
 import React from "react";
 import { CenterLogoTab } from "../../../components/CenterLogoTab";
 import { TabBarIcon } from "../../../components/TabBarIcon";
+import { ActivePracticeProvider } from "../../../context/ActivePracticeContext";
 import { useTheme } from "../../../theme/useTheme";
 
 export default function ClinicianTabsLayout() {
   const { tokens } = useTheme();
+  return (
+    <ActivePracticeProvider>
+      <ClinicianTabs tokens={tokens} />
+    </ActivePracticeProvider>
+  );
+}
+
+function ClinicianTabs({ tokens }: { tokens: ReturnType<typeof useTheme>["tokens"] }) {
   return (
     <Tabs
       screenOptions={{
@@ -74,6 +83,7 @@ export default function ClinicianTabsLayout() {
         }}
       />
       <Tabs.Screen name="profile" options={{ href: null }} />
+      <Tabs.Screen name="patients/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

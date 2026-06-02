@@ -8,9 +8,9 @@
 
 **Phase involvement:**
 
-- [Phase M0: Foundations](#phase-m0-foundations): `DEV 100%`
+- [Phase M0: Foundations](#phase-m0-foundations): `DEV 100%` ✅
 - [Phase M1: Parent Flow](#phase-m1-parent-flow): `DEV 100%`
-- [Phase M2: Clinician Flow](#phase-m2-clinician-flow): `DEV 100%`
+- [Phase M2: Clinician Flow](#phase-m2-clinician-flow): `DEV 100%` ✅ *(16/21 — remainder blocked on API gaps G-VER-02 and ClinicianProfile HPCSA fields, see [MOBILE_PHASE_M2_TODO.md](MOBILE_PHASE_M2_TODO.md))*
 - [Phase M3: Admin Flow](#phase-m3-admin-flow): `DEV 100%`
 - [Phase M4: Polish & Platform UX](#phase-m4-polish--platform-ux): `DEV 100%`
 - [Phase M5: Native, Store & Release](#phase-m5-native-store--release): `DEV 90%` · `DESIGN 10%`
@@ -196,45 +196,45 @@ Clinician is the second pillar of the platform. The verification queue is the hi
 #### M2.1 Patients
 The clinician's assigned patient roster.
 
-- [ ] [patients.tsx](../../src/apps/mobile/app/(app)/(clinician)/patients.tsx) — list + search + filter
-- [ ] Uses `usePatientsList` with `practiceId` filter from active practice context
-- [ ] Filter chips: all, awaiting verification, recently seen, archived
-- [ ] Tap → patient detail (reads `useChildGet` since clinicians view children as patients)
-- [ ] **Tenant-scoped**: never show patients outside the clinician's practice/tenant — verify in adapter, not just UI (defence in depth)
+- [x] [patients.tsx](../../src/apps/mobile/app/(app)/(clinician)/patients.tsx) — list + search + filter
+- [x] Uses `usePatientsList` with `practiceId` filter from active practice context
+- [x] Filter chips: all, awaiting verification, recently seen, archived
+- [x] Tap → patient detail (reads `useChildGet` since clinicians view children as patients)
+- [x] **Tenant-scoped**: never show patients outside the clinician's practice/tenant — verify in adapter, not just UI (defence in depth)
 
 #### M2.2 Verifications
 Highest-priority clinician screen. Two queues: pending record verifications (growth/milestone/vaccine entries parents logged) and pending clinician verifications (HPCSA/SANC) for admins reviewing peers.
 
-- [ ] [verifications.tsx](../../src/apps/mobile/app/(app)/(clinician)/verifications.tsx) — tabbed: "Records" / "Clinicians"
-- [ ] Uses `useVerificationsRecords` and `useVerificationsClinicians`
-- [ ] Each row: child name (or clinician name), record type, age at log, parent-supplied data
-- [ ] Actions: approve, request more info, reject (with reason)
-- [ ] Approving a `PENDING_ASSESSMENT` record promotes it to verified state via [verifications controller](../../src/apps/api/src/verifications/verifications.controller.ts)
+- [x] [verifications.tsx](../../src/apps/mobile/app/(app)/(clinician)/verifications.tsx) — tabbed: "Records" / "Clinicians"
+- [x] Uses `useVerificationsRecords` and `useVerificationsClinicians`
+- [ ] Each row: child name (or clinician name), record type, age at log, parent-supplied data *(child name pending — API response needs the `child` relation populated, see PHASE TODO)*
+- [x] Actions: approve, request more info, reject (with reason) *(mock-mode optimistic; real-API throws G-VER-02 until backend ships)*
+- [ ] Approving a `PENDING_ASSESSMENT` record promotes it to verified state via [verifications controller](../../src/apps/api/src/verifications/verifications.controller.ts) *(blocked on G-VER-02 — backend PATCH endpoints not implemented)*
 
 #### M2.3 Records Review
 Read/write view onto a single child's records — same tabbed layout as parent records, but with verification controls visible.
 
-- [ ] [records.tsx](../../src/apps/mobile/app/(app)/(clinician)/records.tsx) — reuses the three tabs from [§M1.2](#m12-records-growth--milestones--vaccinations) with `mode="clinician"` prop
-- [ ] Clinician can log records directly (these are auto-verified, not `PENDING_ASSESSMENT`)
-- [ ] HPCSA number stamped on every clinician-logged record (audit trail)
+- [x] [records.tsx](../../src/apps/mobile/app/(app)/(clinician)/records.tsx) — reuses the three tabs from [§M1.2](#m12-records-growth--milestones--vaccinations) with `mode="clinician"` prop *(shared `RecordsTabs` component built; M1.2 will plug into the same component with `mode="parent"`)*
+- [ ] Clinician can log records directly (these are auto-verified, not `PENDING_ASSESSMENT`) *(record-entry forms deferred to M1.2 which owns the parent-side entry sheets the clinician variant will reuse)*
+- [ ] HPCSA number stamped on every clinician-logged record (audit trail) *(blocked on ClinicianProfile.hpcsa_number column not existing in `pkgs/types`/API; mobile-side extension in place as placeholder)*
 
 #### M2.4 Schedule
 Clinician appointment calendar.
 
-- [ ] [schedule.tsx](../../src/apps/mobile/app/(app)/(clinician)/schedule.tsx) — week + day views
-- [ ] Uses `useAppointmentsList` filtered by clinician + date range
-- [ ] Tap appointment → patient summary + record-of-visit entry
-- [ ] Backed by [appointments controller](../../src/apps/api/src/appointments/) — verify endpoints exist
+- [x] [schedule.tsx](../../src/apps/mobile/app/(app)/(clinician)/schedule.tsx) — week + day views
+- [x] Uses `useAppointmentsList` filtered by clinician + date range
+- [ ] Tap appointment → patient summary + record-of-visit entry *(patient summary shows on card; visit-note bottom sheet deferred — TODO in PHASE doc)*
+- [x] Backed by [appointments controller](../../src/apps/api/src/appointments/) — verify endpoints exist
 
 #### M2.5 Dashboard
 Clinician-variant of the dashboard.
 
-- [ ] Cards: pending verifications count (deep link → §M2.2), today's appointments, patients seen this week, recent activity
-- [ ] [dashboard.tsx](../../src/apps/mobile/app/(app)/(clinician)/dashboard.tsx) routes to `DashboardHomeClinician`
+- [x] Cards: pending verifications count (deep link → §M2.2), today's appointments, patients seen this week, recent activity
+- [x] [dashboard.tsx](../../src/apps/mobile/app/(app)/(clinician)/dashboard.tsx) routes to `DashboardHomeClinician`
 
 #### M2.6 Profile
-- [ ] Extend [ProfileScreen.tsx](../../src/apps/mobile/components/ProfileScreen.tsx) (or split into role variants) to surface: HPCSA / SANC number, verification status, practice affiliation, clinic role
-- [ ] Read-only fields for the regulated identifiers — changes go through admin verification
+- [x] Extend [ProfileScreen.tsx](../../src/apps/mobile/components/ProfileScreen.tsx) (or split into role variants) to surface: HPCSA / SANC number, verification status, practice affiliation, clinic role *(role-router split + clinician variant; HPCSA/SANC sourced from mobile-side extension until API gains the columns)*
+- [x] Read-only fields for the regulated identifiers — changes go through admin verification
 
 ---
 
