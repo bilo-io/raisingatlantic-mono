@@ -1,6 +1,6 @@
 import React from "react";
-import { DashboardHome } from "../../../components/DashboardHome";
+import { DashboardHomeParent } from "../../../components/dashboard/DashboardHomeParent";
 
 export default function ParentDashboard() {
-  return <DashboardHome />;
+  return <DashboardHomeParent />;
 }
