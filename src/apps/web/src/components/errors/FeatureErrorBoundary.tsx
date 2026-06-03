@@ -1,9 +1,10 @@
 'use client';
 
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
+import * as Sentry from '@sentry/nextjs';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { ReactNode } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
 
 function DefaultFallback({ error, resetErrorBoundary }: FallbackProps) {
   return (
@@ -45,6 +46,12 @@ export function FeatureErrorBoundary({
   return (
     <ErrorBoundary
       FallbackComponent={fallback ? (props) => <>{fallback(props)}</> : DefaultFallback}
+      onError={(error: Error, info: ErrorInfo) => {
+        Sentry.captureException(error, {
+          tags: { boundary: 'feature' },
+          contexts: { react: { componentStack: info.componentStack } },
+        });
+      }}
       onReset={onReset}
     >
       {children}

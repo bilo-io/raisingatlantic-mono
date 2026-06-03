@@ -30,7 +30,15 @@
     },
     "plugins": [
       "expo-router",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "raising-atlantic",
+          "project": "ra-mobile-prod",
+          "url": "https://sentry.io/"
+        }
+      ]
     ],
     "extra": {
       "EXPO_PUBLIC_USE_API": "false"

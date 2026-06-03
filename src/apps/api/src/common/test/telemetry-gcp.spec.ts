@@ -1,178 +1,195 @@
-import { GcpLoggerService } from '@core/telemetry/gcp/logger.service';
-import { GcpTracingService } from '@core/telemetry/gcp/tracer.service';
-import { GcpMetricService } from '@core/telemetry/gcp/metric.service';
-import { GcpErrorReportingService } from '@core/telemetry/gcp/error-reporter.service';
+import {
+  GcpLoggerService,
+  LoggerSink,
+} from '@core/telemetry/gcp/logger.service';
+import {
+  GcpTracingService,
+  SpanLike,
+  TracerSink,
+} from '@core/telemetry/gcp/tracer.service';
+import {
+  GcpMetricService,
+  CounterLike,
+  HistogramLike,
+  MeterLike,
+} from '@core/telemetry/gcp/metric.service';
+import {
+  GcpErrorReportingService,
+  ErrorSink,
+} from '@core/telemetry/gcp/error-reporter.service';
 
-describe('GcpLoggerService', () => {
+function makeLoggerSink(): jest.Mocked<LoggerSink> {
+  return {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  };
+}
+
+describe('GcpLoggerService (Pino delegate)', () => {
+  let sink: jest.Mocked<LoggerSink>;
   let logger: GcpLoggerService;
-  let log: jest.SpyInstance;
-  let error: jest.SpyInstance;
-  let warn: jest.SpyInstance;
-  let debug: jest.SpyInstance;
 
   beforeEach(() => {
-    logger = new GcpLoggerService();
-    log = jest.spyOn(console, 'log').mockImplementation(() => {});
-    error = jest.spyOn(console, 'error').mockImplementation(() => {});
-    warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    debug = jest.spyOn(console, 'debug').mockImplementation(() => {});
+    sink = makeLoggerSink();
+    logger = new GcpLoggerService(sink);
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  it('log() writes a [GCP LOG] prefixed line', () => {
+  it('log() forwards an empty object when no context is supplied', () => {
     logger.log('hello');
-    expect(log).toHaveBeenCalledWith('[GCP LOG] hello', '');
+    expect(sink.info).toHaveBeenCalledWith({}, 'hello');
   });
 
-  it('log() forwards context object when present', () => {
+  it('log() forwards a structured context object', () => {
     logger.log('with ctx', { userId: 'u-1' });
-    expect(log).toHaveBeenCalledWith('[GCP LOG] with ctx', { userId: 'u-1' });
+    expect(sink.info).toHaveBeenCalledWith({ userId: 'u-1' }, 'with ctx');
   });
 
-  it('error() includes trace + context', () => {
-    logger.error('boom', 'stack-trace', { req: 'x' });
-    expect(error).toHaveBeenCalledWith('[GCP ERROR] boom', 'stack-trace', {
-      req: 'x',
-    });
+  it('error() attaches the trace under the `trace` key', () => {
+    logger.error('boom', 'stack-trace', { reqId: 'r-1' });
+    expect(sink.error).toHaveBeenCalledWith(
+      { reqId: 'r-1', trace: 'stack-trace' },
+      'boom',
+    );
   });
 
-  it('warn() and debug() route to the right console method', () => {
+  it('warn() and debug() route to the right sink method', () => {
     logger.warn('careful');
     logger.debug('detail');
-    expect(warn).toHaveBeenCalledWith('[GCP WARN] careful', '');
-    expect(debug).toHaveBeenCalledWith('[GCP DEBUG] detail', '');
-  });
-});
-
-describe('GcpTracingService', () => {
-  let tracer: GcpTracingService;
-  let log: jest.SpyInstance;
-
-  beforeEach(() => {
-    tracer = new GcpTracingService();
-    log = jest.spyOn(console, 'log').mockImplementation(() => {});
+    expect(sink.warn).toHaveBeenCalledWith({}, 'careful');
+    expect(sink.debug).toHaveBeenCalledWith({}, 'detail');
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  it('startSpan returns a span with name + startTime', () => {
-    const span = tracer.startSpan('Service.method');
-    expect(span.name).toBe('Service.method');
-    expect(typeof span.startTime).toBe('number');
-    expect(log).toHaveBeenCalledWith(
-      '[GCP TRACE] Started span: Service.method',
-    );
-  });
-
-  it('endSpan logs duration', () => {
-    const span = tracer.startSpan('s');
-    span.startTime -= 25; // simulate elapsed time
-    tracer.endSpan(span);
-    expect(log).toHaveBeenCalledWith(
-      expect.stringMatching(/\[GCP TRACE\] Ended span: s \(Duration: \d+ms\)/),
-    );
-  });
-
-  it('recordException logs the message but does not throw', () => {
-    const span = tracer.startSpan('s');
-    expect(() => tracer.recordException(span, new Error('x'))).not.toThrow();
-    expect(log).toHaveBeenCalledWith(
-      '[GCP TRACE] Exception recorded on span s: x',
-    );
-  });
-
-  it('setAttribute logs the key/value pair', () => {
-    const span = tracer.startSpan('s');
-    tracer.setAttribute(span, 'user.id', 'abc');
-    expect(log).toHaveBeenCalledWith(
-      '[GCP TRACE] Set attribute on span s: user.id = abc',
+  it('coerces a non-object context into a `context` field', () => {
+    logger.log('plain', 'string-context' as unknown);
+    expect(sink.info).toHaveBeenCalledWith(
+      { context: 'string-context' },
+      'plain',
     );
   });
 });
 
-describe('GcpMetricService', () => {
-  let metric: GcpMetricService;
-  let log: jest.SpyInstance;
+describe('GcpTracingService (OTel delegate)', () => {
+  let span: jest.Mocked<SpanLike>;
+  let tracer: jest.Mocked<TracerSink>;
+  let svc: GcpTracingService;
 
   beforeEach(() => {
-    metric = new GcpMetricService();
-    log = jest.spyOn(console, 'log').mockImplementation(() => {});
+    span = {
+      end: jest.fn(),
+      recordException: jest.fn(),
+      setAttribute: jest.fn(),
+    };
+    tracer = { startSpan: jest.fn().mockReturnValue(span) };
+    svc = new GcpTracingService(tracer);
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
+  it('startSpan delegates to the injected tracer', () => {
+    const opts = { kind: 'server' };
+    const result = svc.startSpan('UsersService.create', opts);
+    expect(tracer.startSpan).toHaveBeenCalledWith('UsersService.create', opts);
+    expect(result).toBe(span);
   });
 
-  it('incrementCounter defaults the value to 1', () => {
-    metric.incrementCounter('user.created');
-    expect(log).toHaveBeenCalledWith(
-      '[GCP METRIC] Incrementing counter: user.created by 1',
-      '',
-    );
+  it('endSpan calls span.end()', () => {
+    svc.endSpan(span);
+    expect(span.end).toHaveBeenCalled();
   });
 
-  it('incrementCounter forwards explicit value + attributes', () => {
-    metric.incrementCounter('user.created', 5, { tenant: 't-1' });
-    expect(log).toHaveBeenCalledWith(
-      '[GCP METRIC] Incrementing counter: user.created by 5',
-      { tenant: 't-1' },
-    );
+  it('recordException + setAttribute forward to the span', () => {
+    const err = new Error('explode');
+    svc.recordException(span, err);
+    svc.setAttribute(span, 'user.id', 'abc');
+    expect(span.recordException).toHaveBeenCalledWith(err);
+    expect(span.setAttribute).toHaveBeenCalledWith('user.id', 'abc');
   });
 
-  it('recordValue and recordHistogram emit prefixed logs', () => {
-    metric.recordValue('latency.ms', 42, { route: '/v1/users' });
-    metric.recordHistogram('latency.histogram', 100);
-    expect(log).toHaveBeenCalledWith(
-      '[GCP METRIC] Recording value for latency.ms: 42',
-      { route: '/v1/users' },
-    );
-    expect(log).toHaveBeenCalledWith(
-      '[GCP METRIC] Recording histogram for latency.histogram: 100',
-      '',
-    );
+  it('uses a no-op tracer by default (no throws)', () => {
+    const fallback = new GcpTracingService();
+    const s = fallback.startSpan('any');
+    expect(() => {
+      s.setAttribute('k', 'v');
+      s.recordException(new Error('x'));
+      fallback.endSpan(s);
+    }).not.toThrow();
   });
 });
 
-describe('GcpErrorReportingService', () => {
-  let reporter: GcpErrorReportingService;
-  let error: jest.SpyInstance;
+describe('GcpMetricService (OTel delegate)', () => {
+  let counter: jest.Mocked<CounterLike>;
+  let histogram: jest.Mocked<HistogramLike>;
+  let meter: jest.Mocked<MeterLike>;
+  let svc: GcpMetricService;
 
   beforeEach(() => {
-    reporter = new GcpErrorReportingService();
-    error = jest.spyOn(console, 'error').mockImplementation(() => {});
+    counter = { add: jest.fn() };
+    histogram = { record: jest.fn() };
+    meter = {
+      createCounter: jest.fn().mockReturnValue(counter),
+      createHistogram: jest.fn().mockReturnValue(histogram),
+    };
+    svc = new GcpMetricService(meter);
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
+  it('incrementCounter defaults the delta to 1', () => {
+    svc.incrementCounter('user.created');
+    expect(meter.createCounter).toHaveBeenCalledWith('user.created');
+    expect(counter.add).toHaveBeenCalledWith(1, undefined);
   });
 
-  it('report() handles a string error', () => {
-    reporter.report('something bad');
-    expect(error).toHaveBeenCalledWith(
-      '[GCP ERROR REPORT] Reported: something bad',
-      '',
-    );
+  it('caches counters by name', () => {
+    svc.incrementCounter('user.created', 1);
+    svc.incrementCounter('user.created', 4, { tenant: 't-1' });
+    expect(meter.createCounter).toHaveBeenCalledTimes(1);
+    expect(counter.add).toHaveBeenNthCalledWith(2, 4, { tenant: 't-1' });
   });
 
-  it('report() unwraps an Error instance to message', () => {
-    reporter.report(new Error('boom'), { ctx: 'x' });
-    expect(error).toHaveBeenCalledWith('[GCP ERROR REPORT] Reported: boom', {
-      ctx: 'x',
+  it('recordValue feeds a histogram', () => {
+    svc.recordValue('latency.ms', 42, { route: '/v1/users' });
+    expect(meter.createHistogram).toHaveBeenCalledWith('latency.ms');
+    expect(histogram.record).toHaveBeenCalledWith(42, { route: '/v1/users' });
+  });
+
+  it('recordHistogram caches the histogram instrument', () => {
+    svc.recordHistogram('h', 1);
+    svc.recordHistogram('h', 2);
+    expect(meter.createHistogram).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('GcpErrorReportingService (Sentry delegate)', () => {
+  let sink: jest.Mocked<ErrorSink>;
+  let svc: GcpErrorReportingService;
+
+  beforeEach(() => {
+    sink = {
+      captureException: jest.fn(),
+      captureMessage: jest.fn(),
+    };
+    svc = new GcpErrorReportingService(sink);
+  });
+
+  it('report(string) goes to captureMessage at error level', () => {
+    svc.report('something bad', { route: '/v1/x' });
+    expect(sink.captureMessage).toHaveBeenCalledWith('something bad', 'error', {
+      extra: { route: '/v1/x' },
     });
   });
 
-  it('reportException logs the exception object', () => {
-    const ex = new Error('explode');
-    reporter.reportException(ex, { trace: 'abc' });
-    expect(error).toHaveBeenCalledWith(
-      '[GCP EXCEPTION REPORT] Reported Exception',
-      ex,
-      { trace: 'abc' },
-    );
+  it('report(Error) goes to captureException with extras', () => {
+    const err = new Error('boom');
+    svc.report(err, { ctx: 'x' });
+    expect(sink.captureException).toHaveBeenCalledWith(err, {
+      extra: { ctx: 'x' },
+    });
+  });
+
+  it('reportException forwards arbitrary exception objects', () => {
+    const obj = { weird: true };
+    svc.reportException(obj);
+    expect(sink.captureException).toHaveBeenCalledWith(obj, {
+      extra: undefined,
+    });
   });
 });
