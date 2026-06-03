@@ -12,8 +12,35 @@ permissions:
   id-token: write
 
 jobs:
+  # ── Preflight: detect whether Terraform GCP auth is configured ───────────
+  # Until Phase 1.2 lands and TF_WORKLOAD_IDENTITY_PROVIDER is set in repo
+  # secrets, the nightly drift check has nothing to authenticate to. Gate
+  # the matrix on the secret's presence so we don't get a red nightly alert
+  # for a known-empty-secret state.
+  #
+  # TODO(GCP): once Phase 1.2 lands and the WIF provider exists, this becomes
+  # a no-op and the matrix runs nightly as designed.
+  preflight:
+    name: Preflight (Terraform secrets check)
+    runs-on: ubuntu-latest
+    outputs:
+      gcp_configured: ${{ steps.check.outputs.gcp_configured }}
+    steps:
+      - id: check
+        env:
+          WIF_PROVIDER: ${{ secrets.TF_WORKLOAD_IDENTITY_PROVIDER }}
+        run: |
+          if [ -n "$WIF_PROVIDER" ]; then
+            echo "gcp_configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "gcp_configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping drift check — TF_WORKLOAD_IDENTITY_PROVIDER not set (Phase 1.2 not yet bootstrapped)."
+          fi
+
   drift:
     name: Drift check (${{ matrix.env }})
+    needs: preflight
+    if: needs.preflight.outputs.gcp_configured == 'true'
     runs-on: ubuntu-latest
     strategy:
       # See terraform-plan.yml for the rationale — GitHub Actions has no
@@ -41,6 +68,9 @@ jobs:
         with:
           terraform_version: "1.9.8"
 
+      # TODO(GCP): requires TF_WORKLOAD_IDENTITY_PROVIDER + per-env
+      # TF_SERVICE_ACCOUNT_<ENV> repo secrets (Phase 1.2). Whole job is gated
+      # by the preflight check above.
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:

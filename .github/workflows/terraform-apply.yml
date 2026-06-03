@@ -12,8 +12,33 @@ permissions:
   id-token: write  # Required for Workload Identity Federation
 
 jobs:
+  # ── Preflight: detect whether Terraform GCP auth is configured ───────────
+  # See terraform-plan.yml for the rationale. Gates the whole apply pipeline
+  # until Phase 1.2 bootstraps the WIF pool + provider.
+  # TODO(GCP): set TF_WORKLOAD_IDENTITY_PROVIDER in repo secrets once Phase
+  # 1.2 lands (docs/GO_LIVE/DEV.md §1.4) — the preflight becomes a no-op.
+  preflight:
+    name: Preflight (Terraform secrets check)
+    runs-on: ubuntu-latest
+    outputs:
+      gcp_configured: ${{ steps.check.outputs.gcp_configured }}
+    steps:
+      - id: check
+        env:
+          WIF_PROVIDER: ${{ secrets.TF_WORKLOAD_IDENTITY_PROVIDER }}
+        run: |
+          if [ -n "$WIF_PROVIDER" ]; then
+            echo "gcp_configured=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Terraform GCP auth configured — running apply pipeline."
+          else
+            echo "gcp_configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping Terraform Apply — TF_WORKLOAD_IDENTITY_PROVIDER not set. Bootstrap Phase 1.2 (docs/GO_LIVE/DEV.md §1.4) to enable applies."
+          fi
+
   apply-dev:
     name: Apply — dev
+    needs: preflight
+    if: needs.preflight.outputs.gcp_configured == 'true'
     runs-on: ubuntu-latest
     environment: dev  # TODO(OPS): create "dev" GitHub Environment (Settings → Environments)
 
@@ -30,6 +55,8 @@ jobs:
         with:
           terraform_version: "1.9.8"
 
+      # TODO(GCP): requires TF_WORKLOAD_IDENTITY_PROVIDER + TF_SERVICE_ACCOUNT_DEV
+      # repo secrets (Phase 1.2). Whole job is gated by the preflight check.
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -83,6 +110,8 @@ jobs:
         with:
           terraform_version: "1.9.8"
 
+      # TODO(GCP): requires TF_WORKLOAD_IDENTITY_PROVIDER + TF_SERVICE_ACCOUNT_STAGING
+      # repo secrets (Phase 1.2). Cascade-skipped when apply-dev is skipped.
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -139,6 +168,8 @@ jobs:
         with:
           terraform_version: "1.9.8"
 
+      # TODO(GCP): requires TF_WORKLOAD_IDENTITY_PROVIDER + TF_SERVICE_ACCOUNT_PROD
+      # repo secrets (Phase 1.2). Cascade-skipped when apply-staging is skipped.
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
