@@ -432,3 +432,90 @@ jobs:
           working-directory: src/test/cypress
           browser: chrome
           config: baseUrl=https://raisingatlantic-web.vercel.app
+
+  # ── 3. Sentry release + source map upload ─────────────────────────────────
+  # Tags the release with the Git SHA and uploads source maps for the API
+  # (NestJS dist/) and web (Next.js .next/). Web maps are also uploaded by
+  # `withSentryConfig` during `next build` when SENTRY_AUTH_TOKEN is set; this
+  # job is the authoritative release-tag step + API-side upload.
+  #
+  # The job is best-effort: it gates on a SENTRY_AUTH_TOKEN secret being
+  # present so dev runs without Sentry stay green.
+  sentry-release:
+    name: Sentry release & source maps
+    needs: build-and-push
+    if: github.ref_name == 'main' || github.ref_name == 'test'
+    runs-on: ubuntu-latest
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+      SENTRY_RELEASE: ${{ github.sha }}
+    steps:
+      - name: Skip if Sentry not configured
+        id: gate
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ] || [ -z "$SENTRY_ORG" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping Sentry release — SENTRY_AUTH_TOKEN or SENTRY_ORG not set"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.skip != 'true'
+
+      - uses: oven-sh/setup-bun@v2
+        if: steps.gate.outputs.skip != 'true'
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        if: steps.gate.outputs.skip != 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Resolve project slugs from branch
+        if: steps.gate.outputs.skip != 'true'
+        id: slugs
+        run: |
+          case "${{ github.ref_name }}" in
+            test) echo "api=ra-api-staging" >> "$GITHUB_OUTPUT"; echo "web=ra-web-staging" >> "$GITHUB_OUTPUT" ;;
+            main) echo "api=ra-api-prod"    >> "$GITHUB_OUTPUT"; echo "web=ra-web-prod"    >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Build API (for source maps)
+        if: steps.gate.outputs.skip != 'true'
+        run: bun --filter api run build
+        working-directory: .
+
+      - name: Build Web (Next.js auto-uploads maps via withSentryConfig)
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          SENTRY_PROJECT_WEB: ${{ steps.slugs.outputs.web }}
+        run: bun --filter web run build
+
+      - name: Install sentry-cli
+        if: steps.gate.outputs.skip != 'true'
+        run: curl -sL https://sentry.io/get-cli/ | bash
+
+      - name: Create Sentry release (API)
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          SENTRY_PROJECT: ${{ steps.slugs.outputs.api }}
+        run: |
+          sentry-cli releases new "$SENTRY_RELEASE"
+          sentry-cli releases set-commits "$SENTRY_RELEASE" --auto
+
+      - name: Upload API source maps
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          SENTRY_PROJECT: ${{ steps.slugs.outputs.api }}
+        run: |
+          sentry-cli releases files "$SENTRY_RELEASE" upload-sourcemaps \
+            src/apps/api/dist \
+            --rewrite
+
+      - name: Finalize Sentry release (API)
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          SENTRY_PROJECT: ${{ steps.slugs.outputs.api }}
+        run: sentry-cli releases finalize "$SENTRY_RELEASE"

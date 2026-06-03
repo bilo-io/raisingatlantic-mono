@@ -262,7 +262,7 @@ describe('ChildrenService', () => {
       const result = await service.addCompletedVaccination('c-1', {
         vaccineId: 'hexaxim3',
         dateAdministered: '2024-11-26',
-      } as any);
+      });
 
       expect(result).toEqual(
         expect.objectContaining({

@@ -4,7 +4,7 @@ import { createMockLogger } from '../../common/test/test-utils';
 describe('NoopEmailService', () => {
   it('logs a redacted recipient and returns delivered=false', async () => {
     const logger = createMockLogger();
-    const service = new NoopEmailService(logger as any);
+    const service = new NoopEmailService(logger);
 
     const result = await service.send({
       to: 'parent@example.com',
@@ -22,7 +22,7 @@ describe('NoopEmailService', () => {
 
   it('does not throw when recipient is malformed', async () => {
     const logger = createMockLogger();
-    const service = new NoopEmailService(logger as any);
+    const service = new NoopEmailService(logger);
 
     await expect(service.send({ to: '', subject: 'x' })).resolves.toEqual({
       delivered: false,

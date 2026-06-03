@@ -29,11 +29,19 @@ export class UsersService {
 
   async create(dto: CreateUserDto): Promise<User> {
     const span = this.tracer.startSpan('UsersService.create');
-    this.logger.log(`Attempting to create a new user: ${dto.email}`);
+    // Email passed as structured context so pino redaction can mask it; never
+    // interpolate PII into the log message string.
+    this.logger.log('Attempting to create a new user', {
+      role: dto.role,
+      email: dto.email,
+    });
     try {
       const user = this.usersRepository.create(dto);
       const saved = await this.usersRepository.save(user);
       this.metric.incrementCounter('user.created', 1, { status: 'success' });
+      // Dashboard-facing custom business metric (DEV.md §7.2): cumulative
+      // signups by role, rate-aggregated daily in the business dashboard.
+      this.metric.incrementCounter('ra_signups_total', 1, { role: dto.role });
       this.logger.log(`User successfully created with ID: ${saved.id}`);
       // TODO(phase-8): send welcome + email-verification message via
       // this.notifications.email({ ... }) once §8.1 provider is chosen and
@@ -77,7 +85,7 @@ export class UsersService {
         ...user,
         email: maskEmail(user.email),
         phone: maskPhone(user.phone),
-      })) as User[];
+      }));
     } finally {
       this.tracer.endSpan(span);
     }

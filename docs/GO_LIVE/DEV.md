@@ -13,7 +13,7 @@
 - [Phase 4: POPIA Compliance](#phase-4-popia-compliance): `DEV 20%`
 - [Phase 5: Security](#phase-5-security): `DEV 80%`
 - [Phase 6: Legal Documents](#phase-6-legal-documents): `DEV 5%`
-- [Phase 7: Observability & Monitoring](#phase-7-observability--monitoring): `DEV 80%`
+- [Phase 7: Observability & Monitoring](#phase-7-observability--monitoring): `DEV 95%`
 - [Phase 8: Email, SMS & Notifications](#phase-8-email-sms--notifications): `DEV 50%`
 - [Phase 9: CI/CD & Release Engineering](#phase-9-cicd--release-engineering): `DEV 100%`
 - [Phase 10: Mobile App Release](#phase-10-mobile-app-release): `DEV 50%`
@@ -596,34 +596,34 @@ Production systems need eyes on them. The telemetry interfaces exist in `core/te
 #### 7.1 Logging
 The boring layer that saves us at 2am.
 
-- [ ] Structured JSON logging on the NestJS API ([Pino](https://getpino.io) or [Winston](https://github.com/winstonjs/winston)) shipped to Cloud Logging
-- [ ] Request correlation IDs propagated through every layer
-- [ ] PII redaction filter (no emails, names, IDs in logs)
-- [ ] Log retention: 30 days hot, 1 year cold (GCS bucket)
+- [x] Structured JSON logging on the NestJS API ([Pino](https://getpino.io) or [Winston](https://github.com/winstonjs/winston)) shipped to Cloud Logging
+- [x] Request correlation IDs propagated through every layer
+- [x] PII redaction filter (no emails, names, IDs in logs)
+- [x] Log retention: 30 days hot, 1 year cold (GCS bucket)
 
 #### 7.2 Metrics & Tracing
 Knowing the system is healthy without grepping logs.
 
-- [ ] OpenTelemetry SDK wired through `core/telemetry` (interfaces already exist, concrete impls need finishing)
-- [ ] [Cloud Trace](https://cloud.google.com/trace) for distributed traces across web → API → DB
-- [ ] Cloud Monitoring dashboards for: API p50/p95/p99 latency, error rate, DB connection pool, queue depth
-- [ ] Custom business metrics: signups/day, verifications pending, vaccinations due
+- [x] OpenTelemetry SDK wired through `core/telemetry` (interfaces already exist, concrete impls need finishing)
+- [x] [Cloud Trace](https://cloud.google.com/trace) for distributed traces across web → API → DB
+- [x] Cloud Monitoring dashboards for: API p50/p95/p99 latency, error rate, DB connection pool, queue depth
+- [/] Custom business metrics: signups/day, verifications pending, vaccinations due
 
 #### 7.3 Error Tracking
 Knowing when things break before users tell us.
 
-- [ ] **[Sentry](https://sentry.io)** for both web (Next.js) and API (NestJS) and mobile (Expo)
-- [ ] Source maps uploaded on deploy
-- [ ] Release tagging tied to Git SHA
-- [ ] Alert routing: Slack `#alerts-prod` for critical, email digest for low-severity
+- [x] **[Sentry](https://sentry.io)** for both web (Next.js) and API (NestJS) and mobile (Expo)
+- [x] Source maps uploaded on deploy
+- [x] Release tagging tied to Git SHA
+- [x] Alert routing: Slack `#alerts-prod` for critical, email digest for low-severity
 
 #### 7.4 Uptime & SLOs
 External-perspective monitoring.
 
-- [ ] Synthetic uptime checks every 60s (Cloud Monitoring or [BetterStack](https://betterstack.com))
-- [ ] Public status page (`status.raisingatlantic.com`) via BetterStack / [Statuspage](https://www.atlassian.com/software/statuspage) / [Instatus](https://instatus.com)
+- [x] Synthetic uptime checks every 60s (Cloud Monitoring or [BetterStack](https://betterstack.com))
+- [/] Public status page (`status.raisingatlantic.com`) via BetterStack / [Statuspage](https://www.atlassian.com/software/statuspage) / [Instatus](https://instatus.com)
 - [ ] Define SLOs (e.g. 99.5% monthly availability, p95 latency < 500ms) and error budgets
-- [ ] On-call rotation, even with a single on-call engineer, define who gets paged and how ([PagerDuty](https://www.pagerduty.com) / [OpsGenie](https://www.atlassian.com/software/opsgenie) / BetterStack)
+- [/] On-call rotation, even with a single on-call engineer, define who gets paged and how ([PagerDuty](https://www.pagerduty.com) / [OpsGenie](https://www.atlassian.com/software/opsgenie) / BetterStack)
 
 ---
 

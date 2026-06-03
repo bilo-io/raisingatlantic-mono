@@ -250,7 +250,7 @@ export class ChildrenService {
 
   async update(id: string, dto: UpdateChildDto): Promise<Child> {
     const existing = await this.findOne(id);
-    const updated = this.childRepo.merge(existing, dto as any);
+    const updated = this.childRepo.merge(existing, dto);
     return await this.childRepo.save(updated);
   }
 

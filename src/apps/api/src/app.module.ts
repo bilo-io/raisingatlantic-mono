@@ -1,11 +1,16 @@
-import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { LoggerModule } from 'nestjs-pino';
+import { ClsModule } from 'nestjs-cls';
+import { SentryModule, SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { UserAwareThrottlerGuard } from './common/guards/user-aware-throttler.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { buildLoggerConfig } from './common/logging/logger.config';
+import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { ExamplesModule } from './examples/examples.module';
 import { Example } from './examples/examples.model';
 import { UsersModule } from './users/users.module';
@@ -44,6 +49,22 @@ import { NotificationsModule } from './notifications/notifications.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+
+    // AsyncLocalStorage store — request-id propagates from the correlation
+    // middleware to every async hop without manual threading.
+    ClsModule.forRoot({
+      global: true,
+      middleware: { mount: true, generateId: false },
+    }),
+
+    // Structured JSON logging with POPIA redaction. Config encapsulated in
+    // common/logging/logger.config.ts. Replaces the default Nest logger.
+    LoggerModule.forRoot(buildLoggerConfig()),
+
+    // Sentry error tracking. Init lives in instrumentation.ts so it runs
+    // before any Nest module loads; this module wires Sentry into the Nest
+    // request lifecycle.
+    SentryModule.forRoot(),
 
     // Rate limiting: three named tiers applied globally via APP_GUARD.
     // - short:  burst protection (any single hot loop)
@@ -130,6 +151,13 @@ import { NotificationsModule } from './notifications/notifications.module';
   providers: [
     AppService,
     { provide: APP_GUARD, useClass: UserAwareThrottlerGuard },
+    // SentryGlobalFilter must be the first APP_FILTER so it intercepts
+    // exceptions before Nest's default exception filter formats them.
+    { provide: APP_FILTER, useClass: SentryGlobalFilter },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(CorrelationIdMiddleware).forRoutes('*');
+  }
+}

@@ -1,5 +1,10 @@
+// MUST be the very first import — initialises Sentry then OpenTelemetry
+// before any other module is required, so auto-instrumentations can patch.
+import './instrumentation';
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 
 import * as cookieParser from 'cookie-parser';
@@ -13,7 +18,13 @@ import { Request, Response } from 'express';
 let appPromise: Promise<NestExpressApplication> | null = null;
 
 async function bootstrap(): Promise<NestExpressApplication> {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+  });
+
+  // Replace the default Nest logger with the configured Pino logger so framework
+  // log lines also flow through JSON + redaction + Cloud Logging.
+  app.useLogger(app.get(Logger));
 
   if (!process.env.VERCEL) {
     app.useStaticAssets(join(__dirname, '..', 'public'));

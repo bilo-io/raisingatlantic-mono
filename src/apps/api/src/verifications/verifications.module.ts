@@ -9,6 +9,7 @@ import {
   CompletedMilestone,
   CompletedVaccination,
 } from '../children/children.model';
+import { GcpMetricService } from '@core/telemetry/gcp/metric.service';
 
 @Module({
   imports: [
@@ -20,7 +21,10 @@ import {
       CompletedVaccination,
     ]),
   ],
-  providers: [VerificationsService],
+  providers: [
+    VerificationsService,
+    { provide: 'IMetricService', useClass: GcpMetricService },
+  ],
   controllers: [VerificationsController],
   exports: [VerificationsService],
 })

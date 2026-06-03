@@ -42,7 +42,7 @@ describe('BlogService', () => {
       repo.create.mockReturnValue(dto);
       repo.save.mockResolvedValue({ id: 'uuid1', ...dto });
 
-      const result = await service.create(dto as any);
+      const result = await service.create(dto);
       expect(result.id).toBe('uuid1');
       expect(repo.create).toHaveBeenCalledWith(dto);
     });
@@ -114,7 +114,7 @@ describe('BlogService', () => {
       repo.findOne.mockResolvedValue(post);
       repo.save.mockResolvedValue(updated);
 
-      const result = await service.update('uuid1', { title: 'New' } as any);
+      const result = await service.update('uuid1', { title: 'New' });
       expect(result.title).toBe('New');
       expect(repo.save).toHaveBeenCalled();
     });

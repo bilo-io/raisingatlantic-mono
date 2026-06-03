@@ -4,7 +4,7 @@ import { createMockLogger } from '../../common/test/test-utils';
 describe('NoopSmsService', () => {
   it('logs a redacted phone and returns delivered=false', async () => {
     const logger = createMockLogger();
-    const service = new NoopSmsService(logger as any);
+    const service = new NoopSmsService(logger);
 
     const result = await service.send({
       to: '+27 82 123 4567',
