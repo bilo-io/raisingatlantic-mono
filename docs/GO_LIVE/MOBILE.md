@@ -247,30 +247,30 @@ Clinician-variant of the dashboard.
 Lower priority for mobile MVP — admin work is desktop-friendly and the web app already covers it. Ship after parent + clinician flows so the bar is "an admin can triage from their phone", not "an admin can run the platform from their phone".
 
 #### M3.1 Users
-- [ ] [users.tsx](../../src/apps/mobile/app/(app)/(admin)/users.tsx) — list + search + role filter
-- [ ] Uses `useUsersList` with tenant scope
-- [ ] Tap → user detail with role assignments (RBAC editing left to web)
+- [x] [users.tsx](../../src/apps/mobile/app/(app)/(admin)/users/index.tsx) — list + search + role filter
+- [x] Uses `useUsersList` with tenant scope
+- [x] Tap → user detail with role assignments (RBAC editing left to web)
 
 #### M3.2 Verifications
-- [ ] [verifications.tsx](../../src/apps/mobile/app/(app)/(admin)/verifications.tsx) — same component as [§M2.2](#m22-verifications) with admin-wide scope (not practice-scoped)
-- [ ] Add filter: by tenant, by practice, by HPCSA/SANC verification status
+- [x] [verifications.tsx](../../src/apps/mobile/app/(app)/(admin)/verifications.tsx) — same component as [§M2.2](#m22-verifications) with admin-wide scope (not practice-scoped)
+- [x] Add filter: by tenant, by practice, by HPCSA/SANC verification status
 
 #### M3.3 System
-- [ ] [system.tsx](../../src/apps/mobile/app/(app)/(admin)/system.tsx) — read-only platform health summary
-- [ ] Surface: API health (from [SystemHealthCheck.tsx](../../src/apps/web/src/components/SystemHealthCheck.tsx) equivalent), feature flags (read-only), tenant count
-- [ ] Full config edits stay on web
+- [x] [system.tsx](../../src/apps/mobile/app/(app)/(admin)/system.tsx) — read-only platform health summary
+- [x] Surface: API health (from [SystemHealthCheck.tsx](../../src/apps/web/src/components/SystemHealthCheck.tsx) equivalent), feature flags (read-only), tenant count
+- [x] Full config edits stay on web
 
 #### M3.4 Activity
-- [ ] [activity.tsx](../../src/apps/mobile/app/(app)/(admin)/activity.tsx) — recent platform events
-- [ ] Read from system-logs module on API — filter to high-signal events only (auth failures, verification state changes), not the full audit firehose
-- [ ] Mobile is for spot-checks; full audit is web-only
+- [x] [activity.tsx](../../src/apps/mobile/app/(app)/(admin)/activity.tsx) — recent platform events
+- [x] Read from system-logs module on API — filter to high-signal events only (auth failures, verification state changes), not the full audit firehose
+- [x] Mobile is for spot-checks; full audit is web-only
 
 #### M3.5 Dashboard
-- [ ] Cards: platform health, pending verifications count, user signups this week, recent admin actions
-- [ ] `DashboardHomeAdmin` variant
+- [x] Cards: platform health, pending verifications count, user signups this week, recent admin actions
+- [x] `DashboardHomeAdmin` variant
 
 #### M3.6 Profile
-- [ ] Extend profile to surface admin scope (tenant-admin vs super-admin), recent admin actions
+- [x] Extend profile to surface admin scope (tenant-admin vs super-admin), recent admin actions
 
 ---
 
