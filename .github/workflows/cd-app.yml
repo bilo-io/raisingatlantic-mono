@@ -22,9 +22,41 @@ env:
   # PROJECT_ID, ENV_NAME, REGION, and SA are resolved in each job via branch map
 
 jobs:
+  # ── 0. Preflight: detect whether GCP auth is configured ──────────────────
+  # The `APP_WORKLOAD_IDENTITY_PROVIDER` secret is populated by Phase 1.2 of the
+  # go-live plan (see docs/GO_LIVE/DEV.md §1.2 and TODO_GCP.md). Until the GCP
+  # project + Workload Identity Pool are bootstrapped, every downstream job here
+  # fails at `google-github-actions/auth` with a hard error. This preflight
+  # detects the secret's presence and turns the whole pipeline into a clean
+  # "skipped" status with a workflow-level notice, so CI doesn't pretend the
+  # app-deploy path is broken when it just hasn't been wired up yet.
+  #
+  # TODO(GCP): once Phase 1.2 lands and APP_WORKLOAD_IDENTITY_PROVIDER is set
+  # in repo Settings → Secrets and variables → Actions, this gate becomes a
+  # no-op and all downstream jobs run normally. No code change needed.
+  preflight:
+    name: Preflight (GCP secrets check)
+    runs-on: ubuntu-latest
+    outputs:
+      gcp_configured: ${{ steps.check.outputs.gcp_configured }}
+    steps:
+      - id: check
+        env:
+          WIF_PROVIDER: ${{ secrets.APP_WORKLOAD_IDENTITY_PROVIDER }}
+        run: |
+          if [ -n "$WIF_PROVIDER" ]; then
+            echo "gcp_configured=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::GCP auth configured — running full CD pipeline."
+          else
+            echo "gcp_configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping CD — APP_WORKLOAD_IDENTITY_PROVIDER not set. Bootstrap Phase 1.2 (docs/GO_LIVE/DEV.md §1.2) to enable deploys."
+          fi
+
   # ── 1. Build images, scan, sign, push ────────────────────────────────────
   build-and-push:
     name: Build & Push
+    needs: preflight
+    if: needs.preflight.outputs.gcp_configured == 'true'
     runs-on: ubuntu-latest
     outputs:
       api_image: ${{ steps.meta.outputs.api_image }}
@@ -59,6 +91,10 @@ jobs:
           echo "api_image=${{ env.REGISTRY }}/${PROJECT_ID}/ra-images/ra-api:${{ github.sha }}" >> "$GITHUB_OUTPUT"
           echo "web_image=${{ env.REGISTRY }}/${PROJECT_ID}/ra-images/ra-web:${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
+      # TODO(GCP): requires `APP_WORKLOAD_IDENTITY_PROVIDER` repo secret. Set
+      # to the resource name of the GitHub WIF provider created by
+      # `infra/bootstrap/` (Phase 1.2, DEV.md §1.4). The `preflight` job above
+      # gates this whole job on the secret being present.
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -142,6 +178,7 @@ jobs:
         run: cosign sign --yes ${{ steps.meta.outputs.web_image }}
 
   # ── 2a. Deploy to dev (auto — branch: dev) ────────────────────────────────
+  # Cascade-skipped when build-and-push is skipped by the preflight gate.
   deploy-dev:
     name: Deploy → dev
     needs: build-and-push
@@ -150,6 +187,8 @@ jobs:
     environment: dev
 
     steps:
+      # TODO(GCP): requires APP_WORKLOAD_IDENTITY_PROVIDER + APP_SERVICE_ACCOUNT_DEV
+      # repo secrets (Phase 1.2). Whole job is gated by the preflight check.
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -220,6 +259,7 @@ jobs:
           config: baseUrl=https://raisingatlantic-web-dev.vercel.app
 
   # ── 2b. Deploy to staging (auto — branch: test) ───────────────────────────
+  # Cascade-skipped when build-and-push is skipped by the preflight gate.
   deploy-staging:
     name: Deploy → staging
     needs: build-and-push
@@ -228,6 +268,8 @@ jobs:
     environment: staging
 
     steps:
+      # TODO(GCP): requires APP_WORKLOAD_IDENTITY_PROVIDER + APP_SERVICE_ACCOUNT_STAGING
+      # repo secrets (Phase 1.2). Whole job is gated by the preflight check.
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -298,6 +340,7 @@ jobs:
           config: baseUrl=https://raisingatlantic-web-test.vercel.app
 
   # ── 2c. Deploy to prod (manual approval — branch: main) ───────────────────
+  # Cascade-skipped when build-and-push is skipped by the preflight gate.
   deploy-prod:
     name: Deploy → prod
     needs: build-and-push
@@ -306,6 +349,8 @@ jobs:
     environment: production  # GitHub Environment — requires reviewer approval
 
     steps:
+      # TODO(GCP): requires APP_WORKLOAD_IDENTITY_PROVIDER + APP_SERVICE_ACCOUNT_PROD
+      # repo secrets (Phase 1.2). Whole job is gated by the preflight check.
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:

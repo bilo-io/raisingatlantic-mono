@@ -14,8 +14,38 @@ permissions:
   id-token: write  # Required for Workload Identity Federation
 
 jobs:
+  # ── Preflight: detect whether Terraform GCP auth is configured ───────────
+  # `TF_WORKLOAD_IDENTITY_PROVIDER` is populated by Phase 1.2 of the go-live
+  # plan (see docs/GO_LIVE/DEV.md §1.4 and TODO_GCP.md). Until the GCP project +
+  # Workload Identity Pool are bootstrapped, the plan job fails at the auth
+  # step. This preflight detects the secret's presence and turns the workflow
+  # into a clean "skipped" status with a workflow-level notice.
+  #
+  # TODO(GCP): once Phase 1.2 lands and TF_WORKLOAD_IDENTITY_PROVIDER is set in
+  # repo Settings → Secrets and variables → Actions, this gate becomes a no-op
+  # and the plan job runs normally.
+  preflight:
+    name: Preflight (Terraform secrets check)
+    runs-on: ubuntu-latest
+    outputs:
+      gcp_configured: ${{ steps.check.outputs.gcp_configured }}
+    steps:
+      - id: check
+        env:
+          WIF_PROVIDER: ${{ secrets.TF_WORKLOAD_IDENTITY_PROVIDER }}
+        run: |
+          if [ -n "$WIF_PROVIDER" ]; then
+            echo "gcp_configured=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Terraform GCP auth configured — running plan."
+          else
+            echo "gcp_configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping Terraform Plan — TF_WORKLOAD_IDENTITY_PROVIDER not set. Bootstrap Phase 1.2 (docs/GO_LIVE/DEV.md §1.4) to enable plans."
+          fi
+
   plan:
     name: Plan (${{ matrix.env }})
+    needs: preflight
+    if: needs.preflight.outputs.gcp_configured == 'true'
     runs-on: ubuntu-latest
     strategy:
       # `env` is lowercase (matches the infra/envs/<env>/ directory layout).
