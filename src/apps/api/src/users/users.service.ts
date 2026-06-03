@@ -85,7 +85,7 @@ export class UsersService {
         ...user,
         email: maskEmail(user.email),
         phone: maskPhone(user.phone),
-      })) as User[];
+      }));
     } finally {
       this.tracer.endSpan(span);
     }

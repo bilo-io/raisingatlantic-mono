@@ -55,7 +55,7 @@ export class PracticesService {
         ...practice,
         manager: 'Restricted Access',
         email: 'Restricted Access',
-      })) as Practice[];
+      }));
     } finally {
       this.tracer.endSpan(span);
     }

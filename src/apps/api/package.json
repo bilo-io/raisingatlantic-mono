@@ -115,6 +115,9 @@
       "\\.dto\\.ts$",
       "\\.entity\\.ts$",
       "main\\.ts$",
+      "instrumentation\\.ts$",
+      "logger\\.config\\.ts$",
+      "redact-paths\\.ts$",
       "db/migrations/"
     ],
     "coverageThreshold": {

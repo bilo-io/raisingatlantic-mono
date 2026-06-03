@@ -1,5 +1,4 @@
 import type {NextConfig} from 'next';
-import {withSentryConfig} from '@sentry/nextjs';
 import bundleAnalyzer from '@next/bundle-analyzer';
 
 const nextConfig: NextConfig = {
@@ -30,15 +29,10 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
-// Sentry build-time wrapper. Source-map upload runs in CI (cd-app.yml) using
-// `SENTRY_AUTH_TOKEN`; `SENTRY_ORG` and `SENTRY_PROJECT` are read from env.
-// `silent` suppresses noisy build logs in CI.
-export default withSentryConfig(withBundleAnalyzer(nextConfig), {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT_WEB ?? 'ra-web-prod',
-  silent: !process.env.CI,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  widenClientFileUpload: true,
-  hideSourceMaps: true,
-  disableLogger: true,
-});
+// Sentry SDK is initialised at runtime via instrumentation.ts +
+// sentry.{client,server,edge}.config.ts; source-map upload runs in CI as a
+// dedicated `sentry-release` job (see .github/workflows/cd-app.yml) using
+// sentry-cli, so we intentionally do NOT wrap next.config with
+// `withSentryConfig` here — that wrapper injects a webpack config which
+// conflicts with Next.js 16's Turbopack default.
+export default withBundleAnalyzer(nextConfig);

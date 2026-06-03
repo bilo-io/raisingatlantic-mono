@@ -62,7 +62,7 @@ describe('GcpLoggerService (Pino delegate)', () => {
   });
 
   it('coerces a non-object context into a `context` field', () => {
-    logger.log('plain', 'string-context' as unknown);
+    logger.log('plain', 'string-context');
     expect(sink.info).toHaveBeenCalledWith(
       { context: 'string-context' },
       'plain',

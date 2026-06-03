@@ -15,10 +15,10 @@ describe('DefaultNotificationDispatcher', () => {
   it('delegates email() to the IEmailService', async () => {
     const email = makeEmail();
     const dispatcher = new DefaultNotificationDispatcher(
-      email as any,
-      makeSms() as any,
-      makePush() as any,
-      createMockLogger() as any,
+      email,
+      makeSms(),
+      makePush(),
+      createMockLogger(),
     );
 
     const msg = { to: 'a@b.com', subject: 's', text: 't' };
@@ -31,10 +31,10 @@ describe('DefaultNotificationDispatcher', () => {
   it('delegates sms() to the ISmsService', async () => {
     const sms = makeSms();
     const dispatcher = new DefaultNotificationDispatcher(
-      makeEmail() as any,
-      sms as any,
-      makePush() as any,
-      createMockLogger() as any,
+      makeEmail(),
+      sms,
+      makePush(),
+      createMockLogger(),
     );
 
     await dispatcher.sms({ to: '+27 82 000 0000', body: 'hi' });
@@ -44,10 +44,10 @@ describe('DefaultNotificationDispatcher', () => {
   it('delegates push() to the IPushNotificationService', async () => {
     const push = makePush();
     const dispatcher = new DefaultNotificationDispatcher(
-      makeEmail() as any,
-      makeSms() as any,
-      push as any,
-      createMockLogger() as any,
+      makeEmail(),
+      makeSms(),
+      push,
+      createMockLogger(),
     );
 
     await dispatcher.push({ token: 'tok', title: 't', body: 'b' });
@@ -57,10 +57,10 @@ describe('DefaultNotificationDispatcher', () => {
   it('notifyUser() is a logged no-op until preferences land', async () => {
     const logger = createMockLogger();
     const dispatcher = new DefaultNotificationDispatcher(
-      makeEmail() as any,
-      makeSms() as any,
-      makePush() as any,
-      logger as any,
+      makeEmail(),
+      makeSms(),
+      makePush(),
+      logger,
     );
 
     await dispatcher.notifyUser('user-1', 'epi.due', { vaccine: 'BCG' });

@@ -73,7 +73,7 @@ describe('LeadsService', () => {
     systemLogs.createLog.mockResolvedValue({} as any);
 
     await service.create(
-      { email: 'anon@example.com', message: 'I am asking a question' } as any,
+      { email: 'anon@example.com', message: 'I am asking a question' },
       undefined,
     );
 

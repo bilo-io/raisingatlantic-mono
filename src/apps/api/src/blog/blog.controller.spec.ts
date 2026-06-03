@@ -37,7 +37,7 @@ describe('BlogController', () => {
         synopsis: 's',
         body: 'b',
       };
-      await controller.create(dto as any);
+      await controller.create(dto);
       expect(service.create).toHaveBeenCalledWith(dto);
     });
   });
@@ -73,7 +73,7 @@ describe('BlogController', () => {
   describe('update', () => {
     it('should call service.update with id and dto', async () => {
       const dto = { title: 'Updated' };
-      await controller.update('uuid1', dto as any);
+      await controller.update('uuid1', dto);
       expect(service.update).toHaveBeenCalledWith('uuid1', dto);
     });
   });

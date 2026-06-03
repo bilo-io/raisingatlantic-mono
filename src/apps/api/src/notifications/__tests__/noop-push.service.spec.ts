@@ -4,7 +4,7 @@ import { createMockLogger } from '../../common/test/test-utils';
 describe('NoopPushService', () => {
   it('logs a redacted token and returns delivered=false', async () => {
     const logger = createMockLogger();
-    const service = new NoopPushService(logger as any);
+    const service = new NoopPushService(logger);
 
     const result = await service.send({
       token: 'ExponentPushToken[xxxxxxxxxxxxxxxxxxxx]',
