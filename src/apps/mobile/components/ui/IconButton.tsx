@@ -1,7 +1,9 @@
 import { LucideIcon } from "lucide-react-native";
 import React from "react";
-import { Pressable, ViewStyle } from "react-native";
+import { Platform, Pressable, ViewStyle } from "react-native";
 import { useTheme } from "../../theme/useTheme";
+
+const MIN_TAP_TARGET = Platform.OS === "android" ? 48 : 44;
 
 type Variant = "ghost" | "outline" | "filled";
 
@@ -44,7 +46,7 @@ export function IconButton({
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      hitSlop={6}
+      hitSlop={Math.max(0, (MIN_TAP_TARGET - size) / 2)}
       style={({ pressed }) => [
         {
           width: size,

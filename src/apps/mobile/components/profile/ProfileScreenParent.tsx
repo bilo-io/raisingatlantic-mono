@@ -19,6 +19,7 @@ import { useTheme } from "../../theme/useTheme";
 import { ProfileScreenBase } from "./ProfileScreenBase";
 
 const NOTIF_KEY = "@ra/notif-prefs";
+const QUIET_KEY = "@ra/quiet-hours";
 const POPIA_KEY = "@ra/popia-requests";
 
 const profileSchema = z.object({
@@ -34,6 +35,27 @@ type NotifPrefs = {
   growthCheckIns: boolean;
   messages: boolean;
 };
+
+type QuietHours = {
+  enabled: boolean;
+  startHour: number;
+  endHour: number;
+};
+
+const DEFAULT_QUIET: QuietHours = {
+  enabled: false,
+  startHour: 21,
+  endHour: 7,
+};
+
+function formatHour(h: number): string {
+  const hh = String(h).padStart(2, "0");
+  return `${hh}:00`;
+}
+
+function nextHour(h: number, dir: 1 | -1): number {
+  return (h + dir + 24) % 24;
+}
 
 type PopiaRequest = {
   type: "data-export" | "account-deletion";
@@ -64,6 +86,7 @@ export function ProfileScreenParent() {
   });
 
   const [notifs, setNotifs] = useState<NotifPrefs>(DEFAULT_NOTIFS);
+  const [quiet, setQuiet] = useState<QuietHours>(DEFAULT_QUIET);
 
   useEffect(() => {
     AsyncStorage.getItem(NOTIF_KEY).then((raw) => {
@@ -75,7 +98,21 @@ export function ProfileScreenParent() {
         }
       }
     });
+    AsyncStorage.getItem(QUIET_KEY).then((raw) => {
+      if (raw) {
+        try {
+          setQuiet({ ...DEFAULT_QUIET, ...(JSON.parse(raw) as Partial<QuietHours>) });
+        } catch {
+          // ignore corrupted store
+        }
+      }
+    });
   }, []);
+
+  function persistQuiet(next: QuietHours) {
+    setQuiet(next);
+    AsyncStorage.setItem(QUIET_KEY, JSON.stringify(next)).catch(() => undefined);
+  }
 
   useEffect(() => {
     form.reset({
@@ -222,6 +259,79 @@ export function ProfileScreenParent() {
           value={notifs.messages}
           onToggle={() => toggleNotif("messages")}
         />
+      </Card>
+
+      <Text variant="label" style={{ marginBottom: 10 }}>
+        Quiet hours
+      </Text>
+      <Card style={{ marginBottom: 22 }}>
+        <NotifRow
+          label="Mute non-urgent notifications"
+          value={quiet.enabled}
+          onToggle={() => persistQuiet({ ...quiet, enabled: !quiet.enabled })}
+        />
+        {quiet.enabled ? (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingVertical: 8,
+            }}
+          >
+            <View style={{ flex: 1 }}>
+              <Text variant="body">From {formatHour(quiet.startHour)}</Text>
+              <Text variant="muted">
+                until {formatHour(quiet.endHour)}
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", gap: 6 }}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Earlier start hour"
+                onPress={() =>
+                  persistQuiet({
+                    ...quiet,
+                    startHour: nextHour(quiet.startHour, -1),
+                  })
+                }
+                style={{
+                  minWidth: 44,
+                  minHeight: 44,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: 10,
+                  backgroundColor: tokens.muted,
+                }}
+              >
+                <Text variant="bodyStrong">−</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Later end hour"
+                onPress={() =>
+                  persistQuiet({
+                    ...quiet,
+                    endHour: nextHour(quiet.endHour, 1),
+                  })
+                }
+                style={{
+                  minWidth: 44,
+                  minHeight: 44,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: 10,
+                  backgroundColor: tokens.muted,
+                }}
+              >
+                <Text variant="bodyStrong">+</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
+        <Text variant="muted" style={{ marginTop: 6 }}>
+          Server enforces quiet hours. Urgent vaccine alerts will still come through.
+        </Text>
       </Card>
 
       <Text variant="label" style={{ marginBottom: 10 }}>

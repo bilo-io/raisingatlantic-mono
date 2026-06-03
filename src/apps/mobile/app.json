@@ -14,7 +14,11 @@
       "backgroundColor": "#F3F1E9"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "associatedDomains": ["applinks:app.raisingatlantic.com"],
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "Raising Atlantic uses notifications to remind you about vaccinations, appointments and messages from your care team. No personal information is included in the notification text."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +26,20 @@
         "backgroundColor": "#F3F1E9"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "app.raisingatlantic.com"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -30,7 +47,15 @@
     },
     "plugins": [
       "expo-router",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-secure-store",
+      "@sentry/react-native",
+      [
+        "expo-notifications",
+        {
+          "color": "#D97757"
+        }
+      ]
     ],
     "extra": {
       "EXPO_PUBLIC_USE_API": "false"

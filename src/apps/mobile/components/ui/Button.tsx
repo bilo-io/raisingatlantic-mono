@@ -3,6 +3,7 @@ import { LucideIcon } from "lucide-react-native";
 import React from "react";
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   PressableProps,
   View,
@@ -10,6 +11,9 @@ import {
 } from "react-native";
 import { useTheme } from "../../theme/useTheme";
 import { Text } from "./Text";
+
+const MIN_TAP_TARGET = Platform.OS === "android" ? 48 : 44;
+const TAP_HIT_SLOP = { top: 6, bottom: 6, left: 6, right: 6 };
 
 export type ButtonVariant =
   | "primary"
@@ -84,6 +88,7 @@ export function Button({
     borderColor: palette.border,
     opacity: isDisabled ? 0.6 : 1,
     overflow: "hidden",
+    minHeight: MIN_TAP_TARGET,
   };
 
   const Content = (
@@ -143,10 +148,15 @@ export function Button({
     </>
   );
 
+  const a11yLabel = (rest as { accessibilityLabel?: string }).accessibilityLabel ?? label;
+
   if (isPrimary) {
     return (
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel={a11yLabel}
+        accessibilityState={{ disabled: isDisabled, busy: loading }}
+        hitSlop={TAP_HIT_SLOP}
         disabled={isDisabled}
         style={[
           {
@@ -154,6 +164,7 @@ export function Button({
             borderRadius: 12,
             overflow: "hidden",
             opacity: isDisabled ? 0.6 : 1,
+            minHeight: MIN_TAP_TARGET,
           },
           typeof style === "function" ? undefined : style,
         ]}
@@ -169,6 +180,7 @@ export function Button({
             paddingVertical: s.paddingVertical,
             paddingHorizontal: s.paddingHorizontal,
             borderRadius: 12,
+            minHeight: MIN_TAP_TARGET,
           }}
         >
           {Content}
@@ -182,6 +194,9 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={a11yLabel}
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
+      hitSlop={TAP_HIT_SLOP}
       disabled={isDisabled}
       style={externalStyle ? [buttonStyle, externalStyle] : buttonStyle}
       {...rest}
