@@ -8,6 +8,6 @@
     "class-validator": "^0.15.1"
   },
   "devDependencies": {
-    "lefthook": "^1.7.0"
+    "lefthook": "^2.1.9"
   }
 }
