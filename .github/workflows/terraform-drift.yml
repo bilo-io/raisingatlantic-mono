@@ -105,7 +105,7 @@ jobs:
       - name: Notify Slack on drift
         # Only alert when changes are detected (exit code 2) or on error (exit code 1)
         if: steps.plan.outputs.exit_code != '0'
-        uses: slackapi/slack-github-action@v2
+        uses: slackapi/slack-github-action@v3
         with:
           payload: |
             {

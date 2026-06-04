@@ -80,7 +80,7 @@ jobs:
 
       - name: Notify Slack — dev applied
         if: always()
-        uses: slackapi/slack-github-action@v2
+        uses: slackapi/slack-github-action@v3
         with:
           payload: |
             {
@@ -135,7 +135,7 @@ jobs:
 
       - name: Notify Slack — staging applied
         if: always()
-        uses: slackapi/slack-github-action@v2
+        uses: slackapi/slack-github-action@v3
         with:
           payload: |
             {
@@ -205,7 +205,7 @@ jobs:
 
       - name: Notify Slack — prod applied
         if: always()
-        uses: slackapi/slack-github-action@v2
+        uses: slackapi/slack-github-action@v3
         with:
           payload: |
             {
