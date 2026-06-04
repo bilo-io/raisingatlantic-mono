@@ -252,7 +252,7 @@ jobs:
       - name: Install Cypress deps
         run: moon run cypress:install
       - name: Run smoke suite
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@v7
         with:
           working-directory: src/test/cypress
           browser: chrome
@@ -333,7 +333,7 @@ jobs:
       - name: Install Cypress deps
         run: moon run cypress:install
       - name: Run smoke suite
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@v7
         with:
           working-directory: src/test/cypress
           browser: chrome
@@ -472,7 +472,7 @@ jobs:
       - name: Install Cypress deps
         run: moon run cypress:install
       - name: Run smoke suite
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@v7
         with:
           working-directory: src/test/cypress
           browser: chrome
