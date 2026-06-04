@@ -6,14 +6,16 @@
   --ink: #1a1d22;
   --ink-soft: #4a5058;
   --ink-muted: #7a818b;
-  --paper: #f7f4ed;
-  --warm-grey: #e8e4dd;
-  --warm-grey-soft: #f0ece4;
-  --cream: #fbf8f1;
-  --ocean-deep: #1a3454;
-  --ocean: #2b4f7a;
-  --accent: #d76a57;
-  --mustard: #d4a544;
+  /* Palette: "peach" — matches the source HTML's default TWEAK_DEFAULTS.palette
+     in src/apps/pedicheck-assets/resources/PediCheck/PediCheck Landing.html */
+  --paper: #f4e3d2;
+  --warm-grey: #e5d0bd;
+  --warm-grey-soft: #efddc8;
+  --cream: #f9ead8;
+  --ocean-deep: #5d3221;
+  --ocean: #80452f;
+  --accent: #c45a2c;
+  --mustard: #c4c269;
   --brand-coral: #d76a57;
   --brand-coral-lt: #f8ae9d;
   --brand-ink: #2b3a45;
