@@ -35,6 +35,14 @@ tasks:
       - 'src/**/*'
       - 'test/**/*'
 
+  test-cov:
+    command: 'npm run test:cov'
+    deps:
+      - 'build'
+    inputs:
+      - 'src/**/*'
+      - 'test/**/*'
+
   test-e2e:
     command: 'npm run test:e2e'
     inputs:

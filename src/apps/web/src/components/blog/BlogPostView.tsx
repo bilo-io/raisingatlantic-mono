@@ -6,21 +6,7 @@ import { Calendar, Clock, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@raising-atlantic/ui';
 
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-
-// Custom Markdown Display for the body
-const MarkdownDisplay = ({ markdownContent }: { markdownContent: string }) => {
-  if (!markdownContent) return null;
-  
-  return (
-    <div className="markdown-content prose prose-lg dark:prose-invert max-w-none">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-        {markdownContent}
-      </ReactMarkdown>
-    </div>
-  );
-};
+import { MarkdownContent } from '@/components/ui/markdown-content';
 
 interface BlogPostViewProps {
   post: any;
@@ -78,7 +64,9 @@ export function BlogPostView({ post, className }: BlogPostViewProps) {
         )}
         
         <div className="mt-16">
-          <MarkdownDisplay markdownContent={post.body} />
+          <MarkdownContent className="markdown-content prose-lg">
+            {post.body}
+          </MarkdownContent>
         </div>
         
         <hr className="my-20 border-border/30" />

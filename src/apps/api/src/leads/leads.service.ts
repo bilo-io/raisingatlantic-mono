@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CreateLeadDto } from './dto/create-lead.dto';
-import { MailService } from '../common/mail/mail.service';
+import { INotificationDispatcher } from '@core/notifications/interfaces/dispatcher.interface';
+import { NOTIFICATION_TOKENS } from '@core/notifications/interfaces/tokens';
 import { SystemLogsService } from '../system-logs/system-logs.service';
 
 @Injectable()
@@ -8,7 +9,8 @@ export class LeadsService {
   private readonly logger = new Logger(LeadsService.name);
 
   constructor(
-    private readonly mailService: MailService,
+    @Inject(NOTIFICATION_TOKENS.Dispatcher)
+    private readonly notifications: INotificationDispatcher,
     private readonly systemLogsService: SystemLogsService,
   ) {}
 
@@ -17,23 +19,25 @@ export class LeadsService {
     const finalSubject = subject || 'New Lead from Contact Form';
     const finalName = name || 'Anonymous Lead';
 
-    this.logger.log(`Received lead from ${email}`);
+    this.logger.log('Received lead'); // no PII in this log line
 
-    // 1. Send Email
+    // 1. Send admin notification email
     try {
-      await this.mailService.sendMail(
-        'admin@raisingatlantic.com', // Admin notification
-        `Lead: ${finalSubject}`,
-        `New lead from ${finalName} (${email}):\n\n${message}`,
-        finalName,
-      );
+      await this.notifications.email({
+        to: 'admin@raisingatlantic.com',
+        subject: `Lead: ${finalSubject}`,
+        text: `New lead from ${finalName} (${email}):\n\n${message}`,
+        fromName: finalName,
+      });
     } catch (error) {
       this.logger.error(
-        `Error sending lead notification email: ${error.message}`,
+        `Error sending lead notification email: ${(error as Error).message}`,
       );
-      // We don't throw here to ensure the log is still created,
-      // but in a real app you might want to handle this differently.
+      // Swallow so the system log still gets written.
     }
+
+    // TODO(phase-8): send a "thanks, we'll be in touch" email to the lead
+    // themselves once the templating + provider story lands — see DEV.md §8.1.
 
     // 2. Log in System Logs
     await this.systemLogsService.createLog({
@@ -43,7 +47,7 @@ export class LeadsService {
         email,
         name: finalName,
         subject: finalSubject,
-        icon: 'envelope', // Special metadata for UI
+        icon: 'envelope',
       },
       ipAddress: ip,
     });

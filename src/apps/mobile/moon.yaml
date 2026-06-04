@@ -39,8 +39,12 @@ tasks:
       - 'dist'
 
   lint:
-    # Typecheck as a basic lint step
+    # Typecheck as a basic lint step. `types:install` runs first so that
+    # `zod` is resolvable when tsc walks into `pkgs/types/src/*.ts` via the
+    # `@raising-atlantic/types` path alias.
     command: 'npx tsc --noEmit'
+    deps:
+      - 'types:install'
     inputs:
       - '**/*.{ts,tsx}'
       - 'tsconfig.json'

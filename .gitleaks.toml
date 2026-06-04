@@ -1,0 +1,28 @@
+# gitleaks configuration for Raising Atlantic.
+# Extends the default ruleset; allowlist entries narrowly suppress the known
+# placeholders that ship in .env.example files so we don't poison the signal.
+title = "raisingatlantic-mono"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known-safe placeholders and synthetic test fixtures"
+
+paths = [
+  '''.*\.env\.example$''',
+  '''docs/.*''',
+  '''src/test/postman/environments/.*''',
+]
+
+regexes = [
+  # Placeholder strings used in .env.example files
+  '''CHANGE_ME_USE_SECRET_MANAGER_IN_PROD''',
+  '''password123''',
+  '''postgres:postgres@localhost''',
+  '''ci-test-secret''',
+  # Synthetic UUIDs used as documentation examples
+  '''eb8c8f5d-d922-4a0b-9c8a-788b77098e9b''',
+]
+
+commits = []

@@ -14,12 +14,54 @@ permissions:
   id-token: write  # Required for Workload Identity Federation
 
 jobs:
+  # ── Preflight: detect whether Terraform GCP auth is configured ───────────
+  # `TF_WORKLOAD_IDENTITY_PROVIDER` is populated by Phase 1.2 of the go-live
+  # plan (see docs/GO_LIVE/DEV.md §1.4 and TODO_GCP.md). Until the GCP project +
+  # Workload Identity Pool are bootstrapped, the plan job fails at the auth
+  # step. This preflight detects the secret's presence and turns the workflow
+  # into a clean "skipped" status with a workflow-level notice.
+  #
+  # TODO(GCP): once Phase 1.2 lands and TF_WORKLOAD_IDENTITY_PROVIDER is set in
+  # repo Settings → Secrets and variables → Actions, this gate becomes a no-op
+  # and the plan job runs normally.
+  preflight:
+    name: Preflight (Terraform secrets check)
+    runs-on: ubuntu-latest
+    outputs:
+      gcp_configured: ${{ steps.check.outputs.gcp_configured }}
+    steps:
+      - id: check
+        env:
+          WIF_PROVIDER: ${{ secrets.TF_WORKLOAD_IDENTITY_PROVIDER }}
+        run: |
+          if [ -n "$WIF_PROVIDER" ]; then
+            echo "gcp_configured=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Terraform GCP auth configured — running plan."
+          else
+            echo "gcp_configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping Terraform Plan — TF_WORKLOAD_IDENTITY_PROVIDER not set. Bootstrap Phase 1.2 (docs/GO_LIVE/DEV.md §1.4) to enable plans."
+          fi
+
   plan:
     name: Plan (${{ matrix.env }})
+    needs: preflight
+    if: needs.preflight.outputs.gcp_configured == 'true'
     runs-on: ubuntu-latest
     strategy:
+      # `env` is lowercase (matches the infra/envs/<env>/ directory layout).
+      # `env_upper` is the uppercase form used to suffix per-env GitHub secrets
+      # (e.g. TF_SERVICE_ACCOUNT_DEV, STRIPE_API_KEY_PROD). We have to provide
+      # both because GitHub Actions expressions have no `upper()` function —
+      # building the suffix dynamically with `upper(matrix.env)` makes GitHub
+      # reject the workflow at parse time before any job runs.
       matrix:
-        env: [dev, staging, prod]
+        include:
+          - env: dev
+            env_upper: DEV
+          - env: staging
+            env_upper: STAGING
+          - env: prod
+            env_upper: PROD
       fail-fast: false
 
     defaults:
@@ -43,7 +85,7 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.TF_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets[format('TF_SERVICE_ACCOUNT_{0}', upper(matrix.env))] }}
+          service_account: ${{ secrets[format('TF_SERVICE_ACCOUNT_{0}', matrix.env_upper)] }}
 
       - name: Terraform Format Check
         id: fmt
@@ -90,7 +132,7 @@ jobs:
             2>&1 | tee plan.txt
         env:
           TF_VAR_github_token: ${{ secrets.GH_TOKEN_TERRAFORM }}
-          TF_VAR_stripe_api_key: ${{ secrets[format('STRIPE_API_KEY_{0}', upper(matrix.env))] }}
+          TF_VAR_stripe_api_key: ${{ secrets[format('STRIPE_API_KEY_{0}', matrix.env_upper)] }}
           TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           TF_VAR_vercel_api_token: ${{ secrets.VERCEL_API_TOKEN }}
           TF_VAR_sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}

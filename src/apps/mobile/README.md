@@ -133,6 +133,37 @@ src/apps/mobile/
 
 ---
 
+## Data source toggle (mock vs real API)
+
+The app reads its data through `src/apps/mobile/lib/api/`. Every domain adapter
+(`adapters/*.adapter.ts`) checks a single flag and either calls the real API
+client or falls through to a fixture under `lib/api/fixtures/`.
+
+```bash
+# .env (default — local fixtures, no network)
+EXPO_PUBLIC_USE_API=false
+
+# Switch to live API
+EXPO_PUBLIC_USE_API=true
+```
+
+Expo inlines any `EXPO_PUBLIC_*` variable at build time. The default also
+lives in [app.json](./app.json) under `expo.extra.EXPO_PUBLIC_USE_API`.
+
+CI builds set this flag explicitly per environment — preview and production
+builds always run against the real API; PR smoke builds run against fixtures.
+
+### Fixture auth
+
+In fixture mode, `auth/AuthContext.tsx` publishes an **unsigned** dev JWT via
+`setAuthToken()` so requests issued in real-API mode still carry an
+`Authorization: Bearer …` header. The signer (`lib/api/fixture-jwt.ts`) throws
+in non-`__DEV__` builds, so production bundles cannot leak a fixture issuer.
+The API dev environment must accept this dev token until real auth lands
+([Phase M4.4](../../../docs/GO_LIVE/MOBILE.md#m44-real-auth-cutover)).
+
+---
+
 ## Styling
 
 This app uses **NativeWind v4** — Tailwind CSS for React Native.

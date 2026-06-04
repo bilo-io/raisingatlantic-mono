@@ -22,9 +22,41 @@ env:
   # PROJECT_ID, ENV_NAME, REGION, and SA are resolved in each job via branch map
 
 jobs:
+  # ── 0. Preflight: detect whether GCP auth is configured ──────────────────
+  # The `APP_WORKLOAD_IDENTITY_PROVIDER` secret is populated by Phase 1.2 of the
+  # go-live plan (see docs/GO_LIVE/DEV.md §1.2 and TODO_GCP.md). Until the GCP
+  # project + Workload Identity Pool are bootstrapped, every downstream job here
+  # fails at `google-github-actions/auth` with a hard error. This preflight
+  # detects the secret's presence and turns the whole pipeline into a clean
+  # "skipped" status with a workflow-level notice, so CI doesn't pretend the
+  # app-deploy path is broken when it just hasn't been wired up yet.
+  #
+  # TODO(GCP): once Phase 1.2 lands and APP_WORKLOAD_IDENTITY_PROVIDER is set
+  # in repo Settings → Secrets and variables → Actions, this gate becomes a
+  # no-op and all downstream jobs run normally. No code change needed.
+  preflight:
+    name: Preflight (GCP secrets check)
+    runs-on: ubuntu-latest
+    outputs:
+      gcp_configured: ${{ steps.check.outputs.gcp_configured }}
+    steps:
+      - id: check
+        env:
+          WIF_PROVIDER: ${{ secrets.APP_WORKLOAD_IDENTITY_PROVIDER }}
+        run: |
+          if [ -n "$WIF_PROVIDER" ]; then
+            echo "gcp_configured=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::GCP auth configured — running full CD pipeline."
+          else
+            echo "gcp_configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping CD — APP_WORKLOAD_IDENTITY_PROVIDER not set. Bootstrap Phase 1.2 (docs/GO_LIVE/DEV.md §1.2) to enable deploys."
+          fi
+
   # ── 1. Build images, scan, sign, push ────────────────────────────────────
   build-and-push:
     name: Build & Push
+    needs: preflight
+    if: needs.preflight.outputs.gcp_configured == 'true'
     runs-on: ubuntu-latest
     outputs:
       api_image: ${{ steps.meta.outputs.api_image }}
@@ -59,6 +91,10 @@ jobs:
           echo "api_image=${{ env.REGISTRY }}/${PROJECT_ID}/ra-images/ra-api:${{ github.sha }}" >> "$GITHUB_OUTPUT"
           echo "web_image=${{ env.REGISTRY }}/${PROJECT_ID}/ra-images/ra-web:${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
+      # TODO(GCP): requires `APP_WORKLOAD_IDENTITY_PROVIDER` repo secret. Set
+      # to the resource name of the GitHub WIF provider created by
+      # `infra/bootstrap/` (Phase 1.2, DEV.md §1.4). The `preflight` job above
+      # gates this whole job on the secret being present.
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -142,6 +178,7 @@ jobs:
         run: cosign sign --yes ${{ steps.meta.outputs.web_image }}
 
   # ── 2a. Deploy to dev (auto — branch: dev) ────────────────────────────────
+  # Cascade-skipped when build-and-push is skipped by the preflight gate.
   deploy-dev:
     name: Deploy → dev
     needs: build-and-push
@@ -150,6 +187,8 @@ jobs:
     environment: dev
 
     steps:
+      # TODO(GCP): requires APP_WORKLOAD_IDENTITY_PROVIDER + APP_SERVICE_ACCOUNT_DEV
+      # repo secrets (Phase 1.2). Whole job is gated by the preflight check.
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -194,7 +233,33 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
+  # ── 2a-smoke. Cypress smoke → dev ────────────────────────────────────────
+  cypress-smoke-dev:
+    name: Cypress Smoke → dev
+    needs: deploy-dev
+    if: github.ref_name == 'dev'
+    runs-on: ubuntu-latest
+    continue-on-error: true  # soft-fail until dev environment is fully stable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/test/cypress/package-lock.json
+      - name: Install Moon
+        run: npm install -g @moonrepo/cli
+      - name: Install Cypress deps
+        run: moon run cypress:install
+      - name: Run smoke suite
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: src/test/cypress
+          browser: chrome
+          config: baseUrl=https://raisingatlantic-web-dev.vercel.app
+
   # ── 2b. Deploy to staging (auto — branch: test) ───────────────────────────
+  # Cascade-skipped when build-and-push is skipped by the preflight gate.
   deploy-staging:
     name: Deploy → staging
     needs: build-and-push
@@ -203,6 +268,8 @@ jobs:
     environment: staging
 
     steps:
+      # TODO(GCP): requires APP_WORKLOAD_IDENTITY_PROVIDER + APP_SERVICE_ACCOUNT_STAGING
+      # repo secrets (Phase 1.2). Whole job is gated by the preflight check.
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -247,7 +314,33 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
+  # ── 2b-smoke. Cypress smoke → staging ────────────────────────────────────
+  cypress-smoke-staging:
+    name: Cypress Smoke → staging
+    needs: deploy-staging
+    if: github.ref_name == 'test'
+    runs-on: ubuntu-latest
+    continue-on-error: true  # soft-fail until staging environment is fully stable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/test/cypress/package-lock.json
+      - name: Install Moon
+        run: npm install -g @moonrepo/cli
+      - name: Install Cypress deps
+        run: moon run cypress:install
+      - name: Run smoke suite
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: src/test/cypress
+          browser: chrome
+          config: baseUrl=https://raisingatlantic-web-test.vercel.app
+
   # ── 2c. Deploy to prod (manual approval — branch: main) ───────────────────
+  # Cascade-skipped when build-and-push is skipped by the preflight gate.
   deploy-prod:
     name: Deploy → prod
     needs: build-and-push
@@ -256,6 +349,8 @@ jobs:
     environment: production  # GitHub Environment — requires reviewer approval
 
     steps:
+      # TODO(GCP): requires APP_WORKLOAD_IDENTITY_PROVIDER + APP_SERVICE_ACCOUNT_PROD
+      # repo secrets (Phase 1.2). Whole job is gated by the preflight check.
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -358,3 +453,114 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  # ── 2c-smoke. Cypress smoke → prod ───────────────────────────────────────
+  cypress-smoke-prod:
+    name: Cypress Smoke → prod
+    needs: deploy-prod
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/test/cypress/package-lock.json
+      - name: Install Moon
+        run: npm install -g @moonrepo/cli
+      - name: Install Cypress deps
+        run: moon run cypress:install
+      - name: Run smoke suite
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: src/test/cypress
+          browser: chrome
+          config: baseUrl=https://raisingatlantic-web.vercel.app
+
+  # ── 3. Sentry release + source map upload ─────────────────────────────────
+  # Tags the release with the Git SHA and uploads source maps for the API
+  # (NestJS dist/) and web (Next.js .next/). Web maps are also uploaded by
+  # `withSentryConfig` during `next build` when SENTRY_AUTH_TOKEN is set; this
+  # job is the authoritative release-tag step + API-side upload.
+  #
+  # The job is best-effort: it gates on a SENTRY_AUTH_TOKEN secret being
+  # present so dev runs without Sentry stay green.
+  sentry-release:
+    name: Sentry release & source maps
+    needs: build-and-push
+    if: github.ref_name == 'main' || github.ref_name == 'test'
+    runs-on: ubuntu-latest
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+      SENTRY_RELEASE: ${{ github.sha }}
+    steps:
+      - name: Skip if Sentry not configured
+        id: gate
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ] || [ -z "$SENTRY_ORG" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping Sentry release — SENTRY_AUTH_TOKEN or SENTRY_ORG not set"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.skip != 'true'
+
+      - uses: oven-sh/setup-bun@v2
+        if: steps.gate.outputs.skip != 'true'
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        if: steps.gate.outputs.skip != 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Resolve project slugs from branch
+        if: steps.gate.outputs.skip != 'true'
+        id: slugs
+        run: |
+          case "${{ github.ref_name }}" in
+            test) echo "api=ra-api-staging" >> "$GITHUB_OUTPUT"; echo "web=ra-web-staging" >> "$GITHUB_OUTPUT" ;;
+            main) echo "api=ra-api-prod"    >> "$GITHUB_OUTPUT"; echo "web=ra-web-prod"    >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Build API (for source maps)
+        if: steps.gate.outputs.skip != 'true'
+        run: bun --filter api run build
+        working-directory: .
+
+      - name: Build Web (Next.js auto-uploads maps via withSentryConfig)
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          SENTRY_PROJECT_WEB: ${{ steps.slugs.outputs.web }}
+        run: bun --filter web run build
+
+      - name: Install sentry-cli
+        if: steps.gate.outputs.skip != 'true'
+        run: curl -sL https://sentry.io/get-cli/ | bash
+
+      - name: Create Sentry release (API)
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          SENTRY_PROJECT: ${{ steps.slugs.outputs.api }}
+        run: |
+          sentry-cli releases new "$SENTRY_RELEASE"
+          sentry-cli releases set-commits "$SENTRY_RELEASE" --auto
+
+      - name: Upload API source maps
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          SENTRY_PROJECT: ${{ steps.slugs.outputs.api }}
+        run: |
+          sentry-cli releases files "$SENTRY_RELEASE" upload-sourcemaps \
+            src/apps/api/dist \
+            --rewrite
+
+      - name: Finalize Sentry release (API)
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          SENTRY_PROJECT: ${{ steps.slugs.outputs.api }}
+        run: sentry-cli releases finalize "$SENTRY_RELEASE"

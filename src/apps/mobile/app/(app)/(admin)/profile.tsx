@@ -1,6 +1,6 @@
 import React from "react";
-import { ProfileScreen } from "../../../components/ProfileScreen";
+import { ProfileScreenAdmin } from "../../../components/ProfileScreenAdmin";
 
 export default function AdminProfile() {
-  return <ProfileScreen />;
+  return <ProfileScreenAdmin />;
 }

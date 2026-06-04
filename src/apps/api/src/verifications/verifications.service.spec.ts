@@ -9,7 +9,10 @@ import {
   CompletedMilestone,
   CompletedVaccination,
 } from '../children/children.model';
-import { createMockRepository } from '../common/test/test-utils';
+import {
+  createMockRepository,
+  createMockMetrics,
+} from '../common/test/test-utils';
 
 describe('VerificationsService', () => {
   let service: VerificationsService;
@@ -35,6 +38,7 @@ describe('VerificationsService', () => {
           provide: getRepositoryToken(CompletedVaccination),
           useValue: createMockRepository(),
         },
+        { provide: 'IMetricService', useValue: createMockMetrics() },
       ],
     }).compile();
 

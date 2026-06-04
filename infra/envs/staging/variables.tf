@@ -54,3 +54,49 @@ variable "pagerduty_token" {
   type      = string
   sensitive = true
 }
+
+# ---------------------------------------------------------------------------
+# Phase 7 — Observability & Monitoring (feature flags)
+# Default to false; flip in terraform.tfvars once the upstream dependency lands.
+# See infra/envs/prod/variables.tf for the full description of each flag.
+# ---------------------------------------------------------------------------
+
+variable "enable_log_sink" {
+  type    = bool
+  default = false
+}
+
+variable "enable_uptime_checks" {
+  type    = bool
+  default = false
+}
+
+variable "enable_alert_policies" {
+  type    = bool
+  default = false
+}
+
+variable "enable_sentry_projects" {
+  type    = bool
+  default = false
+}
+
+variable "enable_betterstack" {
+  type    = bool
+  default = false
+}
+
+variable "api_public_url" {
+  type    = string
+  default = "https://ra-api-staging.example.com"
+}
+
+variable "web_public_url" {
+  type    = string
+  default = "https://ra-web-staging.example.com"
+}
+
+variable "oncall_email" {
+  type    = string
+  default = "alerts-staging@raisingatlantic.com"
+}

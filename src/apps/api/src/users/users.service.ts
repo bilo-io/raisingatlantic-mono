@@ -5,6 +5,8 @@ import { ILoggerService } from '@core/telemetry/interfaces/logger.interface';
 import { ITracingService } from '@core/telemetry/interfaces/tracer.interface';
 import { IMetricService } from '@core/telemetry/interfaces/metric.interface';
 import { IErrorReportingService } from '@core/telemetry/interfaces/error-reporter.interface';
+import { INotificationDispatcher } from '@core/notifications/interfaces/dispatcher.interface';
+import { NOTIFICATION_TOKENS } from '@core/notifications/interfaces/tokens';
 import { User } from './users.model';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -21,16 +23,30 @@ export class UsersService {
     @Inject('IMetricService') private readonly metric: IMetricService,
     @Inject('IErrorReportingService')
     private readonly errorReporter: IErrorReportingService,
+    @Inject(NOTIFICATION_TOKENS.Dispatcher)
+    private readonly notifications: INotificationDispatcher,
   ) {}
 
   async create(dto: CreateUserDto): Promise<User> {
     const span = this.tracer.startSpan('UsersService.create');
-    this.logger.log(`Attempting to create a new user: ${dto.email}`);
+    // Email passed as structured context so pino redaction can mask it; never
+    // interpolate PII into the log message string.
+    this.logger.log('Attempting to create a new user', {
+      role: dto.role,
+      email: dto.email,
+    });
     try {
       const user = this.usersRepository.create(dto);
       const saved = await this.usersRepository.save(user);
       this.metric.incrementCounter('user.created', 1, { status: 'success' });
+      // Dashboard-facing custom business metric (DEV.md §7.2): cumulative
+      // signups by role, rate-aggregated daily in the business dashboard.
+      this.metric.incrementCounter('ra_signups_total', 1, { role: dto.role });
       this.logger.log(`User successfully created with ID: ${saved.id}`);
+      // TODO(phase-8): send welcome + email-verification message via
+      // this.notifications.email({ ... }) once §8.1 provider is chosen and
+      // templating is in place — see docs/GO_LIVE/DEV.md §8.1 / §2.2.
+      void this.notifications;
       return saved;
     } catch (error) {
       if (error instanceof Error) {
@@ -69,7 +85,7 @@ export class UsersService {
         ...user,
         email: maskEmail(user.email),
         phone: maskPhone(user.phone),
-      })) as User[];
+      }));
     } finally {
       this.tracer.endSpan(span);
     }
@@ -115,6 +131,8 @@ export class UsersService {
       const updated = this.usersRepository.merge(existing, dto);
       const saved = await this.usersRepository.save(updated);
       this.metric.incrementCounter('user.updated', 1, { status: 'success' });
+      // TODO(phase-8): if dto.email changed, send confirmation to the new
+      // address and an alert to the old one (§8.1 / §2.2 account security).
       return saved;
     } finally {
       this.tracer.endSpan(span);

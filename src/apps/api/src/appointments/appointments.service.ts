@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
+import { INotificationDispatcher } from '@core/notifications/interfaces/dispatcher.interface';
+import { NOTIFICATION_TOKENS } from '@core/notifications/interfaces/tokens';
 import { Appointment } from './appointments.model';
 import {
   CreateAppointmentDto,
@@ -22,6 +24,8 @@ export class AppointmentsService {
     private usersRepository: Repository<User>,
     @InjectRepository(Practice)
     private practiceRepository: Repository<Practice>,
+    @Inject(NOTIFICATION_TOKENS.Dispatcher)
+    private readonly notifications: INotificationDispatcher,
   ) {}
 
   async create(dto: CreateAppointmentDto): Promise<Appointment> {
@@ -89,7 +93,11 @@ export class AppointmentsService {
       practice: practice || undefined,
     });
 
-    return await this.appointmentsRepository.save(appointment);
+    const saved = await this.appointmentsRepository.save(appointment);
+    // TODO(phase-8): notify parent (and clinician) of the booking via
+    // this.notifications.email({ ... }) plus optional SMS — see DEV.md §8.1 / §8.2.
+    void this.notifications;
+    return saved;
   }
 
   async findAll(filters: {
@@ -159,6 +167,8 @@ export class AppointmentsService {
     if (dto.scheduledAt) appointment.scheduledAt = new Date(dto.scheduledAt);
     if (dto.status) appointment.status = dto.status;
     if (dto.notes) appointment.notes = dto.notes;
+    // TODO(phase-8): if scheduledAt or status changed, fire reschedule /
+    // cancellation notification — email + optional SMS (§8.1 / §8.2).
     return this.appointmentsRepository.save(appointment);
   }
 

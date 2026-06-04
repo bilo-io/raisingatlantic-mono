@@ -13,7 +13,7 @@
 - [Phase 4: POPIA Compliance](#phase-4-popia-compliance): `DEV 20%`
 - [Phase 5: Security](#phase-5-security): `DEV 80%`
 - [Phase 6: Legal Documents](#phase-6-legal-documents): `DEV 5%`
-- [Phase 7: Observability & Monitoring](#phase-7-observability--monitoring): `DEV 80%`
+- [Phase 7: Observability & Monitoring](#phase-7-observability--monitoring): `DEV 95%`
 - [Phase 8: Email, SMS & Notifications](#phase-8-email-sms--notifications): `DEV 50%`
 - [Phase 9: CI/CD & Release Engineering](#phase-9-cicd--release-engineering): `DEV 100%`
 - [Phase 10: Mobile App Release](#phase-10-mobile-app-release): `DEV 50%`
@@ -175,10 +175,10 @@ The single biggest pre-launch decision: stay on Vercel or migrate to [Google Clo
 #### 1.1 Vercel vs GCP: Decision Framework
 In plain terms: Vercel is fast to ship on but charges premium prices, has no native data residency in South Africa, and is awkward for long-running NestJS workloads. GCP gives us [`africa-south1`](https://cloud.google.com/about/locations#africa) (Johannesburg) for POPIA-friendly residency, predictable enterprise pricing, and far more control, but we take on more ops work.
 
-- [ ] Decide hosting target (recommendation: **GCP `africa-south1`** for production, keep Vercel only for marketing preview deploys)
-- [ ] Document the decision and rationale in `docs/ADR/0001-hosting.md`
-- [ ] Inventory every Vercel-specific assumption in code (Edge runtime, [Vercel KV](https://vercel.com/docs/storage/vercel-kv), image optimization, ISR) and confirm portability
-- [ ] Estimate 12-month cost on each platform at projected traffic
+- [x] Decide hosting target (recommendation: **GCP `africa-south1`** for production, keep Vercel only for marketing preview deploys)
+- [x] Document the decision and rationale in `docs/ADR/0001-hosting.md`
+- [x] Inventory every Vercel-specific assumption in code (Edge runtime, [Vercel KV](https://vercel.com/docs/storage/vercel-kv), image optimization, ISR) and confirm portability
+- [x] Estimate 12-month cost on each platform at projected traffic
 
 #### 1.2 GCP Foundation (recommended path)
 If we go with GCP, we set up the bones once and never have to revisit them. This is the "boring infrastructure" everything else sits on top of. **Hard rule: every item below is provisioned via Terraform from the start (see [§1.4](#14-infrastructure-as-code-terraform--github-actions)), no click-ops in the GCP console for anything that touches a deployable environment.**
@@ -244,7 +244,7 @@ Most things we need a Terraform provider for are already first-class. Some are n
 - [x] **[`vercel/vercel`](https://registry.terraform.io/providers/vercel/vercel/latest/docs)**: if we keep marketing on Vercel, manage projects + envs from Terraform
 - [x] **[`neondatabase/neon`](https://registry.terraform.io/providers/kislerdm/neon/latest/docs)** (community), if we stay on Neon
 - [x] **[`PagerDuty`](https://registry.terraform.io/providers/PagerDuty/pagerduty/latest/docs) / [`BetterStack`](https://registry.terraform.io/providers/BetterStackHQ/better-uptime/latest/docs) / [`Sentry`](https://registry.terraform.io/providers/jianyuan/sentry/latest/docs) / [`SendGrid`](https://registry.terraform.io/providers/Trois-Six/sendgrid/latest/docs) / [`1Password`](https://registry.terraform.io/providers/1Password/onepassword/latest/docs)**: every SaaS in our stack with a TF provider goes in IaC
-- [ ] Use the **[`tfe` / Terraform Cloud provider](https://registry.terraform.io/providers/hashicorp/tfe/latest/docs)** only if we want [Terraform Cloud](https://cloud.hashicorp.com/products/terraform) as backend, otherwise GCS is fine
+- [x] Use the **[`tfe` / Terraform Cloud provider](https://registry.terraform.io/providers/hashicorp/tfe/latest/docs)** only if we want [Terraform Cloud](https://cloud.hashicorp.com/products/terraform) as backend, otherwise GCS is fine
 
 ##### GitHub Actions ↔ GCP authentication
 We should **never** put a GCP service-account JSON key in a GitHub secret. Use [Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation) instead, short-lived OIDC tokens, no long-lived keys.
@@ -305,10 +305,10 @@ Treat this as the contract. If it's in production and not in this list, document
 ##### What Terraform does **not** manage
 Out of scope is just as important as in-scope.
 
-- [ ] Application code deploys (that's the app pipeline, TF only manages the Cloud Run service shell, not the image tag of each release)
-- [ ] Database schema ([TypeORM](https://typeorm.io) migrations remain the schema source of truth)
-- [ ] User-generated data, blog content, runtime feature flags
-- [ ] Per-developer GCP IAM grants for ad-hoc debugging (use just-in-time access via `gcloud iam service-accounts add-iam-policy-binding` with a 1-hour TTL, not a permanent TF binding)
+- [x] Application code deploys (that's the app pipeline, TF only manages the Cloud Run service shell, not the image tag of each release)
+- [x] Database schema ([TypeORM](https://typeorm.io) migrations remain the schema source of truth)
+- [x] User-generated data, blog content, runtime feature flags
+- [x] Per-developer GCP IAM grants for ad-hoc debugging (use just-in-time access via `gcloud iam service-accounts add-iam-policy-binding` with a 1-hour TTL, not a permanent TF binding)
 
 ##### Drift & policy
 Even with IaC discipline, things drift. Catch it early.
@@ -321,13 +321,13 @@ Even with IaC discipline, things drift. Catch it early.
 #### 1.5 Database: Neon vs Cloud SQL
 We're currently on Neon. Neon is excellent for dev velocity (branches, serverless) but has two issues for this project: (1) data lives in `eu-central-1` / `us-east-2`: not South Africa, which is awkward under POPIA, and (2) it's a third-party processor we'll need a DPA from.
 
-- [ ] Decide: stay on Neon (sign DPA, document cross-border transfer) **or** migrate to [Cloud SQL Postgres](https://cloud.google.com/sql/postgresql) in `africa-south1`
+- [x] Decide: stay on Neon (sign DPA, document cross-border transfer) **or** migrate to [Cloud SQL Postgres](https://cloud.google.com/sql/postgresql) in `africa-south1`
 - [ ] If staying on Neon: confirm region, sign DPA, configure point-in-time recovery, set up read replica
 - [ ] If migrating: provision Cloud SQL Postgres 15, enable HA + automated backups + 7-day PITR, run a one-time `pg_dump | pg_restore` rehearsal in staging
 - [ ] Lock down access: private IP only, [Cloud SQL Auth Proxy](https://cloud.google.com/sql/docs/postgres/sql-proxy) from Cloud Run, no public IP
 - [ ] Generate strong rotating credentials in Secret Manager (never in `.env`)
 - [ ] Set up nightly logical backups exported to a separate GCS bucket with object versioning + 30-day retention
-- [ ] Replace `synchronize: true` with explicit migrations for production (already partially done in `db/migrations/`)
+- [x] Replace `synchronize: true` with explicit migrations for production (already partially done in `db/migrations/`)
 - [ ] Test a full DR drill: drop the database, restore from backup, confirm RTO < 1h and RPO < 15min
 
 ---
@@ -501,15 +501,15 @@ The "make sure we don't end up on the front page of [News24](https://www.news24.
 #### 5.1 Application Security
 What lives in code.
 
-- [ ] [OWASP Top 10](https://owasp.org/www-project-top-ten/) audit (consider `/security-review` skill on every PR touching auth/data)
-- [ ] [Helmet](https://helmetjs.github.io) middleware on the NestJS API (CSP, HSTS, X-Frame-Options)
-- [ ] Strict CORS allowlist (no wildcard in prod)
-- [ ] Input validation via [`class-validator`](https://github.com/typestack/class-validator) on every DTO (mostly done, audit the gaps)
-- [ ] Output encoding / no raw `dangerouslySetInnerHTML` on user content
-- [ ] Rate limiting per-IP + per-user via `@nestjs/throttler` (already installed, tune limits)
-- [ ] Dependency scanning: [GitHub Dependabot](https://github.com/dependabot) + [`bun audit`](https://bun.sh/docs/cli/audit) in CI
-- [ ] Secret scanning: [GitHub secret-scanning](https://docs.github.com/en/code-security/secret-scanning) + [`trufflehog`](https://github.com/trufflesecurity/trufflehog) in pre-commit
-- [ ] No secrets in `.env.example` or in git history (run [`git-filter-repo`](https://github.com/newren/git-filter-repo) if any leaked)
+- [x] [OWASP Top 10](https://owasp.org/www-project-top-ten/) audit (consider `/security-review` skill on every PR touching auth/data)
+- [x] [Helmet](https://helmetjs.github.io) middleware on the NestJS API (CSP, HSTS, X-Frame-Options)
+- [x] Strict CORS allowlist (no wildcard in prod)
+- [x] Input validation via [`class-validator`](https://github.com/typestack/class-validator) on every DTO (mostly done, audit the gaps)
+- [x] Output encoding / no raw `dangerouslySetInnerHTML` on user content
+- [x] Rate limiting per-IP + per-user via `@nestjs/throttler` (already installed, tune limits)
+- [x] Dependency scanning: [GitHub Dependabot](https://github.com/dependabot) + [`bun audit`](https://bun.sh/docs/cli/audit) in CI
+- [x] Secret scanning: [GitHub secret-scanning](https://docs.github.com/en/code-security/secret-scanning) + [`trufflehog`](https://github.com/trufflesecurity/trufflehog) in pre-commit
+- [x] No secrets in `.env.example` or in git history (run [`git-filter-repo`](https://github.com/newren/git-filter-repo) if any leaked)
 
 #### 5.2 Infrastructure Security
 Network, hosts, perimeter.
@@ -596,34 +596,34 @@ Production systems need eyes on them. The telemetry interfaces exist in `core/te
 #### 7.1 Logging
 The boring layer that saves us at 2am.
 
-- [ ] Structured JSON logging on the NestJS API ([Pino](https://getpino.io) or [Winston](https://github.com/winstonjs/winston)) shipped to Cloud Logging
-- [ ] Request correlation IDs propagated through every layer
-- [ ] PII redaction filter (no emails, names, IDs in logs)
-- [ ] Log retention: 30 days hot, 1 year cold (GCS bucket)
+- [x] Structured JSON logging on the NestJS API ([Pino](https://getpino.io) or [Winston](https://github.com/winstonjs/winston)) shipped to Cloud Logging
+- [x] Request correlation IDs propagated through every layer
+- [x] PII redaction filter (no emails, names, IDs in logs)
+- [x] Log retention: 30 days hot, 1 year cold (GCS bucket)
 
 #### 7.2 Metrics & Tracing
 Knowing the system is healthy without grepping logs.
 
-- [ ] OpenTelemetry SDK wired through `core/telemetry` (interfaces already exist, concrete impls need finishing)
-- [ ] [Cloud Trace](https://cloud.google.com/trace) for distributed traces across web → API → DB
-- [ ] Cloud Monitoring dashboards for: API p50/p95/p99 latency, error rate, DB connection pool, queue depth
-- [ ] Custom business metrics: signups/day, verifications pending, vaccinations due
+- [x] OpenTelemetry SDK wired through `core/telemetry` (interfaces already exist, concrete impls need finishing)
+- [x] [Cloud Trace](https://cloud.google.com/trace) for distributed traces across web → API → DB
+- [x] Cloud Monitoring dashboards for: API p50/p95/p99 latency, error rate, DB connection pool, queue depth
+- [/] Custom business metrics: signups/day, verifications pending, vaccinations due
 
 #### 7.3 Error Tracking
 Knowing when things break before users tell us.
 
-- [ ] **[Sentry](https://sentry.io)** for both web (Next.js) and API (NestJS) and mobile (Expo)
-- [ ] Source maps uploaded on deploy
-- [ ] Release tagging tied to Git SHA
-- [ ] Alert routing: Slack `#alerts-prod` for critical, email digest for low-severity
+- [x] **[Sentry](https://sentry.io)** for both web (Next.js) and API (NestJS) and mobile (Expo)
+- [x] Source maps uploaded on deploy
+- [x] Release tagging tied to Git SHA
+- [x] Alert routing: Slack `#alerts-prod` for critical, email digest for low-severity
 
 #### 7.4 Uptime & SLOs
 External-perspective monitoring.
 
-- [ ] Synthetic uptime checks every 60s (Cloud Monitoring or [BetterStack](https://betterstack.com))
-- [ ] Public status page (`status.raisingatlantic.com`) via BetterStack / [Statuspage](https://www.atlassian.com/software/statuspage) / [Instatus](https://instatus.com)
+- [x] Synthetic uptime checks every 60s (Cloud Monitoring or [BetterStack](https://betterstack.com))
+- [/] Public status page (`status.raisingatlantic.com`) via BetterStack / [Statuspage](https://www.atlassian.com/software/statuspage) / [Instatus](https://instatus.com)
 - [ ] Define SLOs (e.g. 99.5% monthly availability, p95 latency < 500ms) and error budgets
-- [ ] On-call rotation, even with a single on-call engineer, define who gets paged and how ([PagerDuty](https://www.pagerduty.com) / [OpsGenie](https://www.atlassian.com/software/opsgenie) / BetterStack)
+- [/] On-call rotation, even with a single on-call engineer, define who gets paged and how ([PagerDuty](https://www.pagerduty.com) / [OpsGenie](https://www.atlassian.com/software/opsgenie) / BetterStack)
 
 ---
 
@@ -634,6 +634,8 @@ External-perspective monitoring.
 **Roles:** `DEV 50%` · `MARKETING 25%` · `DESIGN 25%` *(`DEV` integrates SendGrid/Twilio; `MARKETING` writes template copy; `DESIGN` produces branded HTML templates and the press-pack visuals)*
 
 `nodemailer` is wired into the API but no real provider is configured. Almost every flow (signup, verification, password reset, vaccination reminder, billing) needs reliable transactional comms.
+
+> **Wrapper landed (2026-06-02):** framework-agnostic notification ports + dispatcher live at `src/core/notifications/`, wired into call sites with `TODO(phase-8)` seams. Provider swap is a single-file change in `src/apps/api/src/notifications/notifications.module.ts`. See [PHASE_8_TODO.md](./PHASE_8_TODO.md).
 
 #### 8.1 Transactional Email
 The "click here to verify your account" pipe.
@@ -804,9 +806,9 @@ Things that should "just work" but bite if neglected.
 The final shake-out before real parents and clinicians.
 
 #### 12.1 Automated Coverage
-- [ ] Unit test coverage > 70% on API business logic (verifications, EPI scheduling, growth percentile calc)
-- [ ] Cypress smoke suite on every prod deploy
-- [ ] Postman contract tests run nightly against staging
+- [/] Unit test coverage > 70% on API business logic (verifications, EPI scheduling, growth percentile calc) — baseline 66.55% lines / 53.70% functions / 46.25% branches (PR #7, 2026-05-24); floor enforced in CI at lines/statements 65, functions 50, branches 45; gap to 70% closes once growth-percentile + EPI-scheduling specs are added
+- [x] Cypress smoke suite on every prod deploy
+- [x] Postman contract tests run nightly against staging
 - [ ] Mobile E2E ([Detox](https://wix.github.io/Detox/) or [Maestro](https://maestro.mobile.dev)) on critical flows: signup, add child, log growth
 
 #### 12.2 Manual / Exploratory
@@ -817,7 +819,7 @@ The final shake-out before real parents and clinicians.
 - [ ] Mobile device matrix, at minimum: iPhone 13, Pixel 7, mid-range Android (Samsung A-series)
 
 #### 12.3 Performance & Load
-- [ ] [Lighthouse](https://developer.chrome.com/docs/lighthouse) score > 90 on landing page
+- [x] [Lighthouse](https://developer.chrome.com/docs/lighthouse) score > 90 on landing page
 - [ ] API load test ([k6](https://k6.io) or [Artillery](https://www.artillery.io)) against staging, 100 concurrent users, sustained 5min
 - [ ] DB slow-query log review, every query > 100ms gets an index review
 - [ ] Cold-start benchmarks on Cloud Run (set min-instances if needed)

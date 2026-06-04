@@ -1,29 +1,41 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LeadsService } from './leads.service';
-import { MailService } from '../common/mail/mail.service';
+import { NOTIFICATION_TOKENS } from '@core/notifications/interfaces/tokens';
 import { SystemLogsService } from '../system-logs/system-logs.service';
 
 describe('LeadsService', () => {
   let service: LeadsService;
-  let mailService: jest.Mocked<MailService>;
+  let dispatcher: {
+    email: jest.Mock;
+    sms: jest.Mock;
+    push: jest.Mock;
+    notifyUser: jest.Mock;
+  };
   let systemLogs: jest.Mocked<SystemLogsService>;
 
   beforeEach(async () => {
+    dispatcher = {
+      email: jest
+        .fn()
+        .mockResolvedValue({ delivered: true, providerId: 'fake' }),
+      sms: jest.fn(),
+      push: jest.fn(),
+      notifyUser: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LeadsService,
-        { provide: MailService, useValue: { sendMail: jest.fn() } },
+        { provide: NOTIFICATION_TOKENS.Dispatcher, useValue: dispatcher },
         { provide: SystemLogsService, useValue: { createLog: jest.fn() } },
       ],
     }).compile();
 
     service = module.get(LeadsService);
-    mailService = module.get(MailService);
     systemLogs = module.get(SystemLogsService);
   });
 
   it('sends an email and writes a system log on success', async () => {
-    mailService.sendMail.mockResolvedValue(undefined as any);
     systemLogs.createLog.mockResolvedValue({} as any);
 
     const result = await service.create(
@@ -36,12 +48,12 @@ describe('LeadsService', () => {
       '127.0.0.1',
     );
 
-    expect(mailService.sendMail).toHaveBeenCalledWith(
-      'admin@raisingatlantic.com',
-      'Lead: Pricing',
-      expect.stringContaining('Jane'),
-      'Jane',
-    );
+    expect(dispatcher.email).toHaveBeenCalledWith({
+      to: 'admin@raisingatlantic.com',
+      subject: 'Lead: Pricing',
+      text: expect.stringContaining('Jane'),
+      fromName: 'Jane',
+    });
     expect(systemLogs.createLog).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'LEAD_CONTACT',
@@ -58,24 +70,23 @@ describe('LeadsService', () => {
   });
 
   it('applies default subject and name when omitted', async () => {
-    mailService.sendMail.mockResolvedValue(undefined as any);
     systemLogs.createLog.mockResolvedValue({} as any);
 
     await service.create(
-      { email: 'anon@example.com', message: 'I am asking a question' } as any,
+      { email: 'anon@example.com', message: 'I am asking a question' },
       undefined,
     );
 
-    expect(mailService.sendMail).toHaveBeenCalledWith(
-      'admin@raisingatlantic.com',
-      'Lead: New Lead from Contact Form',
-      expect.stringContaining('Anonymous Lead'),
-      'Anonymous Lead',
-    );
+    expect(dispatcher.email).toHaveBeenCalledWith({
+      to: 'admin@raisingatlantic.com',
+      subject: 'Lead: New Lead from Contact Form',
+      text: expect.stringContaining('Anonymous Lead'),
+      fromName: 'Anonymous Lead',
+    });
   });
 
   it('still writes a system log when the mail send fails', async () => {
-    mailService.sendMail.mockRejectedValue(new Error('smtp down'));
+    dispatcher.email.mockRejectedValue(new Error('smtp down'));
     systemLogs.createLog.mockResolvedValue({} as any);
 
     await expect(

@@ -1,8 +1,14 @@
+// MUST be the very first import — initialises Sentry then OpenTelemetry
+// before any other module is required, so auto-instrumentations can patch.
+import './instrumentation';
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 
 import * as cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -12,7 +18,13 @@ import { Request, Response } from 'express';
 let appPromise: Promise<NestExpressApplication> | null = null;
 
 async function bootstrap(): Promise<NestExpressApplication> {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+  });
+
+  // Replace the default Nest logger with the configured Pino logger so framework
+  // log lines also flow through JSON + redaction + Cloud Logging.
+  app.useLogger(app.get(Logger));
 
   if (!process.env.VERCEL) {
     app.useStaticAssets(join(__dirname, '..', 'public'));
@@ -21,6 +33,18 @@ async function bootstrap(): Promise<NestExpressApplication> {
   app.use(cookieParser());
 
   const isProd = process.env.NODE_ENV === 'production';
+  // CSP is intentionally disabled: this is a JSON API and Swagger UI ships
+  // inline scripts. The Next.js web app owns CSP separately.
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+      hsts: isProd
+        ? { maxAge: 31536000, includeSubDomains: true, preload: true }
+        : false,
+    }),
+  );
+
   const builtInOrigins = [
     'http://localhost:9002',
     'https://raisingatlantic-web.vercel.app',

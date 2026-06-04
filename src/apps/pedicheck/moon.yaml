@@ -1,0 +1,45 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+project:
+  name: 'pedicheck'
+  description: 'PediCheck Next.js app'
+
+tasks:
+  install:
+    command: 'npm install --legacy-peer-deps'
+
+  build:
+    command: 'npm run build'
+    inputs:
+      - 'src/**/*'
+      - 'public/**/*'
+      - 'next.config.*'
+      - 'tsconfig.json'
+      - 'tailwind.config.*'
+      - 'postcss.config.*'
+    outputs:
+      - '.next'
+
+  dev:
+    command: 'npm run dev'
+    options:
+      persistent: true
+
+  dev-web:
+    command: 'npm run dev'
+    options:
+      persistent: true
+
+  clean:
+    command: 'rm -rf .next node_modules'
+
+  lint:
+    command: 'npx eslint .'
+    inputs:
+      - '**/*.{js,ts,tsx}'
+
+  typecheck:
+    command: 'npm run typecheck'
+    inputs:
+      - 'src/**/*'
+      - 'tsconfig.json'

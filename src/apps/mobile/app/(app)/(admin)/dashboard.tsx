@@ -1,6 +1,6 @@
 import React from "react";
-import { DashboardHome } from "../../../components/DashboardHome";
+import { DashboardHomeAdmin } from "../../../components/DashboardHomeAdmin";
 
 export default function AdminDashboard() {
-  return <DashboardHome />;
+  return <DashboardHomeAdmin />;
 }

@@ -6,10 +6,12 @@ projects:
   api: 'src/apps/api'
   web: 'src/apps/web'
   mobile: 'src/apps/mobile'
+  pedicheck: 'src/apps/pedicheck'
   
   # Packages
   ui: 'src/pkgs/ui'
   types: 'src/pkgs/types'
+  clinical: 'src/pkgs/clinical'
   
   # Tests
   cypress: 'src/test/cypress'
@@ -20,5 +22,5 @@ projects:
   tests: 'tests'
 
 vcs:
-  defaultBranch: 'master'
+  defaultBranch: 'dev'
   provider: 'github'

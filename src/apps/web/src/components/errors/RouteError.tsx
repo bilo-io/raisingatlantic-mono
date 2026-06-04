@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,6 +40,7 @@ export function RouteError({
   homeLabel = 'Return Home',
 }: RouteErrorProps) {
   useEffect(() => {
+    Sentry.captureException(error, { tags: { boundary: 'route', digest: error.digest ?? 'none' } });
     console.error('Route error:', error);
   }, [error]);
 

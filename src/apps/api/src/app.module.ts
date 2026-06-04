@@ -1,9 +1,16 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { LoggerModule } from 'nestjs-pino';
+import { ClsModule } from 'nestjs-cls';
+import { SentryModule, SentryGlobalFilter } from '@sentry/nestjs/setup';
+import { UserAwareThrottlerGuard } from './common/guards/user-aware-throttler.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { buildLoggerConfig } from './common/logging/logger.config';
+import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { ExamplesModule } from './examples/examples.module';
 import { Example } from './examples/examples.model';
 import { UsersModule } from './users/users.module';
@@ -33,6 +40,7 @@ import { BlogPost } from './blog/blog.model';
 import { LeadsModule } from './leads/leads.module';
 import { SystemLogsModule } from './system-logs/system-logs.module';
 import { SystemLog } from './common/models/system-log.model';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -42,12 +50,31 @@ import { SystemLog } from './common/models/system-log.model';
       envFilePath: '.env',
     }),
 
-    // Rate limiting configuration (1 request per minute by default for tagged endpoints)
+    // AsyncLocalStorage store — request-id propagates from the correlation
+    // middleware to every async hop without manual threading.
+    ClsModule.forRoot({
+      global: true,
+      middleware: { mount: true, generateId: false },
+    }),
+
+    // Structured JSON logging with POPIA redaction. Config encapsulated in
+    // common/logging/logger.config.ts. Replaces the default Nest logger.
+    LoggerModule.forRoot(buildLoggerConfig()),
+
+    // Sentry error tracking. Init lives in instrumentation.ts so it runs
+    // before any Nest module loads; this module wires Sentry into the Nest
+    // request lifecycle.
+    SentryModule.forRoot(),
+
+    // Rate limiting: three named tiers applied globally via APP_GUARD.
+    // - short:  burst protection (any single hot loop)
+    // - medium: sustained normal browsing
+    // - long:   long-window abuse detection
+    // Per-route overrides use @Throttle({ short: { limit, ttl } }) etc.
     ThrottlerModule.forRoot([
-      {
-        ttl: 60000,
-        limit: 1,
-      },
+      { name: 'short', ttl: 1000, limit: 10 },
+      { name: 'medium', ttl: 60000, limit: 60 },
+      { name: 'long', ttl: 3600000, limit: 1000 },
     ]),
 
     // TypeORM configured from .env via ConfigService.
@@ -106,6 +133,7 @@ import { SystemLog } from './common/models/system-log.model';
       },
     }),
 
+    NotificationsModule,
     ExamplesModule,
     UsersModule,
     TenantsModule,
@@ -120,6 +148,16 @@ import { SystemLog } from './common/models/system-log.model';
     SystemLogsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: UserAwareThrottlerGuard },
+    // SentryGlobalFilter must be the first APP_FILTER so it intercepts
+    // exceptions before Nest's default exception filter formats them.
+    { provide: APP_FILTER, useClass: SentryGlobalFilter },
+  ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(CorrelationIdMiddleware).forRoutes('*');
+  }
+}

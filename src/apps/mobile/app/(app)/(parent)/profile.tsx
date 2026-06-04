@@ -1,6 +1,6 @@
 import React from "react";
-import { ProfileScreen } from "../../../components/ProfileScreen";
+import { ProfileScreenParent } from "../../../components/profile/ProfileScreenParent";
 
 export default function ParentProfile() {
-  return <ProfileScreen />;
+  return <ProfileScreenParent />;
 }

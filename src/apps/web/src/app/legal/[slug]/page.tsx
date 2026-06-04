@@ -5,6 +5,7 @@ import path from 'path';
 import { notFound } from 'next/navigation';
 import { formatDatePretty } from '@/utils/date';
 import { getServerLocale, isValidLocale } from '@/utils/locale';
+import { MarkdownContent } from '@/components/ui/markdown-content';
 
 async function getLegalDocumentContent(slug: string, locale: string = 'en'): Promise<string | null> {
   const validSlugs: { [key: string]: string } = {
@@ -52,36 +53,6 @@ async function getLegalDocumentContent(slug: string, locale: string = 'en'): Pro
   }
 }
 
-// Basic Markdown to HTML converter
-const MarkdownDisplay = ({ markdownContent }: { markdownContent: string }) => {
-  // Replace ### Title with <h3>Title</h3>
-  let html = markdownContent.replace(/^### (.*$)/gim, '<h3 class="text-xl font-semibold mt-6 mb-3">$1</h3>');
-  // Replace ## Title with <h2>Title</h2>
-  html = html.replace(/^## (.*$)/gim, '<h2 class="text-2xl font-semibold mt-8 mb-4 border-b pb-2">$1</h2>');
-  // Replace # Title with <h1>Title</h1>
-  html = html.replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold mb-6">$1</h1>');
-  
-  // Replace * Item or - Item with <li>Item</li>
-  html = html.replace(/^(\* |\- ) (.*$)/gim, '<li>$2</li>');
-  
-  // Wrap consecutive <li> items in <ul>
-  html = html.replace(/^(<li>.*<\/li>\s*)+/gim, (match) => `<ul class="list-disc pl-6 space-y-1 my-4">${match.trim()}</ul>`);
-
-  // Replace paragraphs (blocks of text separated by double newlines)
-  // Ensure that <ul> is not wrapped in <p>
-  html = html.split(/\n\s*\n/).map(paragraph => {
-    if (paragraph.startsWith('<ul') || paragraph.startsWith('<h')) {
-      return paragraph;
-    }
-    return `<p class="mb-4 leading-relaxed">${paragraph.replace(/\n/g, '<br />')}</p>`;
-  }).join('');
-  
-  // Basic link conversion: [Text](URL) to <a href="URL">Text</a>
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">$1</a>');
-
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
-};
-
 export default async function LegalDocumentPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
   const locale = await getServerLocale();
@@ -93,9 +64,7 @@ export default async function LegalDocumentPage({ params }: { params: { slug: st
 
   return (
     <LegalLayout>
-      <article className="prose dark:prose-invert max-w-none">
-        <MarkdownDisplay markdownContent={content} />
-      </article>
+      <MarkdownContent>{content}</MarkdownContent>
     </LegalLayout>
   );
 }

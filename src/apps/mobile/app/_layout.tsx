@@ -9,8 +9,11 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Toaster } from "sonner-native";
 import { AuthProvider } from "../auth/AuthContext";
 import { queryClient } from "../lib/api";
+import { initSentry, Sentry } from "../lib/sentry";
 import { ThemeProvider } from "../theme/ThemeProvider";
 import { useTheme } from "../theme/useTheme";
+
+initSentry();
 
 function StatusBarThemed() {
   const { resolvedScheme } = useTheme();
@@ -35,7 +38,7 @@ function ThemedToaster() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
@@ -58,3 +61,7 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+// Wrap with Sentry to attach the root-level ErrorBoundary + tracing
+// instrumentation. When DSN is unset, init is a no-op so the wrapper is inert.
+export default Sentry.wrap(RootLayout);
