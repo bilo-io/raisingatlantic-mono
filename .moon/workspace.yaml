@@ -6,6 +6,7 @@ projects:
   api: 'src/apps/api'
   web: 'src/apps/web'
   mobile: 'src/apps/mobile'
+  pedicheck: 'src/apps/pedicheck'
   
   # Packages
   ui: 'src/pkgs/ui'
