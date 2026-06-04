@@ -6,15 +6,15 @@ export function FooterSection() {
       <div className="wrap">
         <div className="footer-grid">
           <div>
-            <Wordmark size="nav" href="#" />
+            <Wordmark size="nav" href="/" />
             <p className="footer-by">
               By <strong>Atlantic Children&apos;s Practice</strong>, Cape Town ·
               Launching September 2026
             </p>
             <div className="footer-links">
-              <a href="#">Privacy</a>
-              <a href="#">Terms</a>
-              <a href="#">Contact</a>
+              <a href="/privacy">Privacy</a>
+              <a href="/terms">Terms</a>
+              <a href="/contact">Contact</a>
             </div>
           </div>
           <div>
