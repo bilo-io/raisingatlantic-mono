@@ -33,11 +33,22 @@ export default function PrivacyPage() {
             </p>
             <p className="consent" style={{ marginTop: 20 }}>
               PediCheck is built by Atlantic Children&apos;s Practice in Cape
-              Town. We collect only the personal information we genuinely need
-              to reach you about the launch — currently your email address,
-              WhatsApp number, and the age range of your child. We store it in
-              South Africa, we never sell it, and we never share it with third
-              parties for marketing.
+              Town. We collect only the personal information we genuinely need:
+              when you join the waitlist, your email address, WhatsApp number,
+              and your child&apos;s age range; when you contact us or submit a
+              feature request, your email address and your message. We never
+              sell your information and never share it with third parties for
+              marketing.
+            </p>
+            <p className="consent">
+              <strong>Where this information is stored.</strong> We currently
+              record waitlist sign-ups, contact messages, and feature requests
+              in Google Workspace (Google Sheets). Google may process this data
+              on servers <em>outside South Africa</em>. This is a cross-border
+              transfer of personal information under{' '}
+              <strong>POPIA Section 72</strong>, and we only store your email or
+              other personal details with your explicit consent at the point of
+              submission.
             </p>
             <p className="consent">
               You can ask us to show you what we have on you, correct it, or
@@ -47,9 +58,8 @@ export default function PrivacyPage() {
             </p>
             <p className="consent">
               When the full privacy notice is ready it will replace this page
-              and cover lawful basis, cross-border transfers (we use providers
-              outside South Africa where unavoidable, under POPIA Section 72
-              safeguards), retention periods, and your rights in detail.
+              and cover lawful basis, the Section 72 safeguards in detail,
+              retention periods, and your rights in full.
             </p>
           </div>
         </div>

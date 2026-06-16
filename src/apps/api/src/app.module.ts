@@ -38,6 +38,8 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { BlogModule } from './blog/blog.module';
 import { BlogPost } from './blog/blog.model';
 import { LeadsModule } from './leads/leads.module';
+import { FeatureRequestsModule } from './feature-requests/feature-requests.module';
+import { GoogleSheetsModule } from './common/google-sheets/google-sheets.module';
 import { SystemLogsModule } from './system-logs/system-logs.module';
 import { SystemLog } from './common/models/system-log.model';
 import { NotificationsModule } from './notifications/notifications.module';
@@ -144,7 +146,9 @@ import { NotificationsModule } from './notifications/notifications.module';
     MasterDataModule,
     VerificationsModule,
     BlogModule,
+    GoogleSheetsModule,
     LeadsModule,
+    FeatureRequestsModule,
     SystemLogsModule,
   ],
   controllers: [AppController],

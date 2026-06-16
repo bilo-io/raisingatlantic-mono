@@ -8,6 +8,7 @@ import {
   LinkIcon,
 } from './icons';
 import { useWaitlistCounter } from '@/lib/useWaitlistCounter';
+import { submitLead } from '@/lib/leads';
 
 const SHARE_MSG =
   "Just signed up for PediCheck — a Cape Town paediatrician's late-night app for when you don't know if it's serious. First 200 families get founding pricing for life. Worth a look: pedicheck.co.za";
@@ -32,12 +33,20 @@ export function WaitlistSection() {
   const [position, setPosition] = useState(135);
   const [copyLabel, setCopyLabel] = useState('Copy link');
   const [toastShown, setToastShown] = useState(false);
+  const [toastMsg, setToastMsg] = useState('Copied');
+  const [submitting, setSubmitting] = useState(false);
 
   function clearInvalid(field: FieldKey) {
     setInvalid((prev) => (prev[field] ? { ...prev, [field]: false } : prev));
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  function flashToast(msg: string) {
+    setToastMsg(msg);
+    setToastShown(true);
+    window.setTimeout(() => setToastShown(false), 2400);
+  }
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const email = String(formData.get('email') ?? '').trim();
@@ -52,12 +61,28 @@ export function WaitlistSection() {
     setInvalid(next);
     if (next.email || next.whatsapp || next.age) return;
 
-    const newCount = increment();
-    setPosition(newCount);
-    setConfirmed(true);
-    requestAnimationFrame(() => {
-      cardRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    });
+    setSubmitting(true);
+    try {
+      // The form copy states consent to the privacy notice + launch updates.
+      await submitLead({
+        email,
+        phone: whatsapp,
+        subject: 'Founding 200 / waitlist',
+        message: `Waitlist signup — child age range: ${age}`,
+        type: 'waitlist',
+        consent: true,
+      });
+      const newCount = increment();
+      setPosition(newCount);
+      setConfirmed(true);
+      requestAnimationFrame(() => {
+        cardRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      });
+    } catch {
+      flashToast('Something went wrong — please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function handleCopy() {
@@ -76,6 +101,7 @@ export function WaitlistSection() {
       document.body.removeChild(ta);
     }
     setCopyLabel('Copied');
+    setToastMsg('Copied');
     setToastShown(true);
     window.setTimeout(() => {
       setCopyLabel('Copy link');
@@ -155,8 +181,13 @@ export function WaitlistSection() {
                 By saving your spot, you agree to our privacy notice and to
                 receive launch updates via email and WhatsApp.
               </p>
-              <button type="submit" className="submit-btn">
-                Claim my founding spot <span aria-hidden="true">→</span>
+              <button
+                type="submit"
+                className="submit-btn"
+                disabled={submitting}
+              >
+                {submitting ? 'Saving…' : 'Claim my founding spot'}{' '}
+                <span aria-hidden="true">→</span>
               </button>
               <p className="form-meta">
                 You&apos;ll get our free{' '}
@@ -224,7 +255,7 @@ export function WaitlistSection() {
           )}
         </div>
       </div>
-      <div className={`toast${toastShown ? ' show' : ''}`}>Copied</div>
+      <div className={`toast${toastShown ? ' show' : ''}`}>{toastMsg}</div>
     </section>
   );
 }

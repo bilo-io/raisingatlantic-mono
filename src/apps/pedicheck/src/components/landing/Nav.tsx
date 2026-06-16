@@ -5,9 +5,14 @@ export function Nav() {
     <nav className="nav">
       <div className="nav-inner">
         <Wordmark size="nav" href="/" />
-        <a href="/#waitlist" className="btn">
-          Join the Founding 200
-        </a>
+        <div className="nav-actions">
+          <a href="/features" className="nav-link">
+            Features
+          </a>
+          <a href="/#waitlist" className="btn">
+            Join the Founding 200
+          </a>
+        </div>
       </div>
     </nav>
   );
