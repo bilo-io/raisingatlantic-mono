@@ -25,13 +25,54 @@ const nunito = Nunito({
   display: 'swap',
 });
 
+const SITE_URL = 'https://pedicheck.co.za';
+const OG_TITLE = "PediCheck — When you don't know if it's serious";
+const OG_DESCRIPTION =
+  'Paediatrician-built guidance for every fever, bump and 2am worry. Calm, clear answers in under two minutes. Launching September 2026 — join the Founding 200.';
+
 export const metadata: Metadata = {
-  title: "PediCheck — When you don't know if it's serious",
-  description:
-    'PediCheck helps you think through late-night worries about your child. Calmly, in under two minutes. Built by Cape Town paediatricians.',
+  metadataBase: new URL(SITE_URL),
+  title: OG_TITLE,
+  description: OG_DESCRIPTION,
+  applicationName: 'PediCheck',
+  keywords: [
+    'paediatrician',
+    'child health',
+    'symptom checker',
+    'Cape Town',
+    'South Africa',
+    'after-hours',
+    'late-night worry',
+    'POPIA',
+    'Atlantic Children’s Practice',
+  ],
+  authors: [{ name: 'Atlantic Children’s Practice', url: SITE_URL }],
   icons: {
     icon: '/brand/icon-32.png',
     apple: '/brand/icon-180.png',
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'PediCheck',
+    title: OG_TITLE,
+    description: OG_DESCRIPTION,
+    url: SITE_URL,
+    locale: 'en_ZA',
+    images: [
+      {
+        url: '/brand/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'PediCheck — calm, paediatrician-built guidance for 2am worries.',
+        type: 'image/png',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: OG_TITLE,
+    description: OG_DESCRIPTION,
+    images: ['/brand/og-image.png'],
   },
 };
 

@@ -132,6 +132,26 @@ section {
   max-width: 1200px;
   margin: 0 auto;
 }
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.nav-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.nav-link:hover {
+  color: var(--ocean-deep);
+}
+@media (max-width: 560px) {
+  .nav-link {
+    display: none;
+  }
+}
 .logo {
   display: inline-flex;
   align-items: center;
@@ -1408,4 +1428,138 @@ footer {
 .toast.show {
   opacity: 1;
   transform: translate(-50%, -4px);
+}
+
+/* ===========================================================================
+   Feature requests — consent checkbox + browse feed + vote controls
+   Reuses the peach palette tokens defined at the top of this file.
+   =========================================================================== */
+.consent-check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  cursor: pointer;
+}
+.consent-check input {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  flex: 0 0 auto;
+  /* The shared `.field input` rule sets appearance:none, which removes the
+     native checkbox and its tick. Restore it here so accent-color can render. */
+  -webkit-appearance: auto;
+  appearance: auto;
+  accent-color: var(--ocean-deep);
+}
+.consent-check a {
+  color: var(--ocean);
+  text-decoration: underline;
+}
+
+.fr-feed {
+  margin-top: 56px;
+}
+.fr-feed-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: 24px;
+  color: var(--ink);
+  text-align: center;
+  margin-bottom: 26px;
+}
+.fr-empty {
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 14.5px;
+}
+.fr-retry {
+  background: none;
+  border: none;
+  color: var(--ocean);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+.fr-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 640px;
+  margin-inline: auto;
+}
+.fr-card {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+.fr-votes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+.fr-vote {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 30px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.fr-vote:hover:not(:disabled) {
+  border-color: var(--ocean);
+  color: var(--ocean-deep);
+}
+.fr-vote.active {
+  background: var(--ocean-deep);
+  border-color: var(--ocean-deep);
+  color: var(--cream);
+}
+.fr-vote:disabled {
+  cursor: default;
+}
+.fr-vote:disabled:not(.active) {
+  opacity: 0.45;
+}
+.fr-score {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink);
+  min-width: 22px;
+  text-align: center;
+}
+.fr-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.fr-card-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  margin: 2px 0 6px;
+}
+.fr-card-desc {
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 0;
+  overflow-wrap: anywhere;
 }

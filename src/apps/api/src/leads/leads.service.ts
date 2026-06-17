@@ -1,8 +1,11 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { randomUUID } from 'crypto';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { INotificationDispatcher } from '@core/notifications/interfaces/dispatcher.interface';
 import { NOTIFICATION_TOKENS } from '@core/notifications/interfaces/tokens';
 import { SystemLogsService } from '../system-logs/system-logs.service';
+import { GoogleSheetsService } from '../common/google-sheets/google-sheets.service';
 
 @Injectable()
 export class LeadsService {
@@ -12,12 +15,16 @@ export class LeadsService {
     @Inject(NOTIFICATION_TOKENS.Dispatcher)
     private readonly notifications: INotificationDispatcher,
     private readonly systemLogsService: SystemLogsService,
+    private readonly sheets: GoogleSheetsService,
+    private readonly config: ConfigService,
   ) {}
 
   async create(createLeadDto: CreateLeadDto, ip?: string) {
-    const { email, name, subject, message } = createLeadDto;
+    const { email, name, subject, message, type, phone, consent } =
+      createLeadDto;
     const finalSubject = subject || 'New Lead from Contact Form';
     const finalName = name || 'Anonymous Lead';
+    const finalType = type || 'contact';
 
     this.logger.log('Received lead'); // no PII in this log line
 
@@ -51,6 +58,36 @@ export class LeadsService {
       },
       ipAddress: ip,
     });
+
+    // 3. Append to the Google Sheets lead store — only with explicit POPIA
+    // consent, and only when a target spreadsheet is configured. Best-effort:
+    // a Sheets failure must not break the email/system-log flow above.
+    const spreadsheetConfigured = !!this.config.get<string>(
+      'GOOGLE_SHEETS_SPREADSHEET_ID',
+    );
+    if (consent === true && spreadsheetConfigured) {
+      const tab = this.config.get<string>('GOOGLE_SHEETS_LEADS_TAB') ?? 'Leads';
+      try {
+        // Leads tab: A id | B createdAt | C type | D name | E email | F phone
+        //            | G subject | H message | I consent | J ip
+        await this.sheets.appendRow(tab, [
+          randomUUID(),
+          new Date().toISOString(),
+          finalType,
+          finalName,
+          email,
+          phone ?? '',
+          finalSubject,
+          message,
+          'true',
+          ip ?? '',
+        ]);
+      } catch (error) {
+        this.logger.error(
+          `Error appending lead to Sheets: ${(error as Error).message}`,
+        );
+      }
+    }
 
     return {
       message: 'Lead submitted successfully',
