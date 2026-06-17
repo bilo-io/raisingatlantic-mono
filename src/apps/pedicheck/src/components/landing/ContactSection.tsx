@@ -2,10 +2,12 @@
 
 import { useRef, useState, type FormEvent } from 'react';
 import { ConfirmTick } from './icons';
+import { submitLead } from '@/lib/leads';
 
 type FieldKey = 'email' | 'subject' | 'message';
 
 const MESSAGE_LIMIT = 300;
+const MESSAGE_MIN = 10;
 
 const SUBJECTS = [
   'General question',
@@ -30,12 +32,14 @@ export function ContactSection() {
     message: false,
   });
   const [confirmed, setConfirmed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   function clearInvalid(field: FieldKey) {
     setInvalid((prev) => (prev[field] ? { ...prev, [field]: false } : prev));
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const email = String(formData.get('email') ?? '').trim();
@@ -45,17 +49,33 @@ export function ContactSection() {
     const next = {
       email: !validEmail(email),
       subject: subject === '',
-      message: trimmedMessage.length === 0 || trimmedMessage.length > MESSAGE_LIMIT,
+      message:
+        trimmedMessage.length < MESSAGE_MIN ||
+        trimmedMessage.length > MESSAGE_LIMIT,
     };
     setInvalid(next);
     if (next.email || next.subject || next.message) return;
 
-    // TODO: wire to /api/contact once the server route lands. For now we just
-    // confirm locally — no PII leaves the browser.
-    setConfirmed(true);
-    requestAnimationFrame(() => {
-      cardRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    });
+    setSubmitting(true);
+    try {
+      // The form copy already states the email is used to reply → consent.
+      await submitLead({
+        email,
+        subject,
+        message: trimmedMessage,
+        type: 'contact',
+        consent: true,
+      });
+      setConfirmed(true);
+      requestAnimationFrame(() => {
+        cardRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      });
+    } catch {
+      setToast('Something went wrong — please try again.');
+      window.setTimeout(() => setToast(null), 2400);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const remaining = MESSAGE_LIMIT - message.length;
@@ -128,16 +148,22 @@ export function ContactSection() {
                   {message.length} / {MESSAGE_LIMIT}
                 </span>
                 <div className="field-error">
-                  Please write a short message (under {MESSAGE_LIMIT} characters).
+                  Please write a message between {MESSAGE_MIN} and{' '}
+                  {MESSAGE_LIMIT} characters.
                 </div>
               </div>
 
               <p className="consent">
-                By sending, you agree we can use your email to reply. Nothing
+                By sending, you agree we can store your email to reply. Nothing
                 else, no list, no marketing.
               </p>
-              <button type="submit" className="submit-btn">
-                Send message <span aria-hidden="true">→</span>
+              <button
+                type="submit"
+                className="submit-btn"
+                disabled={submitting}
+              >
+                {submitting ? 'Sending…' : 'Send message'}{' '}
+                <span aria-hidden="true">→</span>
               </button>
             </form>
           ) : (
@@ -155,6 +181,7 @@ export function ContactSection() {
           )}
         </div>
       </div>
+      <div className={`toast${toast ? ' show' : ''}`}>{toast}</div>
     </section>
   );
 }

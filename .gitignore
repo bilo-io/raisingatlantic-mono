@@ -8,3 +8,7 @@
 **/.next.old
 **/out
 **/dist
+
+# pedicheck design-time asset staging (mockups, zips, screenshots, brand exports)
+# — not runtime. Mirrors src/apps/pedicheck/.gitignore's /resources/ exclusion.
+src/apps/pedicheck-assets/

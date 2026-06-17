@@ -16,6 +16,7 @@
     "start:prod": "node dist/main",
     "db:start": "docker compose up -d",
     "db:stop": "docker compose down",
+    "seed:sheets": "ts-node -r tsconfig-paths/register src/scripts/seed-sheets.ts",
     "db:migration:run": "ts-node -r tsconfig-paths/register node_modules/typeorm/cli.js -d db/data-source.ts migration:run",
     "db:seed": "ts-node -r tsconfig-paths/register db/seeds/seed.ts",
     "db:migration:revert": "ts-node -r tsconfig-paths/register node_modules/typeorm/cli.js -d db/data-source.ts migration:revert",
@@ -52,6 +53,8 @@
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.5",
+    "google-auth-library": "^10.7.0",
+    "googleapis": "^173.0.0",
     "helmet": "^8.0.0",
     "nestjs-cls": "^5.4.2",
     "nestjs-pino": "^4.4.0",
@@ -119,7 +122,8 @@
       "instrumentation\\.ts$",
       "logger\\.config\\.ts$",
       "redact-paths\\.ts$",
-      "db/migrations/"
+      "db/migrations/",
+      "scripts/"
     ],
     "coverageThreshold": {
       "global": {

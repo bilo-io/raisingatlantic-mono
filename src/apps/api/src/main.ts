@@ -53,6 +53,10 @@ async function bootstrap(): Promise<NestExpressApplication> {
     'https://raisingatlantic-staging.vercel.app',
     'https://raisingatlantic-prod.vercel.app',
     'https://raisingatlantic.vercel.app',
+    // PediCheck landing site (feature-request board + lead capture).
+    'http://localhost:9003',
+    'https://pedicheck.co.za',
+    'https://www.pedicheck.co.za',
   ];
   const extraOrigins = (process.env.ALLOWED_ORIGINS ?? '')
     .split(',')

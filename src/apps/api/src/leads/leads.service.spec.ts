@@ -1,7 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { LeadsService } from './leads.service';
 import { NOTIFICATION_TOKENS } from '@core/notifications/interfaces/tokens';
 import { SystemLogsService } from '../system-logs/system-logs.service';
+import { GoogleSheetsService } from '../common/google-sheets/google-sheets.service';
 
 describe('LeadsService', () => {
   let service: LeadsService;
@@ -12,6 +14,8 @@ describe('LeadsService', () => {
     notifyUser: jest.Mock;
   };
   let systemLogs: jest.Mocked<SystemLogsService>;
+  let sheets: { appendRow: jest.Mock };
+  let configValues: Record<string, string | undefined>;
 
   beforeEach(async () => {
     dispatcher = {
@@ -22,12 +26,20 @@ describe('LeadsService', () => {
       push: jest.fn(),
       notifyUser: jest.fn(),
     };
+    sheets = { appendRow: jest.fn().mockResolvedValue(undefined) };
+    // Default: spreadsheet configured so consented leads reach the Sheet.
+    configValues = { GOOGLE_SHEETS_SPREADSHEET_ID: 'sheet-123' };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LeadsService,
         { provide: NOTIFICATION_TOKENS.Dispatcher, useValue: dispatcher },
         { provide: SystemLogsService, useValue: { createLog: jest.fn() } },
+        { provide: GoogleSheetsService, useValue: sheets },
+        {
+          provide: ConfigService,
+          useValue: { get: (k: string) => configValues[k] },
+        },
       ],
     }).compile();
 
@@ -99,5 +111,63 @@ describe('LeadsService', () => {
     );
 
     expect(systemLogs.createLog).toHaveBeenCalledTimes(1);
+  });
+
+  it('appends to the Sheet only when consent is given', async () => {
+    systemLogs.createLog.mockResolvedValue({} as any);
+
+    await service.create({
+      email: 'jane@example.com',
+      message: 'Add me to the waitlist please',
+      type: 'waitlist',
+      phone: '+27 82 123 4567',
+      consent: true,
+    });
+
+    expect(sheets.appendRow).toHaveBeenCalledTimes(1);
+    const [tab, row] = sheets.appendRow.mock.calls[0];
+    expect(tab).toBe('Leads');
+    expect(row[2]).toBe('waitlist'); // type
+    expect(row[4]).toBe('jane@example.com'); // email
+    expect(row[5]).toBe('+27 82 123 4567'); // phone
+  });
+
+  it('does NOT append to the Sheet without consent', async () => {
+    systemLogs.createLog.mockResolvedValue({} as any);
+
+    await service.create({
+      email: 'jane@example.com',
+      message: 'A message with no consent',
+    });
+
+    expect(sheets.appendRow).not.toHaveBeenCalled();
+  });
+
+  it('does NOT append to the Sheet when no spreadsheet is configured', async () => {
+    configValues = {}; // no GOOGLE_SHEETS_SPREADSHEET_ID
+    systemLogs.createLog.mockResolvedValue({} as any);
+
+    await service.create({
+      email: 'jane@example.com',
+      message: 'Consented but no sheet configured',
+      consent: true,
+    });
+
+    expect(sheets.appendRow).not.toHaveBeenCalled();
+  });
+
+  it('still succeeds when the Sheet append throws', async () => {
+    sheets.appendRow.mockRejectedValue(new Error('sheets down'));
+    systemLogs.createLog.mockResolvedValue({} as any);
+
+    await expect(
+      service.create({
+        email: 'jane@example.com',
+        message: 'Consented, sheet errors',
+        consent: true,
+      }),
+    ).resolves.toEqual(
+      expect.objectContaining({ message: 'Lead submitted successfully' }),
+    );
   });
 });
