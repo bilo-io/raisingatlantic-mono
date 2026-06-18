@@ -7,11 +7,10 @@ import {
   EmailIcon,
   LinkIcon,
 } from './icons';
-import { useWaitlistCounter } from '@/lib/useWaitlistCounter';
 import { submitLead } from '@/lib/leads';
 
 const SHARE_MSG =
-  "Just signed up for PediCheck — a Cape Town paediatrician's late-night app for when you don't know if it's serious. First 200 families get founding pricing for life. Worth a look: pedicheck.co.za";
+  "Just signed up for PediCheck, a paediatrician-built late-night app for when you don't know if it's serious. Join the waitlist for 60 days free at launch: pedicheck.co.za";
 const SHARE_URL = 'pedicheck.co.za';
 
 type FieldKey = 'email' | 'whatsapp' | 'age';
@@ -21,7 +20,6 @@ function validEmail(s: string) {
 }
 
 export function WaitlistSection() {
-  const { increment } = useWaitlistCounter();
   const cardRef = useRef<HTMLDivElement>(null);
 
   const [invalid, setInvalid] = useState<Record<FieldKey, boolean>>({
@@ -30,7 +28,6 @@ export function WaitlistSection() {
     age: false,
   });
   const [confirmed, setConfirmed] = useState(false);
-  const [position, setPosition] = useState(135);
   const [copyLabel, setCopyLabel] = useState('Copy link');
   const [toastShown, setToastShown] = useState(false);
   const [toastMsg, setToastMsg] = useState('Copied');
@@ -67,13 +64,11 @@ export function WaitlistSection() {
       await submitLead({
         email,
         phone: whatsapp,
-        subject: 'Founding 200 / waitlist',
+        subject: 'Waitlist',
         message: `Waitlist signup — child age range: ${age}`,
         type: 'waitlist',
         consent: true,
       });
-      const newCount = increment();
-      setPosition(newCount);
       setConfirmed(true);
       requestAnimationFrame(() => {
         cardRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -111,7 +106,7 @@ export function WaitlistSection() {
 
   const waHref = `https://wa.me/?text=${encodeURIComponent(SHARE_MSG)}`;
   const mailHref = `mailto:?subject=${encodeURIComponent(
-    'PediCheck — for the 2am worries',
+    'PediCheck: for the 2am worries',
   )}&body=${encodeURIComponent(SHARE_MSG)}`;
 
   return (
@@ -120,7 +115,7 @@ export function WaitlistSection() {
         <div className="form-head">
           <div className="eyebrow center">Save your spot</div>
           <h2 className="display" style={{ marginTop: 18 }}>
-            Join the <em>Founding 200.</em>
+            Join the <em>waitlist.</em>
           </h2>
           <p className="sub" style={{ margin: '20px auto 0' }}>
             Three quick questions. Thirty seconds. Then you&apos;re in.
@@ -186,7 +181,7 @@ export function WaitlistSection() {
                 className="submit-btn"
                 disabled={submitting}
               >
-                {submitting ? 'Saving…' : 'Claim my founding spot'}{' '}
+                {submitting ? 'Saving…' : 'Join the waitlist'}{' '}
                 <span aria-hidden="true">→</span>
               </button>
               <p className="form-meta">
@@ -202,9 +197,11 @@ export function WaitlistSection() {
                 <ConfirmTick />
               </div>
               <h3 className="display">
-                You&apos;re in. You&apos;re <em>#{position}.</em>
+                You&apos;re <em>in.</em>
               </h3>
-              <p className="confirm-sub">Welcome to the Founding 200.</p>
+              <p className="confirm-sub">
+                Welcome to PediCheck. You&apos;re on the list.
+              </p>
               <div className="steps">
                 <div className="step">
                   <span className="n">01</span>
@@ -222,7 +219,7 @@ export function WaitlistSection() {
                 <div className="step">
                   <span className="n">03</span>
                   <span className="t">
-                    <strong>September 2026.</strong> You&apos;ll get access a
+                    <strong>Launching soon.</strong> You&apos;ll get access a
                     week before everyone else.
                   </span>
                 </div>

@@ -1,8 +1,4 @@
-'use client';
-
-import { useEffect, useRef } from 'react';
 import { CheckIcon } from './icons';
-import { useWaitlistCounter } from '@/lib/useWaitlistCounter';
 
 const BENEFITS = [
   {
@@ -10,35 +6,16 @@ const BENEFITS = [
     body: 'No card required. Use the full product before you pay a cent.',
   },
   {
-    title: 'R99 per month for life',
-    body: 'Founding rate, locked in. Everyone else pays R149/month at launch.',
-  },
-  {
     title: 'Early access, one week before public launch',
     body: 'Your account is active before anyone else’s.',
   },
   {
     title: 'A say in what we build next',
-    body: 'Founding members get the first vote on every new feature.',
+    body: 'Waitlist members get the first vote on every new feature.',
   },
 ];
 
 export function OfferSection() {
-  const { count, percent } = useWaitlistCounter();
-  const progressRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    const el = progressRef.current;
-    if (!el) return;
-    el.style.width = '0%';
-    const id = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        el.style.width = `${percent}%`;
-      });
-    });
-    return () => cancelAnimationFrame(id);
-  }, [percent]);
-
   return (
     <section className="offer bg-warm">
       <div className="wrap">
@@ -46,12 +23,11 @@ export function OfferSection() {
           <div>
             <div className="eyebrow">The offer</div>
             <h2 className="display" style={{ marginTop: 18 }}>
-              Be one of the <em>first 200 families.</em>
+              Join before we <em>launch.</em>
             </h2>
             <p className="sub">
-              We&apos;re launching PediCheck in September 2026. The first 200
-              families to join the waitlist become our{' '}
-              <strong>Founding 200</strong> and get these benefits, for life.
+              We&apos;re launching PediCheck soon. Anyone who joins the waitlist
+              before we launch gets these benefits.
             </p>
             <ul className="benefits">
               {BENEFITS.map((b) => (
@@ -68,17 +44,29 @@ export function OfferSection() {
             </ul>
           </div>
           <div className="counter-card">
-            <div className="counter-label">Founding Families</div>
-            <div className="counter-num">
-              <span>{count}</span>
-              <span className="of">/200</span>
-            </div>
-            <div className="progress">
-              <span ref={progressRef} />
-            </div>
+            <div className="counter-label">The waitlist</div>
+            <p
+              style={{
+                fontFamily: 'var(--headline-font)',
+                fontWeight: 300,
+                fontSize: 'clamp(30px, 4vw, 40px)',
+                lineHeight: 1.12,
+                letterSpacing: '-0.02em',
+                color: 'var(--ocean-deep)',
+                margin: '14px 0 24px',
+              }}
+            >
+              60 days free. Early access. A say in what we build.
+            </p>
+            <a
+              href="#waitlist"
+              className="btn primary"
+              style={{ width: '100%', justifyContent: 'center' }}
+            >
+              Join the waitlist <span aria-hidden="true">→</span>
+            </a>
             <p className="counter-caption">
-              After 200 spots fill, the waitlist stays open at standard launch
-              pricing.
+              No card required. One short update a month until we launch.
             </p>
           </div>
         </div>

@@ -10,7 +10,7 @@ export function Nav() {
             Features
           </a>
           <a href="/#waitlist" className="btn">
-            Join the Founding 200
+            Join the waitlist
           </a>
         </div>
       </div>

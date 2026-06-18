@@ -7,7 +7,7 @@ type Plan = {
   currency: string;
   amount: string;
   per: string;
-  was: string;
+  was?: string;
   wasNote: string;
   features: string[];
   cta: string;
@@ -21,27 +21,26 @@ const PLANS: Plan[] = [
     name: 'PediCheck',
     tag: 'Calm, paediatrician-built guidance for every fever, bump and 2am worry.',
     currency: 'R',
-    amount: '99',
+    amount: '199',
     per: '/ month',
-    was: 'R149/month',
-    wasNote: 'Founding 200 rate, locked in for life.',
+    wasNote: 'Your first 60 days are free, no card required.',
     features: [
       'Unlimited symptom check-ins, any hour',
       'Clear red-flag detection and next steps',
       'Nearest after-hours options on your route',
       '60 days free, no card required',
     ],
-    cta: 'Join the Founding 200',
+    cta: 'Join the waitlist',
   },
   {
     label: 'Premium add-on',
     name: 'ACP Priority',
-    tag: 'A direct, dedicated WhatsApp line to an ACP paediatrician — after hours, when it matters most.',
+    tag: 'A direct, dedicated WhatsApp line to an ACP paediatrician, after hours, when it matters most.',
     currency: 'R',
     amount: '1 250',
     per: '/ month',
     was: 'R1 500/month',
-    wasNote: 'For the Founding 200 only.',
+    wasNote: 'Special price for everyone on the PediCheck app.',
     features: [
       'Direct WhatsApp access to a paediatrician',
       'Dedicated after-hours cover, evenings & weekends',
@@ -50,7 +49,7 @@ const PLANS: Plan[] = [
     ],
     cta: 'Add ACP Priority',
     featured: true,
-    flag: 'Founding price',
+    flag: 'Member price',
   },
 ];
 
@@ -86,7 +85,12 @@ export function PlansSection() {
                 <span className="per">{p.per}</span>
               </div>
               <p className="plan-was">
-                <s>{p.was}</s> &nbsp;{p.wasNote}
+                {p.was && (
+                  <>
+                    <s>{p.was}</s> &nbsp;
+                  </>
+                )}
+                {p.wasNote}
               </p>
               <ul className="plan-feat">
                 {p.features.map((f) => (
