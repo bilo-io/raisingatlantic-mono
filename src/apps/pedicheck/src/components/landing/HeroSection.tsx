@@ -1,36 +1,27 @@
-'use client';
-
 import { PhoneMockup } from './PhoneMockup';
-import { useWaitlistCounter } from '@/lib/useWaitlistCounter';
 
 export function HeroSection() {
-  const { count } = useWaitlistCounter();
-
   return (
     <section className="hero">
       <div className="wrap">
         <div className="hero-grid">
           <div className="hero-left">
-            <div className="eyebrow fade-up d1">
-              Launching September 2026 · Cape Town
-            </div>
+            <div className="eyebrow fade-up d1">Launching soon</div>
             <h1 className="display h-display fade-up d2" style={{ marginTop: 24 }}>
               It&apos;s 2am. Something feels wrong.{' '}
               <em>You don&apos;t know if it&apos;s serious.</em>
             </h1>
             <p className="sub fade-up d3">
               PediCheck helps you think it through. Calmly, in under two minutes.
-              Built by Cape Town paediatricians.
+              Built by paediatricians.
             </p>
             <div className="fade-up d4">
               <a href="#waitlist" className="btn primary">
-                Join the Founding 200{' '}
-                <span aria-hidden="true">→</span>
+                Join the waitlist <span aria-hidden="true">→</span>
               </a>
             </div>
             <p className="hero-meta fade-up d5">
-              <span className="count">{count}</span> of 200 founding families ·
-              Free for the first 60 days
+              Free for your first 60 days · Early access before launch
             </p>
           </div>
           <div className="hero-right fade-up d3">

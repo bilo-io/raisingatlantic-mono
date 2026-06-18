@@ -11,7 +11,7 @@ const MESSAGE_MIN = 10;
 
 const SUBJECTS = [
   'General question',
-  'Founding 200 / waitlist',
+  'Waitlist',
   'Press & partnerships',
   'Clinician collaboration',
   'Privacy / data request (POPIA)',

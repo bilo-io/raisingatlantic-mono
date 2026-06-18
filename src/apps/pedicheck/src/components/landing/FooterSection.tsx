@@ -8,8 +8,8 @@ export function FooterSection() {
           <div>
             <Wordmark size="nav" href="/" />
             <p className="footer-by">
-              By <strong>Atlantic Children&apos;s Practice</strong>, Cape Town ·
-              Launching September 2026
+              By <strong>Atlantic Children&apos;s Practice</strong> · Launching
+              soon
             </p>
             <div className="footer-links">
               <a href="/privacy">Privacy</a>

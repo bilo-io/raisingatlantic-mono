@@ -34,10 +34,10 @@ export function CredibilitySection() {
               <div>
                 <p>
                   PediCheck is created by the paediatricians at{' '}
-                  <strong>Atlantic Children&apos;s Practice</strong> in Cape
-                  Town — doctors who are mothers too. We&apos;ve sat on the
-                  other side of these late-night moments, with our own children,
-                  more times than we can count.
+                  <strong>Atlantic Children&apos;s Practice</strong>, doctors
+                  who are mothers too. We&apos;ve sat on the other side of these
+                  late-night moments, with our own children, more times than we
+                  can count.
                 </p>
                 <p>
                   Every decision pathway is written by our paediatricians and
@@ -51,9 +51,7 @@ export function CredibilitySection() {
                   <span className="ico">
                     <HouseIcon />
                   </span>
-                  <span>
-                    Built by Cape Town paediatricians — and mothers
-                  </span>
+                  <span>Built by paediatricians, and mothers</span>
                 </div>
                 <div className="cred-badge">
                   <span className="ico">
