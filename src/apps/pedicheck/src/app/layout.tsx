@@ -26,9 +26,9 @@ const nunito = Nunito({
 });
 
 const SITE_URL = 'https://pedicheck.co.za';
-const OG_TITLE = "PediCheck — When you don't know if it's serious";
+const OG_TITLE = "PediCheck: When you don't know if it's serious";
 const OG_DESCRIPTION =
-  'Paediatrician-built guidance for every fever, bump and 2am worry. Calm, clear answers in under two minutes. Launching September 2026 — join the Founding 200.';
+  'Paediatrician-built guidance for every fever, bump and 2am worry. Calm, clear answers in under two minutes. Launching soon — join the waitlist.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
