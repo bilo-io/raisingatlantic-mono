@@ -8,6 +8,7 @@ import {
   LinkIcon,
 } from './icons';
 import { submitLead } from '@/lib/leads';
+import { isValidEmail, isValidPhone } from '@/lib/validation';
 
 const SHARE_MSG =
   "Just signed up for PediCheck, a paediatrician-built late-night app for when you don't know if it's serious. Join the waitlist for 60 days free at launch: pedicheck.co.za";
@@ -15,14 +16,13 @@ const SHARE_URL = 'pedicheck.co.za';
 
 type FieldKey = 'email' | 'whatsapp' | 'age';
 
-function validEmail(s: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
-}
-
 export function WaitlistSection() {
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const [invalid, setInvalid] = useState<Record<FieldKey, boolean>>({
+  const [email, setEmail] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [age, setAge] = useState('');
+  const [touched, setTouched] = useState<Record<FieldKey, boolean>>({
     email: false,
     whatsapp: false,
     age: false,
@@ -33,8 +33,15 @@ export function WaitlistSection() {
   const [toastMsg, setToastMsg] = useState('Copied');
   const [submitting, setSubmitting] = useState(false);
 
-  function clearInvalid(field: FieldKey) {
-    setInvalid((prev) => (prev[field] ? { ...prev, [field]: false } : prev));
+  // WhatsApp is optional — a blank number is fine, but anything typed must be a
+  // valid SA or international number before the form can be submitted.
+  const emailValid = isValidEmail(email);
+  const whatsappValid = whatsapp.trim() === '' || isValidPhone(whatsapp);
+  const ageValid = age !== '';
+  const formValid = emailValid && whatsappValid && ageValid;
+
+  function markTouched(field: FieldKey) {
+    setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }));
   }
 
   function flashToast(msg: string) {
@@ -45,25 +52,17 @@ export function WaitlistSection() {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const email = String(formData.get('email') ?? '').trim();
-    const whatsapp = String(formData.get('whatsapp') ?? '').trim();
-    const age = String(formData.get('age') ?? '').trim();
-
-    const next = {
-      email: !validEmail(email),
-      whatsapp: whatsapp.length < 6,
-      age: age === '',
-    };
-    setInvalid(next);
-    if (next.email || next.whatsapp || next.age) return;
+    if (!formValid) {
+      setTouched({ email: true, whatsapp: true, age: true });
+      return;
+    }
 
     setSubmitting(true);
     try {
       // The form copy states consent to the privacy notice + launch updates.
       await submitLead({
-        email,
-        phone: whatsapp,
+        email: email.trim(),
+        phone: whatsapp.trim() || undefined,
         subject: 'Waitlist',
         message: `Waitlist signup — child age range: ${age}`,
         type: 'waitlist',
@@ -125,7 +124,11 @@ export function WaitlistSection() {
         <div className="form-card" ref={cardRef}>
           {!confirmed ? (
             <form onSubmit={handleSubmit} noValidate>
-              <div className={`field${invalid.email ? ' invalid' : ''}`}>
+              <div
+                className={`field${
+                  touched.email && !emailValid ? ' invalid' : ''
+                }`}
+              >
                 <label htmlFor="email">Email address</label>
                 <input
                   type="email"
@@ -133,13 +136,19 @@ export function WaitlistSection() {
                   name="email"
                   placeholder="you@example.com"
                   autoComplete="email"
-                  onInput={() => clearInvalid('email')}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => markTouched('email')}
                 />
                 <div className="field-error">
                   Please enter a valid email address.
                 </div>
               </div>
-              <div className={`field${invalid.whatsapp ? ' invalid' : ''}`}>
+              <div
+                className={`field${
+                  touched.whatsapp && !whatsappValid ? ' invalid' : ''
+                }`}
+              >
                 <label htmlFor="whatsapp">WhatsApp number</label>
                 <input
                   type="tel"
@@ -147,19 +156,26 @@ export function WaitlistSection() {
                   name="whatsapp"
                   placeholder="+27 82 123 4567"
                   autoComplete="tel"
-                  onInput={() => clearInvalid('whatsapp')}
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  onBlur={() => markTouched('whatsapp')}
                 />
                 <div className="field-error">
-                  We need a WhatsApp number to reach you.
+                  Please enter a valid mobile number.
                 </div>
               </div>
-              <div className={`field${invalid.age ? ' invalid' : ''}`}>
+              <div
+                className={`field${
+                  touched.age && !ageValid ? ' invalid' : ''
+                }`}
+              >
                 <label htmlFor="age">Your child&apos;s age range</label>
                 <select
                   id="age"
                   name="age"
-                  defaultValue=""
-                  onChange={() => clearInvalid('age')}
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  onBlur={() => markTouched('age')}
                 >
                   <option value="">Choose one</option>
                   <option>Under 6 months</option>
@@ -179,7 +195,7 @@ export function WaitlistSection() {
               <button
                 type="submit"
                 className="submit-btn"
-                disabled={submitting}
+                disabled={!formValid || submitting}
               >
                 {submitting ? 'Saving…' : 'Join the waitlist'}{' '}
                 <span aria-hidden="true">→</span>

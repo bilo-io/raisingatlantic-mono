@@ -3,6 +3,7 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { ConfirmTick } from './icons';
 import { submitLead } from '@/lib/leads';
+import { isValidEmail } from '@/lib/validation';
 
 type FieldKey = 'email' | 'subject' | 'message';
 
@@ -18,15 +19,13 @@ const SUBJECTS = [
   'Something else',
 ];
 
-function validEmail(s: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
-}
-
 export function ContactSection() {
   const cardRef = useRef<HTMLDivElement>(null);
 
+  const [email, setEmail] = useState('');
+  const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
-  const [invalid, setInvalid] = useState<Record<FieldKey, boolean>>({
+  const [touched, setTouched] = useState<Record<FieldKey, boolean>>({
     email: false,
     subject: false,
     message: false,
@@ -35,32 +34,30 @@ export function ContactSection() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  function clearInvalid(field: FieldKey) {
-    setInvalid((prev) => (prev[field] ? { ...prev, [field]: false } : prev));
+  const trimmedMessage = message.trim();
+  const emailValid = isValidEmail(email);
+  const subjectValid = subject !== '';
+  const messageValid =
+    trimmedMessage.length >= MESSAGE_MIN &&
+    trimmedMessage.length <= MESSAGE_LIMIT;
+  const formValid = emailValid && subjectValid && messageValid;
+
+  function markTouched(field: FieldKey) {
+    setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }));
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const email = String(formData.get('email') ?? '').trim();
-    const subject = String(formData.get('subject') ?? '').trim();
-    const trimmedMessage = message.trim();
-
-    const next = {
-      email: !validEmail(email),
-      subject: subject === '',
-      message:
-        trimmedMessage.length < MESSAGE_MIN ||
-        trimmedMessage.length > MESSAGE_LIMIT,
-    };
-    setInvalid(next);
-    if (next.email || next.subject || next.message) return;
+    if (!formValid) {
+      setTouched({ email: true, subject: true, message: true });
+      return;
+    }
 
     setSubmitting(true);
     try {
       // The form copy already states the email is used to reply → consent.
       await submitLead({
-        email,
+        email: email.trim(),
         subject,
         message: trimmedMessage,
         type: 'contact',
@@ -97,7 +94,11 @@ export function ContactSection() {
         <div className="form-card" ref={cardRef}>
           {!confirmed ? (
             <form onSubmit={handleSubmit} noValidate>
-              <div className={`field${invalid.email ? ' invalid' : ''}`}>
+              <div
+                className={`field${
+                  touched.email && !emailValid ? ' invalid' : ''
+                }`}
+              >
                 <label htmlFor="email">Your email</label>
                 <input
                   type="email"
@@ -105,20 +106,27 @@ export function ContactSection() {
                   name="email"
                   placeholder="you@example.com"
                   autoComplete="email"
-                  onInput={() => clearInvalid('email')}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => markTouched('email')}
                 />
                 <div className="field-error">
                   Please enter a valid email address.
                 </div>
               </div>
 
-              <div className={`field${invalid.subject ? ' invalid' : ''}`}>
+              <div
+                className={`field${
+                  touched.subject && !subjectValid ? ' invalid' : ''
+                }`}
+              >
                 <label htmlFor="subject">Subject</label>
                 <select
                   id="subject"
                   name="subject"
-                  defaultValue=""
-                  onChange={() => clearInvalid('subject')}
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  onBlur={() => markTouched('subject')}
                 >
                   <option value="">Choose one</option>
                   {SUBJECTS.map((s) => (
@@ -128,7 +136,11 @@ export function ContactSection() {
                 <div className="field-error">Pick a subject.</div>
               </div>
 
-              <div className={`field${invalid.message ? ' invalid' : ''}`}>
+              <div
+                className={`field${
+                  touched.message && !messageValid ? ' invalid' : ''
+                }`}
+              >
                 <label htmlFor="message">Your message</label>
                 <textarea
                   id="message"
@@ -136,10 +148,8 @@ export function ContactSection() {
                   placeholder="Tell us what's on your mind…"
                   value={message}
                   maxLength={MESSAGE_LIMIT}
-                  onChange={(e) => {
-                    setMessage(e.target.value);
-                    clearInvalid('message');
-                  }}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onBlur={() => markTouched('message')}
                 />
                 <span
                   className={`field-counter${over ? ' over' : ''}`}
@@ -160,7 +170,7 @@ export function ContactSection() {
               <button
                 type="submit"
                 className="submit-btn"
-                disabled={submitting}
+                disabled={!formValid || submitting}
               >
                 {submitting ? 'Sending…' : 'Send message'}{' '}
                 <span aria-hidden="true">→</span>

@@ -11,15 +11,14 @@ import {
   type FeatureRequest,
   type VoteDirection,
 } from '@/lib/featureRequests';
+import { isValidEmail } from '@/lib/validation';
 
 type FieldKey = 'title' | 'description' | 'email' | 'consent';
 
 const TITLE_LIMIT = 80;
 const DESCRIPTION_LIMIT = 200;
-
-function validEmail(s: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
-}
+// A request must describe the idea in more than this many characters.
+const DESCRIPTION_MIN = 10;
 
 export function FeatureRequestsSection() {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -29,7 +28,7 @@ export function FeatureRequestsSection() {
   const [description, setDescription] = useState('');
   const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(false);
-  const [invalid, setInvalid] = useState<Record<FieldKey, boolean>>({
+  const [touched, setTouched] = useState<Record<FieldKey, boolean>>({
     title: false,
     description: false,
     email: false,
@@ -67,34 +66,41 @@ export function FeatureRequestsSection() {
     window.setTimeout(() => setToast(null), 2400);
   }
 
-  function clearInvalid(field: FieldKey) {
-    setInvalid((prev) => (prev[field] ? { ...prev, [field]: false } : prev));
+  // Submission needs a valid email and a description of more than
+  // DESCRIPTION_MIN characters; the title and consent checkbox stay required
+  // (consent is the POPIA basis for storing the submitter's email).
+  const trimmedTitle = title.trim();
+  const trimmedDescription = description.trim();
+  const titleValid =
+    trimmedTitle.length > 0 && trimmedTitle.length <= TITLE_LIMIT;
+  const descriptionValid =
+    trimmedDescription.length > DESCRIPTION_MIN &&
+    trimmedDescription.length <= DESCRIPTION_LIMIT;
+  const emailValid = isValidEmail(email);
+  const formValid = titleValid && descriptionValid && emailValid && consent;
+
+  function markTouched(field: FieldKey) {
+    setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }));
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const trimmedTitle = title.trim();
-    const trimmedDescription = description.trim();
-    const trimmedEmail = email.trim();
-
-    const next = {
-      title: trimmedTitle.length === 0 || trimmedTitle.length > TITLE_LIMIT,
-      description:
-        trimmedDescription.length === 0 ||
-        trimmedDescription.length > DESCRIPTION_LIMIT,
-      // Email is required; consent to store it is then also required.
-      email: !validEmail(trimmedEmail),
-      consent: !consent,
-    };
-    setInvalid(next);
-    if (next.title || next.description || next.email || next.consent) return;
+    if (!formValid) {
+      setTouched({
+        title: true,
+        description: true,
+        email: true,
+        consent: true,
+      });
+      return;
+    }
 
     setSubmitting(true);
     try {
       await submitFeatureRequest({
         title: trimmedTitle,
         description: trimmedDescription,
-        email: trimmedEmail,
+        email: email.trim(),
         consent: true,
       });
       setConfirmed(true);
@@ -170,7 +176,11 @@ export function FeatureRequestsSection() {
         <div className="form-card" ref={cardRef}>
           {!confirmed ? (
             <form onSubmit={handleSubmit} noValidate>
-              <div className={`field${invalid.title ? ' invalid' : ''}`}>
+              <div
+                className={`field${
+                  touched.title && !titleValid ? ' invalid' : ''
+                }`}
+              >
                 <label htmlFor="fr-title">Feature title</label>
                 <input
                   type="text"
@@ -179,10 +189,8 @@ export function FeatureRequestsSection() {
                   placeholder="e.g. Add a medication reminder"
                   maxLength={TITLE_LIMIT}
                   value={title}
-                  onChange={(e) => {
-                    setTitle(e.target.value);
-                    clearInvalid('title');
-                  }}
+                  onChange={(e) => setTitle(e.target.value)}
+                  onBlur={() => markTouched('title')}
                 />
                 <span
                   className={`field-counter${titleRemaining < 0 ? ' over' : ''}`}
@@ -195,7 +203,11 @@ export function FeatureRequestsSection() {
                 </div>
               </div>
 
-              <div className={`field${invalid.description ? ' invalid' : ''}`}>
+              <div
+                className={`field${
+                  touched.description && !descriptionValid ? ' invalid' : ''
+                }`}
+              >
                 <label htmlFor="fr-description">Description</label>
                 <textarea
                   id="fr-description"
@@ -203,10 +215,8 @@ export function FeatureRequestsSection() {
                   placeholder="What should it do, and why would it help?"
                   maxLength={DESCRIPTION_LIMIT}
                   value={description}
-                  onChange={(e) => {
-                    setDescription(e.target.value);
-                    clearInvalid('description');
-                  }}
+                  onChange={(e) => setDescription(e.target.value)}
+                  onBlur={() => markTouched('description')}
                 />
                 <span
                   className={`field-counter${descRemaining < 0 ? ' over' : ''}`}
@@ -215,11 +225,16 @@ export function FeatureRequestsSection() {
                   {description.length} / {DESCRIPTION_LIMIT}
                 </span>
                 <div className="field-error">
-                  Please describe it (under {DESCRIPTION_LIMIT} characters).
+                  Please describe it in more than {DESCRIPTION_MIN} characters
+                  (and under {DESCRIPTION_LIMIT}).
                 </div>
               </div>
 
-              <div className={`field${invalid.email ? ' invalid' : ''}`}>
+              <div
+                className={`field${
+                  touched.email && !emailValid ? ' invalid' : ''
+                }`}
+              >
                 <label htmlFor="fr-email">Email</label>
                 <input
                   type="email"
@@ -228,25 +243,25 @@ export function FeatureRequestsSection() {
                   placeholder="you@example.com"
                   autoComplete="email"
                   value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    clearInvalid('email');
-                  }}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => markTouched('email')}
                 />
                 <div className="field-error">
                   Please enter a valid email address.
                 </div>
               </div>
 
-              <div className={`field${invalid.consent ? ' invalid' : ''}`}>
+              <div
+                className={`field${
+                  touched.consent && !consent ? ' invalid' : ''
+                }`}
+              >
                 <label className="consent-check">
                   <input
                     type="checkbox"
                     checked={consent}
-                    onChange={(e) => {
-                      setConsent(e.target.checked);
-                      clearInvalid('consent');
-                    }}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    onBlur={() => markTouched('consent')}
                   />
                   <span>
                     I agree PediCheck may store my email to let me know if this
@@ -261,7 +276,7 @@ export function FeatureRequestsSection() {
               <button
                 type="submit"
                 className="submit-btn"
-                disabled={submitting}
+                disabled={!formValid || submitting}
               >
                 {submitting ? 'Sending…' : 'Submit feature request'}{' '}
                 <span aria-hidden="true">→</span>
