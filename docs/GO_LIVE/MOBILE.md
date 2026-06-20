@@ -12,7 +12,7 @@
 - [Phase M1: Parent Flow](#phase-m1-parent-flow): `DEV 100%`
 - [Phase M2: Clinician Flow](#phase-m2-clinician-flow): `DEV 100%` ✅ *(16/21 — remainder blocked on API gaps G-VER-02 and ClinicianProfile HPCSA fields, see [MOBILE_PHASE_M2_TODO.md](MOBILE_PHASE_M2_TODO.md))*
 - [Phase M3: Admin Flow](#phase-m3-admin-flow): `DEV 100%`
-- [Phase M4: Polish & Platform UX](#phase-m4-polish--platform-ux): `DEV 100%`
+- [Phase M4: Polish & Platform UX](#phase-m4-polish--platform-ux): `DEV 100%` *(18/24 — M4.4 ships as scaffold only and source-map upload defers to §M5.1, see [MOBILE_PHASE_M4_TODO.md](MOBILE_PHASE_M4_TODO.md))*
 - [Phase M5: Native, Store & Release](#phase-m5-native-store--release): `DEV 90%` · `DESIGN 10%`
 
 ---
@@ -285,28 +285,28 @@ Quality work that turns the app from "fixtures render correctly" into "productio
 #### M4.1 Push notifications
 [Expo Push Notifications](https://docs.expo.dev/push-notifications/overview/) with role-aware topics. Server-side dispatch lives in the API (see [DEV.md §8.3](DEV.md#83-push-notifications-mobile)).
 
-- [ ] Register device token on sign-in; deregister on sign-out
-- [ ] Topic subscriptions per role: parents get vaccine reminders + appointment reminders + message alerts; clinicians get verification-queue alerts + appointment reminders
-- [ ] **Quiet hours** respected (per parent's preference set in [§M1.6](#m16-profile)) — server enforces, client displays setting
-- [ ] **No PII in push payloads** — push body must be generic ("A new record is awaiting your review"), with deep link carrying only opaque IDs
+- [x] Register device token on sign-in; deregister on sign-out
+- [x] Topic subscriptions per role: parents get vaccine reminders + appointment reminders + message alerts; clinicians get verification-queue alerts + appointment reminders
+- [x] **Quiet hours** respected (per parent's preference set in [§M1.6](#m16-profile)) — server enforces, client displays setting
+- [x] **No PII in push payloads** — push body must be generic ("A new record is awaiting your review"), with deep link carrying only opaque IDs
 
 #### M4.2 Offline & retry
 Mobile networks drop. The app must survive a 30-second outage without losing user input.
 
-- [ ] React Query mutations queued via `useMutation` with `retry: 3` + exponential backoff
-- [ ] Optimistic updates for create/update; rollback on persistent failure
-- [ ] Offline detection ([`@react-native-community/netinfo`](https://github.com/react-native-netinfo/react-native-netinfo)) shows a banner when offline
-- [ ] **No retry-loop on auth failures** — 401 immediately signs the user out
+- [x] React Query mutations queued via `useMutation` with `retry: 3` + exponential backoff
+- [x] Optimistic updates for create/update; rollback on persistent failure
+- [x] Offline detection ([`@react-native-community/netinfo`](https://github.com/react-native-netinfo/react-native-netinfo)) shows a banner when offline
+- [x] **No retry-loop on auth failures** — 401 immediately signs the user out
 
 #### M4.3 Deep linking
 Push notifications and email links open the right screen, not the home tab.
 
-- [ ] Expo Router deep-link config in [app.json](../../src/apps/mobile/app.json)
-- [ ] Scheme `raisingatlantic://` + universal links for `app.raisingatlantic.com`
-- [ ] Test matrix: cold start, warm start, signed-out target (auth gate then redirect)
+- [x] Expo Router deep-link config in [app.json](../../src/apps/mobile/app.json)
+- [x] Scheme `raisingatlantic://` + universal links for `app.raisingatlantic.com`
+- [x] Test matrix: cold start, warm start, signed-out target (auth gate then redirect)
 
 #### M4.4 Real auth cutover
-Replace fixture auth with [Firebase Auth](https://firebase.google.com/docs/auth) (or whichever provider [DEV.md §2.1](DEV.md#21-auth-provider-decision) lands on). Tier 3 — only after the rest of the app is stable on fixtures.
+Replace fixture auth with [Firebase Auth](https://firebase.google.com/docs/auth) (or whichever provider [DEV.md §2.1](DEV.md#21-auth-provider-decision) lands on). Tier 3 — only after the rest of the app is stable on fixtures. *(M4 ships a `StorageDriver` + `AuthProvider` interface + `expo-secure-store` wrapper so the cutover can drop in once §2.1 lands — see [MOBILE_PHASE_M4_TODO.md](MOBILE_PHASE_M4_TODO.md).)*
 
 - [ ] Drop-in replacement for `signInAs(role)` — same `AuthContext` shape, real ID token under the hood
 - [ ] Email verification + password reset flows ([DEV.md §2.2](DEV.md#22-account-security-hardening))
@@ -315,16 +315,16 @@ Replace fixture auth with [Firebase Auth](https://firebase.google.com/docs/auth)
 - [ ] Remove fixture-JWT injection from M0.4 in production builds
 
 #### M4.5 Error boundaries & crash reporting
-- [ ] Route-level error boundaries (one per top-level tab)
-- [ ] [Sentry React Native](https://docs.sentry.io/platforms/react-native/) wired with **PII scrubbing rules** — never let names, emails, HPCSA numbers, or medical conditions reach Sentry. Strip in `beforeSend`.
-- [ ] Source maps uploaded on EAS build
+- [x] Route-level error boundaries (one per top-level tab)
+- [x] [Sentry React Native](https://docs.sentry.io/platforms/react-native/) wired with **PII scrubbing rules** — never let names, emails, HPCSA numbers, or medical conditions reach Sentry. Strip in `beforeSend`.
+- [ ] Source maps uploaded on EAS build *(deferred to §M5.1 — `eas.json` not yet created)*
 
 #### M4.6 Accessibility
-- [ ] [WCAG 2.1 AA](https://www.w3.org/TR/WCAG21/) audit pass per role
-- [ ] iOS VoiceOver + Android TalkBack labelling on every interactive element
-- [ ] Colour contrast checked against the theme tokens
-- [ ] Tap targets ≥ 44pt on iOS, ≥ 48dp on Android
-- [ ] Dynamic Type / font-scaling respected
+- [x] [WCAG 2.1 AA](https://www.w3.org/TR/WCAG21/) audit pass per role *(baseline audit recorded in [MOBILE_A11Y_AUDIT.md](MOBILE_A11Y_AUDIT.md); follow-ups tracked there)*
+- [x] iOS VoiceOver + Android TalkBack labelling on every interactive element
+- [x] Colour contrast checked against the theme tokens
+- [x] Tap targets ≥ 44pt on iOS, ≥ 48dp on Android
+- [x] Dynamic Type / font-scaling respected
 
 ---
 
