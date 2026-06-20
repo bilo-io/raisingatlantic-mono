@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from "axios";
 import { apiBaseUrl } from "../env";
 import { getAuthHeaders } from "./auth-header";
 import { toApiError } from "./errors";
+import { triggerSignOut } from "./sign-out-bridge";
 
 export const api: AxiosInstance = axios.create({
   baseURL: apiBaseUrl,
@@ -19,5 +20,11 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject(toApiError(error)),
+  (error) => {
+    const apiError = toApiError(error);
+    if (apiError.status === 401) {
+      void triggerSignOut();
+    }
+    return Promise.reject(apiError);
+  },
 );
