@@ -114,14 +114,14 @@ Real-API mode in dev needs a token the API will accept. Inject a deterministic d
 - [x] [AuthContext.tsx](../../src/apps/mobile/auth/AuthContext.tsx): when `signInAs(role)` runs in mock mode, also publish a fixture JWT to [auth-header.ts](../../src/apps/mobile/lib/api/auth-header.ts) via `setAuthBridge`
 - [x] Fixture JWT payload mirrors the API's expected shape (`sub`, `role`, `tenantId`, `practiceIds`) — see API guards under [src/apps/api/src/auth/](../../src/apps/api/src/auth/)
 - [x] Guard fixture-JWT injection behind `__DEV__` — never ship a fixture signer in a production bundle
-- [ ] The API dev environment must accept the fixture signing key — coordinate with [DEV.md §2](DEV.md#phase-2-authentication--identity)
+- [x] The API dev environment must accept the fixture signing key — coordinate with [DEV.md §2](DEV.md#phase-2-authentication--identity) — `JwtAuthGuard` decodes the unsigned (`alg: none`) fixture token and attaches the user in dev; rejects unsigned tokens in prod
 
 #### M0.5 Query client + provider
 Confirm React Query is mounted at the app root and devtools are reachable in dev.
 
 - [x] [src/apps/mobile/app/_layout.tsx](../../src/apps/mobile/app/_layout.tsx) wraps the app in `<QueryClientProvider>` using the shared [query-client.ts](../../src/apps/mobile/lib/api/query-client.ts)
 - [x] Confirm 30s `staleTime` / 5min `gcTime` defaults are sensible for mobile (longer than web — fewer refetches on tab switch)
-- [ ] Wire [`@tanstack/react-query-devtools`](https://tanstack.com/query/latest/docs/framework/react/devtools) or [Reactotron](https://github.com/infinitered/reactotron) for local debugging
+- [x] Wire [`@dev-plugins/react-query`](https://docs.expo.dev/debugging/devtools-plugins/) for local debugging (the Expo dev-plugin; `@tanstack/react-query-devtools` is web-DOM-only and unusable in React Native)
 
 ---
 

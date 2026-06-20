@@ -1,4 +1,5 @@
 import "../global.css";
+import { useReactQueryDevTools } from "@dev-plugins/react-query";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
@@ -39,6 +40,10 @@ function ThemedToaster() {
 }
 
 function RootLayout() {
+  // Surfaces the React Query cache in the Expo dev menu. The hook self-gates to
+  // __DEV__ and is a no-op in production builds.
+  useReactQueryDevTools(queryClient);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
