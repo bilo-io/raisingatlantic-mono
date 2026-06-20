@@ -21,6 +21,7 @@
 - [Phase 12: Pre-Launch Testing](#phase-12-pre-launch-testing): `DEV 50%`
 - [Phase 13: Launch & Marketing](#phase-13-launch--marketing): `DEV 10%`
 - [Phase 14: Post-Launch Operations](#phase-14-post-launch-operations): `DEV 20%`
+- [Phase 15: Mobile Feature Parity](#phase-15-mobile-feature-parity): `DEV 80%`
 
 ---
 
@@ -129,7 +130,7 @@ On the radar but not load-bearing for the SA launch. Re-evaluate at the 6-month 
 
 ---
 
-## Phases 0 to 14
+## Phases 0 to 15
 
 Each section below corresponds to a numbered phase in the [source document](../GO_LIVE.md). Phases without a `DEV` share are marked N/A with a back-link.
 
@@ -880,6 +881,85 @@ What "running" the business actually looks like once real users are in.
 
 ---
 
+> Source: [Phase 14: Post-Launch Operations](../GO_LIVE.md#phase-14-post-launch-operations)
+
+### Phase 15: Mobile Feature Parity
+
+**Roles:** `DEV 80%` · `PRODUCT 10%` · `DESIGN 10%` *(`DEV` builds the screens, hooks, and integrations; `PRODUCT` signs off on which flows are mobile-essential vs web-only; `DESIGN` adapts existing web patterns to React Native primitives)*
+
+The Expo app is fully scaffolded but **17 of 18 screens still render `ComingSoon` or placeholder cards**. Auth is fixture-only (`signInAs(role)`). [Phase 10: Mobile App Release](#phase-10-mobile-app-release) submits the binary; this phase makes sure there is a real product behind the icon. Admin tooling stays web-only by design (see §15.7 in [GO_LIVE.md](../GO_LIVE.md#157-explicitly-out-of-scope-web-only)).
+
+#### 15.1 Starting State
+
+| Layer | Status | Notes |
+| --- | --- | --- |
+| Routing, theme, Axios, React Query | ✅ | Scaffold is solid |
+| Auth context | ⚠️ Fixture only | `signInAs(role)` loads hard-coded user |
+| Token storage | ⚠️ `AsyncStorage` | Must move to `expo-secure-store` |
+| Domain hooks (`children`, `reports`, …) | ❌ | None ported from web |
+| Parent screens (5 of 6) | ❌ | `ComingSoon` placeholder |
+| Clinician screens (4 of 5) | ❌ | `ComingSoon` placeholder |
+| Push notifications, biometrics, offline cache | ❌ | Not yet integrated |
+
+#### 15.2 Mobile Auth & Session
+- [ ] Replace fixture `signInAs` with real `POST /v1/auth/login` (mirror web client)
+- [ ] Move JWT to **[expo-secure-store](https://docs.expo.dev/versions/latest/sdk/securestore/)** — non-negotiable under POPIA for special personal info
+- [ ] Biometric unlock via **[expo-local-authentication](https://docs.expo.dev/versions/latest/sdk/local-authentication/)**; fall back to password
+- [ ] Refresh-token rotation parity with web ([§2](#phase-2-authentication--identity))
+- [ ] "Sign out everywhere" surfaced from device-list endpoint ([§5.4](#54-operational-security))
+- [ ] Force-upgrade gate on deprecated client version, blocking "update required" screen with store deep link
+
+#### 15.3 Parent Core Flows
+- [ ] **Children** (`(parent)/children.tsx`): list, add, edit, soft-delete (archive-before-erase)
+- [ ] **Growth records**: log height/weight, WHO percentile chart, scrollable history
+- [ ] **Milestones**: browse catalogue by age band, log with optional photo + note
+- [ ] **Vaccinations**: EPI-SA schedule per child, mark dose administered, due / overdue / upcoming
+- [ ] **Triage tools**: fever guide, head injury, dose calculator, home care — **offline-first static content**
+- [ ] **Directory**: read-only browse of clinicians + practices (`usePublicClinicians` / `usePublicPractices`)
+- [ ] **Messages**: read-only notification inbox backed by §15.6 push history
+
+#### 15.4 Clinician Core Flows
+- [ ] **Patients** (`(clinician)/patients.tsx`): tenant + practice-scoped list, search, open summary
+- [ ] **Patient summary**: read-only growth + milestone + vaccination history (mirrors parent records views, no mutation)
+- [ ] **Verifications**: list `PENDING_ASSESSMENT`, approve / reject with note via `useDecideRecordVerification`
+- [ ] **Schedule**: today's appointments, read-only; push reminders depend on [§8.3](#83-push-notifications-mobile)
+- [ ] Tenant-scoping verified end-to-end — cross-tenant data access is a critical security boundary
+
+#### 15.5 Shared Data Layer
+- [ ] Mirror domain hooks from web (`children`, `reports`, `verifications`, `directory`, `master-data`) into `src/apps/mobile/lib/api/hooks/`
+- [ ] Share query-key conventions across web + mobile
+- [ ] React Query persistence via [`@tanstack/react-query-persist-client`](https://tanstack.com/query/latest/docs/framework/react/plugins/persistQueryClient) + AsyncStorage for offline reads
+- [ ] Optimistic mutations with rollback for log-growth / log-vaccination (flaky-network resilience)
+- [ ] Global offline banner + per-screen empty-states distinguish "no data" from "no network"
+- [ ] Error boundary parity with web (`FeatureErrorBoundary`, `RouteError`)
+- [ ] EAS-build env flag equivalent to `NEXT_PUBLIC_USE_API` for demo / store-review builds; production defaults to live API
+
+#### 15.6 Mobile-First Capabilities
+- [ ] **[Expo Push Notifications](https://docs.expo.dev/push-notifications/overview/)** end-to-end (depends on [§8.3](#83-push-notifications-mobile)): EPI due, record verification, appointment reminder — **quiet hours respected**
+- [ ] Deep linking from notifications into child / record (`expo-router` config + APNs / FCM payload schema documented)
+- [ ] **Camera** (`expo-camera`): photograph vaccination card, attach to record. GCS signed-URL upload, no PII in filename / metadata
+- [ ] **Document scan**: HPCSA / SANC card capture for clinician verification ([§2.3](#23-clinician-verification-workflow)) — on-device until explicit submit
+- [ ] **App-state lock**: re-prompt biometric on background-return after N minutes (POPIA reasonableness, configurable per role)
+- [ ] **Sentry-mobile** with PII scrubbing on breadcrumbs ([§7.3](#73-error-tracking))
+
+#### 15.7 Explicitly Out of Scope (web-only)
+- ❌ Admin console: user management, system logs, system settings, tenant management — **admin route group stays scaffolded but is not fleshed out**
+- ❌ Blog editor (SUPER_ADMIN content workflow)
+- ❌ Stripe Customer Portal billing UI — deep-link to web `/dashboard/account/billing`
+- ❌ Bulk CSV export / DSAR file download — handled via the web flow ([§4.2](#42-consent--data-subject-rights))
+- ❌ Multi-pane clinician verification with attached evidence — desktop only; mobile is approve / reject only
+
+#### 15.8 Definition of Done
+- [ ] No `ComingSoon` in `(parent)` or `(clinician)` route groups
+- [ ] TestFlight + Internal Track builds demoable end-to-end on parent + clinician primary flows
+- [ ] Detox / Maestro E2E ([§12.1](#121-automated-coverage)) covers: signup → add child → log growth → log vaccination → push reminder → clinician approval
+- [ ] Production builds use the real `/v1/` API by default; no fixture data path active
+- [ ] Sentry crash-free sessions > 99% on internal testing for 7 days
+- [ ] Tenant boundary verified manually + via Postman (clinician cannot see other-tenant patients)
+- [ ] Phase 10 (store submission) can proceed honestly: every Apple / Google data-safety form question has a truthful answer because the features actually exist
+
+---
+
 > **End of phase walkthrough.** For the consolidated launch-day checklist, jump back to the [TL;DR: Phased Action Plan](#tldr-phased-action-plan) at the top of this document.
 
-> Source: [Phase 14: Post-Launch Operations](../GO_LIVE.md#phase-14-post-launch-operations)
+> Source: [Phase 15: Mobile Feature Parity](../GO_LIVE.md#phase-15-mobile-feature-parity)
