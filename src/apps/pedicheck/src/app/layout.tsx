@@ -26,14 +26,24 @@ const nunito = Nunito({
 });
 
 const SITE_URL = 'https://pedicheck.co.za';
+
+// Page-level SEO — browser tab + search snippet.
+const PAGE_TITLE = "PediCheck — When you don't know if it's serious";
+const PAGE_DESCRIPTION =
+  'Paediatrician-built guidance for every fever, bump and 2am worry. Calm, clear answers in under two minutes. Launching soon — join the waitlist.';
+
+// Social share card — OpenGraph + Twitter.
 const OG_TITLE = "PediCheck: When you don't know if it's serious";
 const OG_DESCRIPTION =
-  'Paediatrician-built guidance for every fever, bump and 2am worry. Calm, clear answers in under two minutes. Launching soon — join the waitlist.';
+  'A calm second opinion for the 2am worries. Built by paediatricians.';
+const OG_IMAGE = '/brand/og-image.png';
+const OG_IMAGE_ALT =
+  "PediCheck — when you don't know if it's serious. A calm, paediatrician-built second opinion for the 2am worries.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: OG_TITLE,
-  description: OG_DESCRIPTION,
+  title: PAGE_TITLE,
+  description: PAGE_DESCRIPTION,
   applicationName: 'PediCheck',
   keywords: [
     'paediatrician',
@@ -60,10 +70,10 @@ export const metadata: Metadata = {
     locale: 'en_ZA',
     images: [
       {
-        url: '/brand/og-image.png',
+        url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: 'PediCheck — calm, paediatrician-built guidance for 2am worries.',
+        alt: OG_IMAGE_ALT,
         type: 'image/png',
       },
     ],
@@ -72,7 +82,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: OG_TITLE,
     description: OG_DESCRIPTION,
-    images: ['/brand/og-image.png'],
+    images: [OG_IMAGE],
   },
 };
 
