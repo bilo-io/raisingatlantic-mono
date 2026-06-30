@@ -43,6 +43,7 @@ import { GoogleSheetsModule } from './common/google-sheets/google-sheets.module'
 import { SystemLogsModule } from './system-logs/system-logs.module';
 import { SystemLog } from './common/models/system-log.model';
 import { NotificationsModule } from './notifications/notifications.module';
+import { PrivacyModule } from './privacy/privacy.module';
 
 @Module({
   imports: [
@@ -150,6 +151,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     LeadsModule,
     FeatureRequestsModule,
     SystemLogsModule,
+    PrivacyModule,
   ],
   controllers: [AppController],
   providers: [
