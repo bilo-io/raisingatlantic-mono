@@ -11,10 +11,14 @@ and a PagerDuty schedule is wired in, all alerts route to:
 1. Slack `#alerts-prod` — primary signal channel.
 2. `alerts@raisingatlantic.com` — low-severity digest, batched.
 
-PagerDuty integration is provisioned in Terraform (`infra/envs/prod/main.tf`
-provider block) but the escalation policy and schedule are deferred until a
-second on-call exists. The single-on-call interim posture is documented here
-so we don't pretend we have 24/7 paging when we don't.
+PagerDuty is fully scaffolded in Terraform — provider (`infra/envs/prod/main.tf`)
+plus a `pagerduty_schedule`, `pagerduty_escalation_policy`, and `pagerduty_service`
+in `infra/envs/prod/monitoring.tf`, all gated behind `enable_pagerduty` (default
+off). It stays off until a **second** on-call exists: a 30-minute escalation that
+loops back to the only engineer is theatre. When `OPS` is hired, set
+`pagerduty_oncall_user_id`, add a second layer to the schedule, and flip the flag.
+The single-on-call interim posture is documented here so we don't pretend we have
+24/7 paging when we don't.
 
 ## Alert sources
 

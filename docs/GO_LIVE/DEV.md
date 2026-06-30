@@ -55,7 +55,7 @@ Not strictly blocking, but embarrassing or risky if they slip past week 4 of bei
 
 - [ ] **Public status page** at `status.raisingatlantic.com` ([§7.4](#74-uptime--slos))
 - [ ] **DSAR + right-to-erasure self-service endpoint** wired into the dashboard ([§4.2](#42-consent--data-subject-rights))
-- [ ] **SLOs defined** with error budgets, baseline 99.5% availability / p95 < 500ms ([§7.4](#74-uptime--slos))
+- [x] **SLOs defined** with error budgets, baseline 99.5% availability / p95 < 500ms ([§7.4](#74-uptime--slos))
 - [ ] **Cypress smoke suite gating prod deploys**, Postman contract tests on staging nightly ([§12.1](#121-automated-coverage))
 
 **`MARKETING` + `DESIGN` + `DEV`: branded customer touchpoints**
@@ -608,7 +608,7 @@ Knowing the system is healthy without grepping logs.
 - [x] OpenTelemetry SDK wired through `core/telemetry` (interfaces already exist, concrete impls need finishing)
 - [x] [Cloud Trace](https://cloud.google.com/trace) for distributed traces across web → API → DB
 - [x] Cloud Monitoring dashboards for: API p50/p95/p99 latency, error rate, DB connection pool, queue depth
-- [/] Custom business metrics: signups/day, verifications pending, vaccinations due
+- [x] Custom business metrics: signups/day, verifications pending, vaccinations due
 
 #### 7.3 Error Tracking
 Knowing when things break before users tell us.
@@ -623,8 +623,8 @@ External-perspective monitoring.
 
 - [x] Synthetic uptime checks every 60s (Cloud Monitoring or [BetterStack](https://betterstack.com))
 - [/] Public status page (`status.raisingatlantic.com`) via BetterStack / [Statuspage](https://www.atlassian.com/software/statuspage) / [Instatus](https://instatus.com)
-- [ ] Define SLOs (e.g. 99.5% monthly availability, p95 latency < 500ms) and error budgets
-- [/] On-call rotation, even with a single on-call engineer, define who gets paged and how ([PagerDuty](https://www.pagerduty.com) / [OpsGenie](https://www.atlassian.com/software/opsgenie) / BetterStack)
+- [x] Define SLOs (e.g. 99.5% monthly availability, p95 latency < 500ms) and error budgets
+- [x] On-call rotation, even with a single on-call engineer, define who gets paged and how ([PagerDuty](https://www.pagerduty.com) / [OpsGenie](https://www.atlassian.com/software/opsgenie) / BetterStack)
 
 ---
 
