@@ -139,6 +139,7 @@ import { AuthModule } from './auth/auth.module';
 
     NotificationsModule,
     AuthModule,
+    PrivacyModule,
     ExamplesModule,
     UsersModule,
     TenantsModule,
@@ -153,7 +154,6 @@ import { AuthModule } from './auth/auth.module';
     LeadsModule,
     FeatureRequestsModule,
     SystemLogsModule,
-    PrivacyModule,
   ],
   controllers: [AppController],
   providers: [

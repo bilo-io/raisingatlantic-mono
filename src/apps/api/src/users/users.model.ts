@@ -54,6 +54,12 @@ export class User {
   @Column({ type: 'boolean', default: false })
   emailVerified: boolean;
 
+  // POPIA right-to-erasure (§4.2): set when the data subject requests deletion.
+  // The account is soft-deleted immediately; a scheduled job hard-deletes after
+  // the 30-day grace period (deletionRequestedAt + 30d). Null = active account.
+  @Column({ type: 'timestamp', nullable: true })
+  deletionRequestedAt?: Date | null;
+
   @CreateDateColumn()
   createdAt: Date;
 
