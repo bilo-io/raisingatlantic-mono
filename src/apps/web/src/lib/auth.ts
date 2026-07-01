@@ -1,8 +1,19 @@
+import { apiClient } from '@/lib/api/api-client';
 import { UserRole } from './constants';
 import { User, dummyUsers } from '@/data/users';
 
-const STORAGE_KEY = 'mock_auth_users';
-const CURRENT_USER_KEY = 'mock_auth_current_user_id';
+// Dev-only bypass: the /login/test page can drop into the app without a real
+// IdP/GCP. Gated so production builds never accept a mock session.
+const TEST_LOGIN_ENABLED = process.env.NEXT_PUBLIC_ENABLE_TEST_LOGIN === 'true';
+const MOCK_USERS_KEY = 'mock_auth_users';
+const MOCK_CURRENT_USER_KEY = 'mock_auth_current_user_id';
+
+// Synchronously-readable snapshot of the authenticated user. Hydrated by
+// fetchCurrentUser() (called from useCurrentUser on mount) so legacy sync
+// callers — e.g. dashboard pages already gated behind <RequireRole> — keep
+// working without becoming async.
+let currentUserCache: User | null = null;
+let inflight: Promise<User | null> | null = null;
 
 export interface SignupData {
   name: string;
@@ -13,113 +24,100 @@ export interface SignupData {
   phone?: string;
 }
 
-/**
- * Basic email validation with regex
- */
 export const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
 
-/**
- * Gets all users from local storage, fallback to starting with dummyUsers
- */
-const getStoredUsers = (): User[] => {
-  if (typeof window === 'undefined') return dummyUsers;
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dummyUsers));
-    return dummyUsers;
-  }
-  return JSON.parse(stored);
+/** Real login against the API. The access token is set as an httpOnly cookie. */
+export const login = async (email: string, password: string): Promise<User> => {
+  const { data } = await apiClient.post('/auth/login', { email, password });
+  return setCurrentUser(data.user as User);
 };
 
-/**
- * Save users to local storage
- */
-const saveUsers = (users: User[]) => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
-};
-
-/**
- * ASYNC Mock Signup
- */
+/** Real registration; logs the user in (httpOnly cookie) on success. */
 export const signup = async (data: SignupData): Promise<User> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-
-  if (!validateEmail(data.email)) {
-    throw new Error('Invalid email format');
-  }
-
-  const users = getStoredUsers();
-  if (users.find(u => u.email.toLowerCase() === data.email.toLowerCase())) {
-    throw new Error('User already exists');
-  }
-
-  const newUser: User = {
-    id: `user-${Date.now()}`,
+  const { data: res } = await apiClient.post('/auth/register', {
+    title: data.title,
     name: data.name,
     email: data.email,
-    role: data.role,
-    title: data.title,
     phone: data.phone || '',
-    imageUrl: '',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+    password: data.password,
+    role: data.role,
+  });
+  return setCurrentUser(res.user as User);
+};
 
-  const updatedUsers = [...users, newUser];
-  saveUsers(updatedUsers);
-  
-  // Set as current user
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(CURRENT_USER_KEY, newUser.id);
-    localStorage.setItem('currentUserId', newUser.id); // for existing compatibility
+/** Exchange a Google ID token (from Google Identity Services) for a session. */
+export const loginWithGoogle = async (idToken: string): Promise<User> => {
+  const { data } = await apiClient.post('/auth/google', { idToken });
+  return setCurrentUser(data.user as User);
+};
+
+export const logout = async (): Promise<void> => {
+  try {
+    await apiClient.post('/auth/logout');
+  } catch {
+    // Best effort — clear local state regardless.
   }
-
-  return newUser;
+  currentUserCache = null;
+  inflight = null;
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(MOCK_CURRENT_USER_KEY);
+    localStorage.removeItem('currentUserId');
+  }
 };
 
 /**
- * ASYNC Mock Login
+ * Resolve the current user from the session cookie (GET /v1/auth/me).
+ * Dedupes concurrent callers. Falls back to the dev test-login user when no
+ * real session exists and NEXT_PUBLIC_ENABLE_TEST_LOGIN is on.
  */
-export const login = async (email: string, password?: string): Promise<User> => {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  const users = getStoredUsers();
-  const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-  if (!user) {
-    throw new Error('Invalid credentials');
+export const fetchCurrentUser = async (force = false): Promise<User | null> => {
+  if (!force && currentUserCache) return currentUserCache;
+  if (!inflight) {
+    inflight = apiClient
+      .get('/auth/me')
+      .then((res) => (res.data.user as User) ?? null)
+      .catch(() => (TEST_LOGIN_ENABLED ? getMockCurrentUser() : null))
+      .then((user) => {
+        currentUserCache = user;
+        inflight = null;
+        return user;
+      });
   }
+  return inflight;
+};
 
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(CURRENT_USER_KEY, user.id);
-    localStorage.setItem('currentUserId', user.id); // for existing compatibility
-  }
+/** Last-known user, read synchronously (populated by fetchCurrentUser). */
+export const getCurrentUser = (): User | null => currentUserCache;
 
+function setCurrentUser(user: User): User {
+  currentUserCache = user;
+  inflight = null;
   return user;
-};
+}
 
-/**
- * SYNC Mock Logout
- */
-export const logout = (): void => {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem(CURRENT_USER_KEY);
-  localStorage.removeItem('currentUserId');
-};
+// --- Dev test-login bypass (no real IdP) ------------------------------------
 
-/**
- * SYNC Get current logged in user
- */
-export const getCurrentUser = (): User | null => {
-  if (typeof window === 'undefined') return null;
-  const currentId = localStorage.getItem(CURRENT_USER_KEY);
-  if (!currentId) return null;
+export function getMockCurrentUser(): User | null {
+  if (!TEST_LOGIN_ENABLED || typeof window === 'undefined') return null;
+  const id = localStorage.getItem(MOCK_CURRENT_USER_KEY);
+  if (!id) return null;
+  const stored = localStorage.getItem(MOCK_USERS_KEY);
+  const users: User[] = stored ? JSON.parse(stored) : [];
+  return [...users, ...dummyUsers].find((u) => u.id === id) ?? null;
+}
 
-  const users = getStoredUsers();
-  return users.find(u => u.id === currentId) || null;
-};
+export function setMockCurrentUser(user: User): void {
+  if (!TEST_LOGIN_ENABLED || typeof window === 'undefined') return;
+  const stored = localStorage.getItem(MOCK_USERS_KEY);
+  const users: User[] = stored ? JSON.parse(stored) : [];
+  if (!users.find((u) => u.id === user.id)) {
+    localStorage.setItem(MOCK_USERS_KEY, JSON.stringify([...users, user]));
+  }
+  localStorage.setItem(MOCK_CURRENT_USER_KEY, user.id);
+  localStorage.setItem('currentUserId', user.id);
+  currentUserCache = user;
+  inflight = null;
+}
