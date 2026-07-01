@@ -1,7 +1,6 @@
 'use client';
 
-import { getCurrentUser } from '@/lib/auth';
-import { setAuthBridge } from '@/lib/api/auth-bridge';
+import { fetchCurrentUser, getCurrentUser } from '@/lib/auth';
 import type { User } from '@/types/models';
 import type { UserRole } from '@/lib/constants';
 import { useEffect, useState } from 'react';
@@ -14,28 +13,34 @@ export type CurrentUserState = {
 };
 
 /**
- * Reads the current authenticated user from the local mock auth store.
- * Hydrates after mount (localStorage is unavailable on the server) and
- * pushes the user into the api auth-bridge so axios requests carry the
- * X-User-Id / X-User-Role headers.
- *
- * Listens for storage events so cross-tab sign-in/out stays in sync.
+ * Resolves the authenticated user from the httpOnly session cookie via
+ * GET /v1/auth/me (deduped + cached in lib/auth). Hydrates after mount, and
+ * re-syncs on storage events so the dev /login/test bypass stays consistent
+ * across tabs.
  */
 export function useCurrentUser(): CurrentUserState {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(getCurrentUser());
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const sync = () => {
-      const next = getCurrentUser();
+    let active = true;
+
+    const sync = async (force = false) => {
+      const next = await fetchCurrentUser(force);
+      if (!active) return;
       setUser(next);
-      setAuthBridge(next);
       setIsLoading(false);
     };
-    sync();
+
+    void sync();
     if (typeof window === 'undefined') return;
-    window.addEventListener('storage', sync);
-    return () => window.removeEventListener('storage', sync);
+
+    const onStorage = () => void sync(true);
+    window.addEventListener('storage', onStorage);
+    return () => {
+      active = false;
+      window.removeEventListener('storage', onStorage);
+    };
   }, []);
 
   return {
