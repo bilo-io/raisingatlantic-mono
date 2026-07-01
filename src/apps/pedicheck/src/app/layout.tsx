@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { Fraunces, DM_Sans, Nunito } from 'next/font/google';
 import './globals.css';
+import { PlausibleAnalytics } from '@/components/plausible-analytics';
+import { JsonLd } from '@/components/json-ld';
+import { siteUrl } from '@/lib/site';
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -25,7 +28,7 @@ const nunito = Nunito({
   display: 'swap',
 });
 
-const SITE_URL = 'https://pedicheck.co.za';
+const SITE_URL = siteUrl;
 
 // Page-level SEO — browser tab + search snippet.
 const PAGE_TITLE = "PediCheck — When you don't know if it's serious";
@@ -57,6 +60,9 @@ export const metadata: Metadata = {
     'Atlantic Children’s Practice',
   ],
   authors: [{ name: 'Atlantic Children’s Practice', url: SITE_URL }],
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
   icons: {
     icon: '/brand/icon-32.png',
     apple: '/brand/icon-180.png',
@@ -94,7 +100,11 @@ export default function RootLayout({
       lang="en"
       className={`${fraunces.variable} ${dmSans.variable} ${nunito.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <JsonLd />
+        <PlausibleAnalytics />
+        {children}
+      </body>
     </html>
   );
 }

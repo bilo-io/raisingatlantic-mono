@@ -842,9 +842,9 @@ The final shake-out before real parents and clinicians.
 The "tell people about it" phase. Cheap to defer, expensive to skip entirely.
 
 - [ ] Final landing page copy and SEO (`about`, `pricing`, `contact`, `blog` already scaffolded)
-- [ ] [Open Graph](https://ogp.me) + [Twitter card](https://developer.x.com/en/docs/twitter-for-websites/cards/overview/abouts-cards) metadata on every public route
-- [ ] Sitemap + robots.txt + [Google Search Console](https://search.google.com/search-console) verification
-- [ ] Analytics: **[Plausible](https://plausible.io)** or **PostHog** (POPIA-friendlier than [GA4](https://marketingplatform.google.com/about/analytics/)), avoid GA4 unless we have a clean DPA story
+- [x] [Open Graph](https://ogp.me) + [Twitter card](https://developer.x.com/en/docs/twitter-for-websites/cards/overview/abouts-cards) metadata on every public route
+- [x] Sitemap + robots.txt + [Google Search Console](https://search.google.com/search-console) verification
+- [x] Analytics: **[Plausible](https://plausible.io)** or **PostHog** (POPIA-friendlier than [GA4](https://marketingplatform.google.com/about/analytics/)), avoid GA4 unless we have a clean DPA story
 - [ ] Launch announcement channels: [LinkedIn](https://www.linkedin.com), paediatric-association mailing lists, parenting groups
 - [ ] Press kit (logo, screenshots, founder bio, one-pager) hosted on the marketing site
 - [ ] Pricing-page CTA → Stripe Checkout (live)
