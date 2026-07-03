@@ -1,0 +1,39 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+project:
+  name: 'clinical'
+  description: 'Shared clinical domain logic (EPI schedule, growth charts, milestones)'
+
+tasks:
+  install:
+    command: 'npm install --legacy-peer-deps --cache /tmp/npm-cache'
+    inputs:
+      - 'package.json'
+
+  build:
+    command: 'npm run build'
+    deps:
+      - 'install'
+    inputs:
+      - 'src/**/*'
+      - 'package.json'
+      - 'tsconfig.json'
+
+  test:
+    command: 'npm run test'
+    deps:
+      - 'install'
+    inputs:
+      - 'src/**/*'
+      - 'package.json'
+
+  test-cov:
+    command: 'npm run test:cov'
+    deps:
+      - 'install'
+    inputs:
+      - 'src/**/*'
+      - 'package.json'
+
+  clean:
+    command: 'rm -rf node_modules'
