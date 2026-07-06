@@ -108,3 +108,54 @@ resource "betterstack_monitor" "api_health_staging" {
   check_frequency = 60
   team_name       = "Raising Atlantic"
 }
+
+# ---- SLOs (DEV.md §7.4, ADR 0004) -----------------------------------------
+# Slimmer mirror of prod: the same availability + latency contract on the
+# staging API service, without the burn-rate alert policies. Gated by enable_slos.
+resource "google_monitoring_custom_service" "ra_api" {
+  count = var.enable_slos ? 1 : 0
+
+  project      = var.project_id
+  service_id   = "ra-api-staging"
+  display_name = "ra-api (staging)"
+}
+
+resource "google_monitoring_slo" "api_availability" {
+  count = var.enable_slos ? 1 : 0
+
+  project = var.project_id
+  service = google_monitoring_custom_service.ra_api[0].service_id
+
+  slo_id              = "ra-api-availability"
+  display_name        = "99.5% availability — 30d rolling"
+  goal                = 0.995
+  rolling_period_days = 30
+
+  request_based_sli {
+    good_total_ratio {
+      total_service_filter = "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=\"ra-api-staging\""
+      bad_service_filter   = "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=\"ra-api-staging\" metric.label.\"response_code_class\"=\"5xx\""
+    }
+  }
+}
+
+resource "google_monitoring_slo" "api_latency" {
+  count = var.enable_slos ? 1 : 0
+
+  project = var.project_id
+  service = google_monitoring_custom_service.ra_api[0].service_id
+
+  slo_id              = "ra-api-latency"
+  display_name        = "95% of requests < 500ms — 30d rolling"
+  goal                = 0.95
+  rolling_period_days = 30
+
+  request_based_sli {
+    distribution_cut {
+      distribution_filter = "metric.type=\"run.googleapis.com/request_latencies\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=\"ra-api-staging\""
+      range {
+        max = 500
+      }
+    }
+  }
+}

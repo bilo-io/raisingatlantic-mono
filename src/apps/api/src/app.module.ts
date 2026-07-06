@@ -45,6 +45,7 @@ import { SystemLog } from './common/models/system-log.model';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PrivacyModule } from './privacy/privacy.module';
 import { AuthModule } from './auth/auth.module';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   imports: [
@@ -154,6 +155,7 @@ import { AuthModule } from './auth/auth.module';
     LeadsModule,
     FeatureRequestsModule,
     SystemLogsModule,
+    MetricsModule,
   ],
   controllers: [AppController],
   providers: [

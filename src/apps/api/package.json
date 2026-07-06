@@ -112,7 +112,11 @@
     },
     "moduleNameMapper": {
       "^@core/(.*)$": "<rootDir>/../../../core/$1",
-      "^@pkgs/(.*)$": "<rootDir>/../../../pkgs/$1"
+      "^@pkgs/(.*)$": "<rootDir>/../../../pkgs/$1",
+      "^@raising-atlantic/clinical$": "<rootDir>/../../../pkgs/clinical/src/index.ts",
+      "^@raising-atlantic/clinical/(.*)$": "<rootDir>/../../../pkgs/clinical/src/$1",
+      "^@raising-atlantic/types$": "<rootDir>/../../../pkgs/types/src/index.ts",
+      "^@raising-atlantic/types/(.*)$": "<rootDir>/../../../pkgs/types/src/$1"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"

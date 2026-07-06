@@ -412,3 +412,184 @@ resource "betterstack_status_page" "public" {
   subdomain    = replace(var.status_page_subdomain, ".raisingatlantic.com", "")
   timezone     = "Africa/Johannesburg"
 }
+
+# ---- 8. SLOs & error budgets (DEV.md §7.4, ADR 0004) ----------------------
+# Encodes the availability + latency contract from docs/adr/0004-slos.md as
+# Cloud Monitoring SLO objects, so error-budget burn is measurable rather than
+# only threshold-alerted. Gated by enable_slos.
+
+resource "google_monitoring_custom_service" "ra_api" {
+  count = var.enable_slos ? 1 : 0
+
+  project      = var.project_id
+  service_id   = "ra-api-prod"
+  display_name = "ra-api (prod)"
+}
+
+resource "google_monitoring_slo" "api_availability" {
+  count = var.enable_slos ? 1 : 0
+
+  project = var.project_id
+  service = google_monitoring_custom_service.ra_api[0].service_id
+
+  slo_id              = "ra-api-availability"
+  display_name        = "99.5% availability — 30d rolling"
+  goal                = 0.995
+  rolling_period_days = 30
+
+  request_based_sli {
+    good_total_ratio {
+      total_service_filter = "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=\"ra-api-prod\""
+      bad_service_filter   = "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=\"ra-api-prod\" metric.label.\"response_code_class\"=\"5xx\""
+    }
+  }
+}
+
+resource "google_monitoring_slo" "api_latency" {
+  count = var.enable_slos ? 1 : 0
+
+  project = var.project_id
+  service = google_monitoring_custom_service.ra_api[0].service_id
+
+  slo_id              = "ra-api-latency"
+  display_name        = "95% of requests < 500ms — 30d rolling"
+  goal                = 0.95
+  rolling_period_days = 30
+
+  request_based_sli {
+    distribution_cut {
+      distribution_filter = "metric.type=\"run.googleapis.com/request_latencies\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=\"ra-api-prod\""
+      range {
+        max = 500
+      }
+    }
+  }
+}
+
+# Multi-window burn-rate alerts on the availability error budget (Google SRE
+# workbook multipliers for a 30-day window).
+resource "google_monitoring_alert_policy" "availability_fast_burn" {
+  count = var.enable_slos && var.enable_alert_policies ? 1 : 0
+
+  project      = var.project_id
+  display_name = "Availability SLO — fast burn (1h, 14.4x)"
+  combiner     = "OR"
+
+  conditions {
+    display_name = "Burn rate > 14.4x over 1h"
+    condition_threshold {
+      filter          = "select_slo_burn_rate(\"${google_monitoring_slo.api_availability[0].name}\", \"3600s\")"
+      comparison      = "COMPARISON_GT"
+      threshold_value = 14.4
+      duration        = "0s"
+
+      aggregations {
+        alignment_period   = "300s"
+        per_series_aligner = "ALIGN_MEAN"
+      }
+    }
+  }
+
+  notification_channels = local.critical_channels
+
+  documentation {
+    content   = "## Availability budget — fast burn\n\nThe 30-day availability error budget is burning >14.4x over 1h: at this rate the monthly budget is exhausted in ~2 days.\n\n**Runbook**: https://github.com/raisingatlantic-dev/raisingatlantic-mono/blob/main/docs/runbooks/on-call.md#api-error-rate"
+    mime_type = "text/markdown"
+  }
+}
+
+resource "google_monitoring_alert_policy" "availability_slow_burn" {
+  count = var.enable_slos && var.enable_alert_policies ? 1 : 0
+
+  project      = var.project_id
+  display_name = "Availability SLO — slow burn (6h, 6x)"
+  combiner     = "OR"
+
+  conditions {
+    display_name = "Burn rate > 6x over 6h"
+    condition_threshold {
+      filter          = "select_slo_burn_rate(\"${google_monitoring_slo.api_availability[0].name}\", \"21600s\")"
+      comparison      = "COMPARISON_GT"
+      threshold_value = 6
+      duration        = "0s"
+
+      aggregations {
+        alignment_period   = "300s"
+        per_series_aligner = "ALIGN_MEAN"
+      }
+    }
+  }
+
+  notification_channels = local.low_severity_channels
+
+  documentation {
+    content   = "## Availability budget — slow burn\n\nThe 30-day availability error budget is burning >6x over 6h. Shift toward reliability work per the ADR 0004 error-budget policy.\n\n**Runbook**: https://github.com/raisingatlantic-dev/raisingatlantic-mono/blob/main/docs/runbooks/on-call.md#api-error-rate"
+    mime_type = "text/markdown"
+  }
+}
+
+# ---- 9. Scheduled business-metric refresh (DEV.md §7.2) -------------------
+# Periodically calls the guarded API endpoint that recomputes point-in-time
+# gauges (ra_vaccinations_due) so the business dashboard reflects the whole
+# cohort, not just request-path samples. Gated by enable_metrics_scheduler.
+resource "google_cloud_scheduler_job" "metrics_refresh" {
+  count = var.enable_metrics_scheduler ? 1 : 0
+
+  project   = var.project_id
+  region    = var.region
+  name      = "ra-metrics-refresh-prod"
+  schedule  = "*/15 * * * *"
+  time_zone = "Africa/Johannesburg"
+
+  http_target {
+    http_method = "POST"
+    uri         = "${var.api_public_url}/v1/metrics/refresh"
+
+    oidc_token {
+      service_account_email = var.metrics_scheduler_sa_email
+      audience              = var.api_public_url
+    }
+  }
+}
+
+# ---- 10. On-call paging (DEV.md §7.4) -------------------------------------
+# Drop-in PagerDuty escalation for when a 2nd on-call exists. Until then the
+# single-rotation schedule mirrors the interim posture in the on-call runbook.
+# Gated by enable_pagerduty (default off); provider configured in main.tf.
+resource "pagerduty_schedule" "primary" {
+  count = var.enable_pagerduty ? 1 : 0
+
+  name      = "RA on-call (primary rotation)"
+  time_zone = "Africa/Johannesburg"
+
+  layer {
+    name                         = "Solo on-call"
+    start                        = "2026-01-01T00:00:00+02:00"
+    rotation_virtual_start       = "2026-01-01T00:00:00+02:00"
+    rotation_turn_length_seconds = 604800
+    users                        = [var.pagerduty_oncall_user_id]
+  }
+}
+
+resource "pagerduty_escalation_policy" "primary" {
+  count = var.enable_pagerduty ? 1 : 0
+
+  name      = "RA primary escalation"
+  num_loops = 2
+
+  rule {
+    escalation_delay_in_minutes = 30
+    target {
+      type = "schedule_reference"
+      id   = pagerduty_schedule.primary[0].id
+    }
+  }
+}
+
+resource "pagerduty_service" "ra_api_prod" {
+  count = var.enable_pagerduty ? 1 : 0
+
+  name              = "Raising Atlantic API (prod)"
+  escalation_policy = pagerduty_escalation_policy.primary[0].id
+  alert_creation    = "create_alerts_and_incidents"
+}
