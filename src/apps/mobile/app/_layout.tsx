@@ -1,4 +1,5 @@
 import "../global.css";
+import { useReactQueryDevTools } from "@dev-plugins/react-query";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
@@ -49,6 +50,9 @@ function DeepLinkGate() {
 }
 
 export default function RootLayout() {
+  // React Query devtools via the Expo dev-plugin (inert outside a dev client).
+  useReactQueryDevTools(queryClient);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

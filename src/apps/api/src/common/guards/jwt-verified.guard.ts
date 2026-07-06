@@ -7,9 +7,9 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import {
-  AuthTokenPayload,
   RequestWithAuth,
   extractAccessToken,
+  resolveToken,
 } from './jwt-auth.guard';
 
 /**
@@ -30,13 +30,15 @@ export class JwtVerifiedGuard implements CanActivate {
     if (!token) {
       throw new UnauthorizedException('Authentication required');
     }
-    try {
-      request.user = await this.jwtService.verifyAsync<AuthTokenPayload>(token, {
-        secret: this.configService.get<string>('JWT_SECRET'),
-      });
-      return true;
-    } catch {
+    const payload = await resolveToken(
+      token,
+      this.jwtService,
+      this.configService,
+    );
+    if (!payload) {
       throw new UnauthorizedException('Invalid or expired session');
     }
+    request.user = payload;
+    return true;
   }
 }

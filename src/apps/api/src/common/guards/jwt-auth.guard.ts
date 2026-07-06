@@ -38,6 +38,64 @@ export function extractAccessToken(
 }
 
 /**
+ * Dev-only escape hatch for the mobile app's unsigned (`alg:none`) fixture JWT
+ * (see src/apps/mobile/lib/api/fixture-jwt.ts). Returns a payload ONLY when
+ * `NODE_ENV !== 'production'` AND `ALLOW_FIXTURE_AUTH === 'true'` AND the token is
+ * a well-formed, unexpired `alg:none` JWT. Returns null otherwise so real tokens
+ * fall through to signature verification. Double-gated so it can never activate
+ * in production.
+ */
+export function decodeFixtureToken(
+  token: string,
+  config: ConfigService,
+): AuthTokenPayload | null {
+  if (config.get<string>('NODE_ENV') === 'production') return null;
+  if (config.get<string>('ALLOW_FIXTURE_AUTH') !== 'true') return null;
+
+  const parts = token.split('.');
+  // A fixture token is unsigned: three segments with an empty signature.
+  if (parts.length !== 3 || parts[2] !== '') return null;
+
+  try {
+    const header = JSON.parse(
+      Buffer.from(parts[0], 'base64url').toString('utf8'),
+    ) as { alg?: string };
+    if (header.alg !== 'none') return null;
+
+    const payload = JSON.parse(
+      Buffer.from(parts[1], 'base64url').toString('utf8'),
+    ) as { sub?: string; email?: string; role?: string; exp?: number };
+    if (!payload.sub || !payload.role) return null;
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
+
+    return { sub: payload.sub, email: payload.email ?? '', role: payload.role };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve a token to an auth payload: the dev fixture path first (a no-op unless
+ * explicitly enabled in a non-prod env), else real HS256 signature verification.
+ * Returns null when neither yields a valid payload.
+ */
+export async function resolveToken(
+  token: string,
+  jwtService: JwtService,
+  config: ConfigService,
+): Promise<AuthTokenPayload | null> {
+  const fixture = decodeFixtureToken(token, config);
+  if (fixture) return fixture;
+  try {
+    return await jwtService.verifyAsync<AuthTokenPayload>(token, {
+      secret: config.get<string>('JWT_SECRET'),
+    });
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Best-effort authentication: verifies the token when one is present and
  * attaches `req.user`, but never blocks the request. This is the transitional
  * state for controllers that were previously behind a no-op placeholder guard —
@@ -57,14 +115,12 @@ export class JwtAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<RequestWithAuth>();
     const token = extractAccessToken(request);
     if (token) {
-      try {
-        request.user = await this.jwtService.verifyAsync<AuthTokenPayload>(
-          token,
-          { secret: this.configService.get<string>('JWT_SECRET') },
-        );
-      } catch {
-        // Stale/invalid token: treat as unauthenticated rather than blocking.
-      }
+      const payload = await resolveToken(
+        token,
+        this.jwtService,
+        this.configService,
+      );
+      if (payload) request.user = payload;
     }
     return true;
   }
