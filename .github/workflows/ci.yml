@@ -75,6 +75,8 @@ jobs:
           DB_PASS: postgres
           NODE_ENV: test
           JWT_SECRET: ci-test-secret
+          # jest --coverage on the full suite exceeds node's default ~2 GB heap
+          NODE_OPTIONS: --max-old-space-size=4096
       - name: Upload coverage artifact
         if: always()
         uses: actions/upload-artifact@v4
