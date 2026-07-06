@@ -20,6 +20,7 @@ describe('VerificationsService', () => {
   let growthRepo: any;
   let milestoneRepo: any;
   let vaccineRepo: any;
+  let metric: any;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -47,6 +48,7 @@ describe('VerificationsService', () => {
     growthRepo = module.get(getRepositoryToken(GrowthRecord));
     milestoneRepo = module.get(getRepositoryToken(CompletedMilestone));
     vaccineRepo = module.get(getRepositoryToken(CompletedVaccination));
+    metric = module.get('IMetricService');
   });
 
   it('is defined', () => {
@@ -119,6 +121,57 @@ describe('VerificationsService', () => {
       await expect(service.findAllRecordsForVerification()).rejects.toThrow(
         'db down',
       );
+    });
+
+    it('records the pending-queue depth metric per type with the correct counts', async () => {
+      growthRepo.find.mockResolvedValue([
+        { id: 'g1', status: ResourceStatus.PENDING_ASSESSMENT },
+        { id: 'g2', status: ResourceStatus.PENDING_ASSESSMENT },
+      ]);
+      milestoneRepo.find.mockResolvedValue([
+        { id: 'm1', status: ResourceStatus.PENDING_ASSESSMENT },
+      ]);
+      vaccineRepo.find.mockResolvedValue([]);
+
+      await service.findAllRecordsForVerification();
+
+      expect(metric.recordValue).toHaveBeenCalledWith(
+        'ra_verifications_pending',
+        3,
+        { type: 'all' },
+      );
+      expect(metric.recordValue).toHaveBeenCalledWith(
+        'ra_verifications_pending',
+        2,
+        { type: 'growth' },
+      );
+      expect(metric.recordValue).toHaveBeenCalledWith(
+        'ra_verifications_pending',
+        1,
+        { type: 'milestone' },
+      );
+      expect(metric.recordValue).toHaveBeenCalledWith(
+        'ra_verifications_pending',
+        0,
+        { type: 'vaccination' },
+      );
+      expect(metric.recordValue).toHaveBeenCalledTimes(4);
+    });
+
+    it('records zero-depth metrics for every type when the queue is empty', async () => {
+      growthRepo.find.mockResolvedValue([]);
+      milestoneRepo.find.mockResolvedValue([]);
+      vaccineRepo.find.mockResolvedValue([]);
+
+      await service.findAllRecordsForVerification();
+
+      for (const type of ['all', 'growth', 'milestone', 'vaccination']) {
+        expect(metric.recordValue).toHaveBeenCalledWith(
+          'ra_verifications_pending',
+          0,
+          { type },
+        );
+      }
     });
   });
 });

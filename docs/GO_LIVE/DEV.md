@@ -807,7 +807,7 @@ Things that should "just work" but bite if neglected.
 The final shake-out before real parents and clinicians.
 
 #### 12.1 Automated Coverage
-- [/] Unit test coverage > 70% on API business logic (verifications, EPI scheduling, growth percentile calc) — baseline 66.55% lines / 53.70% functions / 46.25% branches (PR #7, 2026-05-24); floor enforced in CI at lines/statements 65, functions 50, branches 45; gap to 70% closes once growth-percentile + EPI-scheduling specs are added
+- [/] Unit test coverage > 70% on API business logic (verifications, EPI scheduling, growth percentile calc) — **EPI scheduling + growth-curve logic now covered at 100% in the newly test-wired `pkgs/clinical` package** (age-gate bucketing, SD-band ordering invariants, milestone integrity; 37 specs; `moon run clinical:test`), and `verifications.service` now asserts per-type queue-depth metrics + empty-queue case. Remaining to close: API-**global** lines/statements to 70% is blocked on a pre-existing controller-spec regression from the phase-2 auth merge (`JwtAuthGuard` now requires `JwtService`/`ConfigService`, so ~10 controller specs fail TestingModule DI until the guard is overridden). See PHASE_12_TODO.md.
 - [x] Cypress smoke suite on every prod deploy
 - [x] Postman contract tests run nightly against staging
 - [ ] Mobile E2E ([Detox](https://wix.github.io/Detox/) or [Maestro](https://maestro.mobile.dev)) on critical flows: signup, add child, log growth
@@ -815,13 +815,13 @@ The final shake-out before real parents and clinicians.
 #### 12.2 Manual / Exploratory
 - [ ] Internal alpha, the team + 2-3 friendly testers for 2 weeks
 - [ ] Clinical accuracy review by a registered paediatrician (EPI schedule, milestone wording, growth chart correctness)
-- [ ] Accessibility audit ([axe-core](https://github.com/dequelabs/axe-core) + manual keyboard nav + screen reader on dashboard)
+- [ ] Accessibility audit ([axe-core](https://github.com/dequelabs/axe-core) + manual keyboard nav + screen reader on dashboard) — automated axe-core slice wired into Cypress (public marketing/legal pages + parent/clinician/admin dashboards, gating on critical/serious violations); manual keyboard-nav + screen-reader pass still outstanding
 - [ ] Multi-language QA (i18n is wired, verify Afrikaans + Zulu translations are actually correct)
 - [ ] Mobile device matrix, at minimum: iPhone 13, Pixel 7, mid-range Android (Samsung A-series)
 
 #### 12.3 Performance & Load
 - [x] [Lighthouse](https://developer.chrome.com/docs/lighthouse) score > 90 on landing page
-- [ ] API load test ([k6](https://k6.io) or [Artillery](https://www.artillery.io)) against staging, 100 concurrent users, sustained 5min
+- [ ] API load test ([k6](https://k6.io) or [Artillery](https://www.artillery.io)) against staging, 100 concurrent users, sustained 5min — script complete in `tests/k6/staging-load.js` (health + EPI/milestone/growth reads at 100 VUs / 5-min hold, p95<500ms / err<1%; `moon run tests:load`); awaits a run against live staging
 - [ ] DB slow-query log review, every query > 100ms gets an index review
 - [ ] Cold-start benchmarks on Cloud Run (set min-instances if needed)
 

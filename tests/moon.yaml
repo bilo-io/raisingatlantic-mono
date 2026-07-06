@@ -10,5 +10,12 @@ tasks:
     # Run individual suites via: moon run postman-tests:test-local etc.
     command: 'echo "Run moon run postman:test-local or cypress:test-dev for full test suites"'
 
+  # k6 load test (DEV.md §12.3). Requires k6 on PATH and a reachable staging API.
+  # Override the target with: moon run tests:load -- --env BASE_URL=<url>
+  load:
+    command: 'k6 run k6/staging-load.js'
+    options:
+      runInCI: false
+
   clean:
     command: 'rm -rf node_modules'
