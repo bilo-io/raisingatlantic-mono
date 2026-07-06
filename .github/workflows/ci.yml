@@ -63,7 +63,7 @@ jobs:
       - name: Install Moon
         run: npm install -g @moonrepo/cli
       - name: Install API deps
-        run: moon run api:install
+        run: moon run api:install types:install
       - name: Run API unit tests with coverage
         run: moon run api:test-cov
         env:
@@ -75,6 +75,8 @@ jobs:
           DB_PASS: postgres
           NODE_ENV: test
           JWT_SECRET: ci-test-secret
+          # jest --coverage on the full suite exceeds node's default ~2 GB heap
+          NODE_OPTIONS: --max-old-space-size=4096
       - name: Upload coverage artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -171,7 +173,7 @@ jobs:
       - name: Install Moon
         run: npm install -g @moonrepo/cli
       - name: Install API deps
-        run: moon run api:install
+        run: moon run api:install types:install
       - name: Typecheck API
         run: moon run api:typecheck
 
