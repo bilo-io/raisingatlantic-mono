@@ -13,7 +13,7 @@
 - [Phase M2: Clinician Flow](#phase-m2-clinician-flow): `DEV 100%` ✅ *(16/21 — remainder blocked on API gaps G-VER-02 and ClinicianProfile HPCSA fields, see [MOBILE_PHASE_M2_TODO.md](MOBILE_PHASE_M2_TODO.md))*
 - [Phase M3: Admin Flow](#phase-m3-admin-flow): `DEV 100%`
 - [Phase M4: Polish & Platform UX](#phase-m4-polish--platform-ux): `DEV 100%` *(18/24 — M4.4 ships as scaffold only and source-map upload defers to §M5.1, see [MOBILE_PHASE_M4_TODO.md](MOBILE_PHASE_M4_TODO.md))*
-- [Phase M5: Native, Store & Release](#phase-m5-native-store--release): `DEV 90%` · `DESIGN 10%`
+- [Phase M5: Native, Store & Release](#phase-m5-native-store--release): `DEV 90%` · `DESIGN 10%` *(10/28 — remainder blocked on an Expo account, DESIGN assets, live legal URLs, on-device measurement, and the M4.4 real-auth cutover, see [MOBILE_PHASE_M5_TODO.md](MOBILE_PHASE_M5_TODO.md))*
 
 ---
 
@@ -337,16 +337,16 @@ Replace fixture auth with [Firebase Auth](https://firebase.google.com/docs/auth)
 The work that gets a binary into the App Store and Play Store. Coordinated with [DEV.md Phase 10](DEV.md#phase-10-mobile-app-release) and [DESIGN.md](DESIGN.md).
 
 #### M5.1 EAS Build & release channels
-- [ ] [EAS Build](https://docs.expo.dev/build/introduction/) profiles configured in `eas.json`: `development`, `preview` (internal TestFlight + Play Internal), `production`
-- [ ] [EAS Update](https://docs.expo.dev/eas-update/introduction/) channels: `preview` / `production` — JS-only fixes ship via OTA, native changes ship via full build
-- [ ] Build secrets via EAS environment variables (Firebase config, Sentry DSN), never committed
-- [ ] Build numbers auto-incremented via EAS
+- [x] [EAS Build](https://docs.expo.dev/build/introduction/) profiles configured in `eas.json`: `development`, `preview` (internal TestFlight + Play Internal), `production` *(eas.json committed; execution needs `eas init` + Expo account)*
+- [x] [EAS Update](https://docs.expo.dev/eas-update/introduction/) channels: `preview` / `production` — JS-only fixes ship via OTA, native changes ship via full build *(channels bound in eas.json + `expo-updates`)*
+- [x] Build secrets via EAS environment variables (Firebase config, Sentry DSN), never committed *(env mapping + `.env.example`; values set via EAS secrets)*
+- [x] Build numbers auto-incremented via EAS *(`autoIncrement` on the production profile)*
 
 #### M5.2 Store assets
 Per-platform icon, splash, and feature graphics. DESIGN owns the artwork; DEV owns the wiring.
 
 - [ ] App icon set (iOS 1024², Android adaptive: foreground + background)
-- [ ] Splash screen via [`expo-splash-screen`](https://docs.expo.dev/versions/latest/sdk/splash-screen/)
+- [x] Splash screen via [`expo-splash-screen`](https://docs.expo.dev/versions/latest/sdk/splash-screen/) *(migrated from the legacy `app.json` splash key to the config plugin)*
 - [ ] Store screenshots per device class (iPhone 6.7"/6.5"/5.5", iPad 12.9", Android phone, Android tablet)
 - [ ] **Privacy nutrition labels** (iOS) accurately describe data collected — coordinate with [DEV.md §4.1](DEV.md#41-data-protection-impact-assessment-dpia) and POPIA inventory
 
@@ -357,13 +357,13 @@ Per-platform icon, splash, and feature graphics. DESIGN owns the artwork; DEV ow
 - [ ] **Health-data declaration** — the app handles children's health records; declare accurately on both stores
 
 #### M5.4 Mobile E2E
-- [ ] [Detox](https://wix.github.io/Detox/) **or** [Maestro](https://maestro.mobile.dev/) smoke suite — pick one, document the choice
-- [ ] Suites per role:
+- [x] [Detox](https://wix.github.io/Detox/) **or** [Maestro](https://maestro.mobile.dev/) smoke suite — pick one, document the choice *(Maestro — [ADR 0005](../adr/0005-mobile-e2e-framework.md))*
+- [x] Suites per role: *(`.maestro/flows/` — parent/clinician/admin; native date-picker steps need first-device tuning)*
   - Parent: sign-in → add child → log growth → log milestone → check next vaccine due
   - Clinician: sign-in → open verifications → approve a record
   - Admin: sign-in → open users → open verifications
-- [ ] CI integration: run on every push to `dev`, block release builds on failure
-- [ ] References [DEV.md §12.1](DEV.md#121-automated-coverage)
+- [x] CI integration: run on every push to `dev`, block release builds on failure *(gated `mobile-e2e` job on push to `dev`; block-on-failure enforced on the production build path once a device runner exists — see [MOBILE_PHASE_M5_TODO.md](MOBILE_PHASE_M5_TODO.md))*
+- [x] References [DEV.md §12.1](DEV.md#121-automated-coverage) *(via ADR 0005)*
 
 #### M5.5 Performance budgets
 - [ ] Cold start < 3s on a mid-tier Android (Pixel 5-equivalent)
@@ -380,7 +380,7 @@ The last-mile checklist before submitting either store.
 - [ ] **Privacy policy + ToS** URLs live and reachable
 - [ ] **Crash-free sessions > 99%** on the preview channel for 5+ days
 - [ ] **E2E smoke green** on three consecutive runs
-- [ ] **POPIA section 72** assessment complete for any third-party SDK shipped in the binary (Sentry, push provider, analytics) — see [COMPLIANCE.md](COMPLIANCE.md)
+- [x] **POPIA section 72** assessment complete for any third-party SDK shipped in the binary (Sentry, push provider, analytics) — see [COMPLIANCE.md](COMPLIANCE.md) *(DEV assessment: [MOBILE_POPIA_S72.md](MOBILE_POPIA_S72.md); DPA signing → COMPLIANCE)*
 - [ ] **App Store / Play Store review notes** prepared with test credentials
 
 ---

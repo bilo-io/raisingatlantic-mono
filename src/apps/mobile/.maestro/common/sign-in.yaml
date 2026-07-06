@@ -1,0 +1,10 @@
+# Reusable sign-in subflow. Launches the app fresh (clearState) and taps the fixture
+# "Continue as <ROLE>" button on the login screen. ROLE is passed by the caller via env,
+# e.g. runFlow { file: ../common/sign-in.yaml, env: { ROLE: Parent } }.
+#
+# Fixture auth only (mock mode) — synthetic personas, no real credentials.
+appId: com.raisingatlantic.app
+---
+- launchApp:
+    clearState: true
+- tapOn: "Continue as ${ROLE}"

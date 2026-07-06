@@ -122,7 +122,7 @@ export default function ParentChildrenScreen() {
         </ScrollView>
       )}
 
-      {!empty ? <FAB onPress={startAdd} accessibilityLabel="Add child" /> : null}
+      {!empty ? <FAB onPress={startAdd} accessibilityLabel="Add child" testID="parent-add-child-fab" /> : null}
 
       <BottomSheet ref={formSheetRef} snapPoints={["75%", "95%"]}>
         <ChildForm
