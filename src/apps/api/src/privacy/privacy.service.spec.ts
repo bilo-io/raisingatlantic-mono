@@ -46,7 +46,8 @@ const entities = [
 ];
 
 const EMAIL_DOMAIN = 'phase4-privacy-test.local';
-const uniqueEmail = () => `user-${Date.now()}-${Math.floor(Math.random() * 1e6)}@${EMAIL_DOMAIN}`;
+const uniqueEmail = () =>
+  `user-${Date.now()}-${Math.floor(Math.random() * 1e6)}@${EMAIL_DOMAIN}`;
 
 describe('PrivacyService (integration)', () => {
   let moduleRef: TestingModule;
@@ -139,7 +140,7 @@ describe('PrivacyService (integration)', () => {
 
     expect(dump.format).toBe('json');
     expect(dump.dataSubject.id).toBe(parent.id);
-    expect((dump.dataSubject as Record<string, unknown>).passwordHash).toBeUndefined();
+    expect(dump.dataSubject.passwordHash).toBeUndefined();
     expect(dump.children).toHaveLength(1);
     expect(dump.children[0].id).toBe(child.id);
     expect(dump.children[0]).toHaveProperty('growthRecords');
@@ -147,7 +148,7 @@ describe('PrivacyService (integration)', () => {
     expect(dump.children[0]).toHaveProperty('reports');
   });
 
-  it('scopes the export to the caller — never another subject\'s children', async () => {
+  it("scopes the export to the caller — never another subject's children", async () => {
     const a = await makeParentWithChild();
     await makeParentWithChild(); // a second, unrelated subject
 
