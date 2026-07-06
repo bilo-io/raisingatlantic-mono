@@ -469,10 +469,10 @@ The "user-facing" side of POPIA.
 - [ ] Granular consent capture at signup (separate toggles for processing, marketing, third-party sharing)
 - [ ] Consent versioning, if we change the privacy policy, re-prompt
 - [ ] **Parental consent** flow: parent must consent on behalf of child under 18
-- [ ] Self-service Data Subject Access Request (DSAR) endpoint, export all personal data as JSON + PDF
+- [/] Self-service Data Subject Access Request (DSAR) endpoint, export all personal data as JSON + PDF
 - [ ] Right to erasure ("delete my account"), soft delete with 30-day grace + hard delete after retention expiry
 - [ ] Right to rectification, users can correct their own data
-- [ ] Data portability, machine-readable export
+- [x] Data portability, machine-readable export
 
 #### 4.3 Cross-Border Transfers
 POPIA Section 72 restricts sending personal information outside South Africa.
