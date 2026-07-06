@@ -49,16 +49,21 @@ function DeepLinkGate() {
   return null;
 }
 
-export default function RootLayout() {
-  // React Query devtools via the Expo dev-plugin (inert outside a dev client).
+// Streams React Query cache state to the Expo dev tools / React Native DevTools.
+// Rendered only under __DEV__ so the hook never runs in production builds.
+function ReactQueryDevTools() {
   useReactQueryDevTools(queryClient);
+  return null;
+}
 
+export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeProvider>
           <ErrorBoundary>
             <QueryClientProvider client={queryClient}>
+              {__DEV__ ? <ReactQueryDevTools /> : null}
               <AuthProvider>
                 <BottomSheetModalProvider>
                   <StatusBarThemed />
