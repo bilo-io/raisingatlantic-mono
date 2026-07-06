@@ -121,9 +121,15 @@ export class AuthService {
       name = payload.name;
       picture = payload.picture;
     } catch {
-      await this.audit('LOGIN_FAILURE', 'Google login failed', undefined, ipAddress, {
-        reason: 'invalid_google_token',
-      });
+      await this.audit(
+        'LOGIN_FAILURE',
+        'Google login failed',
+        undefined,
+        ipAddress,
+        {
+          reason: 'invalid_google_token',
+        },
+      );
       throw new UnauthorizedException('Invalid Google credentials');
     }
 
