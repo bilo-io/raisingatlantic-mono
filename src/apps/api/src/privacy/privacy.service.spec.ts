@@ -1,108 +1,191 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
-import { PrivacyService } from './privacy.service';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { PrivacyService, ERASURE_GRACE_DAYS } from './privacy.service';
+import { SystemLogsModule } from '../system-logs/system-logs.module';
 import { User } from '../users/users.model';
+import { UserRole } from '../users/constants';
 import { Child } from '../children/children.model';
+import { ResourceStatus } from '../common/enums';
+import { ClinicianProfile } from '../users/clinician-profile.model';
+import { Tenant } from '../tenants/tenants.model';
+import { Practice } from '../practices/practices.model';
+import {
+  GrowthRecord,
+  CompletedMilestone,
+  CompletedVaccination,
+  Allergy,
+  MedicalCondition,
+} from '../children/children.model';
+import { Report } from '../reports/reports.model';
+import { Appointment } from '../appointments/appointments.model';
+import { BlogPost } from '../blog/blog.model';
+import { Example } from '../examples/examples.model';
+import { SystemLog } from '../common/models/system-log.model';
 
-const AS_OF = new Date('2026-06-30T12:00:00Z');
+// Integration test against a REAL local Postgres per CLAUDE.md — DB never mocked.
+const entities = [
+  Example,
+  User,
+  ClinicianProfile,
+  Tenant,
+  Practice,
+  Child,
+  GrowthRecord,
+  CompletedMilestone,
+  CompletedVaccination,
+  Allergy,
+  MedicalCondition,
+  Report,
+  Appointment,
+  BlogPost,
+  SystemLog,
+];
 
-describe('PrivacyService', () => {
+const EMAIL_DOMAIN = 'phase4-privacy-test.local';
+const uniqueEmail = () => `user-${Date.now()}-${Math.floor(Math.random() * 1e6)}@${EMAIL_DOMAIN}`;
+
+describe('PrivacyService (integration)', () => {
+  let moduleRef: TestingModule;
   let service: PrivacyService;
-  let userFindOne: jest.Mock;
-  let childFind: jest.Mock;
+  let users: Repository<User>;
+  let children: Repository<Child>;
 
-  beforeEach(async () => {
-    userFindOne = jest.fn();
-    childFind = jest.fn();
+  beforeAll(async () => {
+    const databaseUrl = process.env.DATABASE_URL;
+    const ssl =
+      process.env.DB_SSL === 'true' ||
+      (!!databaseUrl && /sslmode=require/.test(databaseUrl));
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        PrivacyService,
-        {
-          provide: getRepositoryToken(User),
-          useValue: { findOne: userFindOne },
-        },
-        { provide: getRepositoryToken(Child), useValue: { find: childFind } },
+    moduleRef = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
+        TypeOrmModule.forRoot(
+          databaseUrl
+            ? {
+                type: 'postgres',
+                url: databaseUrl,
+                entities,
+                synchronize: true,
+                ssl: ssl ? { rejectUnauthorized: false } : false,
+              }
+            : {
+                type: 'postgres',
+                host: process.env.DB_HOST || 'localhost',
+                port: parseInt(process.env.DB_PORT ?? '5433', 10),
+                username: process.env.DB_USER || 'postgres',
+                password: process.env.DB_PASSWORD || 'password123',
+                database: process.env.DB_NAME || 'raisingatlantic',
+                entities,
+                synchronize: true,
+              },
+        ),
+        TypeOrmModule.forFeature([User, Child, Appointment, Report]),
+        SystemLogsModule,
+        JwtModule.register({
+          global: true,
+          secret: 'test-secret',
+          signOptions: { expiresIn: '15m' },
+        }),
       ],
+      providers: [PrivacyService],
     }).compile();
 
-    service = module.get(PrivacyService);
+    service = moduleRef.get(PrivacyService);
+    users = moduleRef.get<Repository<User>>(getRepositoryToken(User));
+    children = moduleRef.get<Repository<Child>>(getRepositoryToken(Child));
   });
 
-  it('assembles the data subject + nested child records into one export', async () => {
-    userFindOne.mockResolvedValue({
-      id: 'u1',
-      name: 'Test Parent',
-      email: 'parent@example.com',
-      phone: '+27123',
-      role: 'parent',
-      createdAt: AS_OF,
-      updatedAt: AS_OF,
-    });
-    childFind.mockResolvedValue([
-      {
-        id: 'c1',
-        name: 'Test Child',
-        firstName: 'Test',
-        lastName: 'Child',
-        gender: 'female',
-        dateOfBirth: '2024-01-01',
-        status: 'Active',
-        createdAt: AS_OF,
-        updatedAt: AS_OF,
-        growthRecords: [{ id: 'g1' }],
-        completedVaccinations: [{ id: 'v1', vaccineId: 'hepB1' }],
-      },
-    ]);
+  afterAll(async () => {
+    if (users) {
+      await users
+        .createQueryBuilder()
+        .delete()
+        .where('email LIKE :pattern', { pattern: `%@${EMAIL_DOMAIN}` })
+        .execute();
+    }
+    await moduleRef?.close();
+  });
 
-    const result = await service.exportUserData('u1', AS_OF);
-
-    expect(result.format).toBe('json');
-    expect(result.exportedAt).toBe('2026-06-30T12:00:00.000Z');
-    expect(result.dataSubject).toMatchObject({
-      id: 'u1',
-      email: 'parent@example.com',
-    });
-    expect(result.children).toHaveLength(1);
-    expect(result.children[0]).toMatchObject({ id: 'c1', name: 'Test Child' });
-    expect(result.children[0].growthRecords).toEqual([{ id: 'g1' }]);
-    expect(result.children[0].vaccinations).toEqual([
-      { id: 'v1', vaccineId: 'hepB1' },
-    ]);
-    // Child query must be scoped to the requesting subject.
-    expect(childFind).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { parent: { id: 'u1' } } }),
+  const makeParentWithChild = async () => {
+    const parent = await users.save(
+      users.create({
+        name: 'Data Subject',
+        email: uniqueEmail(),
+        phone: '+27000000000',
+        role: UserRole.PARENT,
+      }),
     );
+    const child = await children.save(
+      children.create({
+        name: 'Kid One',
+        firstName: 'Kid',
+        lastName: 'One',
+        gender: 'female',
+        dateOfBirth: new Date('2020-01-01'),
+        parent,
+      }),
+    );
+    return { parent, child };
+  };
+
+  it('exports the subject profile + their children and omits passwordHash', async () => {
+    const { parent, child } = await makeParentWithChild();
+
+    const dump = await service.exportUserData(parent.id);
+
+    expect(dump.format).toBe('json');
+    expect(dump.dataSubject.id).toBe(parent.id);
+    expect((dump.dataSubject as Record<string, unknown>).passwordHash).toBeUndefined();
+    expect(dump.children).toHaveLength(1);
+    expect(dump.children[0].id).toBe(child.id);
+    expect(dump.children[0]).toHaveProperty('growthRecords');
+    expect(dump.children[0]).toHaveProperty('appointments');
+    expect(dump.children[0]).toHaveProperty('reports');
   });
 
-  it('returns an empty children array for a subject with no children', async () => {
-    userFindOne.mockResolvedValue({
-      id: 'clin1',
-      name: 'Dr Who',
-      email: 'doc@example.com',
-      phone: '+27999',
-      role: 'clinician',
-      createdAt: AS_OF,
-      updatedAt: AS_OF,
-    });
-    childFind.mockResolvedValue([]);
+  it('scopes the export to the caller — never another subject\'s children', async () => {
+    const a = await makeParentWithChild();
+    await makeParentWithChild(); // a second, unrelated subject
 
-    const result = await service.exportUserData('clin1', AS_OF);
-
-    expect(result.children).toEqual([]);
-    expect(result.dataSubject).toMatchObject({
-      id: 'clin1',
-      role: 'clinician',
-    });
+    const dump = await service.exportUserData(a.parent.id);
+    expect(dump.children).toHaveLength(1);
+    expect(dump.children[0].id).toBe(a.child.id);
   });
 
-  it('throws NotFoundException for an unknown subject', async () => {
-    userFindOne.mockResolvedValue(null);
-
+  it('throws NotFound for an unknown subject', async () => {
     await expect(
-      service.exportUserData('missing', AS_OF),
+      service.exportUserData('00000000-0000-0000-0000-000000000000'),
     ).rejects.toBeInstanceOf(NotFoundException);
-    expect(childFind).not.toHaveBeenCalled();
+  });
+
+  it('renders a PDF export whose bytes start with %PDF', async () => {
+    const { parent } = await makeParentWithChild();
+    const pdf = await service.exportUserDataPdf(parent.id);
+    expect(Buffer.isBuffer(pdf)).toBe(true);
+    expect(pdf.length).toBeGreaterThan(100);
+    expect(pdf.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+  });
+
+  it('erasure soft-deletes: sets deletionRequestedAt + archives children + schedules +30d', async () => {
+    const { parent, child } = await makeParentWithChild();
+    const now = new Date('2026-07-01T00:00:00.000Z');
+
+    const result = await service.requestErasure(parent.id, now);
+
+    expect(result.deletionRequestedAt).toBe(now.toISOString());
+    const expectedHardDelete = new Date(
+      now.getTime() + ERASURE_GRACE_DAYS * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    expect(result.scheduledHardDeleteAt).toBe(expectedHardDelete);
+
+    const reloadedUser = await users.findOne({ where: { id: parent.id } });
+    expect(reloadedUser?.deletionRequestedAt).toBeTruthy();
+
+    const reloadedChild = await children.findOne({ where: { id: child.id } });
+    expect(reloadedChild?.status).toBe(ResourceStatus.ARCHIVED);
   });
 });
