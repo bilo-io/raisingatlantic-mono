@@ -10,14 +10,11 @@ tasks:
     inputs:
       - 'package.json'
 
-  build:
-    command: 'npm run build'
-    deps:
-      - 'install'
-    inputs:
-      - 'src/**/*'
-      - 'package.json'
-      - 'tsconfig.json'
+  # NOTE: intentionally no `build` task. Standalone `tsc --noEmit` on this
+  # package cannot resolve `zod` transitively through the
+  # `@raising-atlantic/types` source symlink (types is type-checked in-context
+  # by the web/mobile apps that own the zod dependency). Tests run transpile-only
+  # via ts-jest `isolatedModules`, so they are unaffected.
 
   test:
     command: 'npm run test'
