@@ -344,7 +344,7 @@ Right now there's a JWT auth guard but the registration / password-reset / MFA s
 #### 2.1 Auth Provider Decision
 Building auth from scratch for a regulated product is a long, thankless job. Buy it.
 
-- [ ] Decide: build our own NestJS auth (current direction) vs. **[Firebase Auth](https://firebase.google.com/docs/auth) / [Identity Platform](https://cloud.google.com/identity-platform)** vs. **[Auth0](https://auth0.com) / [Clerk](https://clerk.com) / [Stytch](https://stytch.com) / [Supabase Auth](https://supabase.com/auth)**
+- [x] Decide: build our own NestJS auth (current direction) vs. **[Firebase Auth](https://firebase.google.com/docs/auth) / [Identity Platform](https://cloud.google.com/identity-platform)** vs. **[Auth0](https://auth0.com) / [Clerk](https://clerk.com) / [Stytch](https://stytch.com) / [Supabase Auth](https://supabase.com/auth)** — **decided: build-your-own NestJS JWT** (Firebase needs GCP, deferred). Google SSO added via `google-auth-library` ID-token verification, env-gated.
 - [ ] Recommendation: **Firebase Auth / GCP Identity Platform**: same ecosystem as the rest of the infra, supports MFA, SAML, OIDC, magic links, and works on web + mobile out of the box
 - [ ] If Firebase: integrate via [Admin SDK](https://firebase.google.com/docs/admin/setup) on the NestJS side, validate ID tokens in `JwtAuthGuard`
 
@@ -355,11 +355,11 @@ The user-facing controls that prevent account takeover.
 - [ ] Password reset flow (magic-link or token-based), wired through [`nodemailer`](https://nodemailer.com) or [SendGrid](https://sendgrid.com)
 - [ ] Mandatory MFA for `CLINICIAN`, `ADMIN`, `SUPER_ADMIN` roles (TOTP or SMS)
 - [ ] Optional MFA for `PARENT` (encouraged but not blocking)
-- [ ] Rate-limit login attempts (already have [`@nestjs/throttler`](https://docs.nestjs.com/security/rate-limiting), apply per-IP + per-account)
+- [x] Rate-limit login attempts (already have [`@nestjs/throttler`](https://docs.nestjs.com/security/rate-limiting), apply per-IP + per-account) — `@Throttle(5/60s)` on login + google
 - [ ] Account lockout after N failed attempts with admin unlock path
-- [ ] Session management: short-lived access tokens (15min) + refresh tokens with rotation
+- [/] Session management: short-lived access tokens (15min) + refresh tokens with rotation — access token (httpOnly cookie) done; **refresh-token rotation deferred**
 - [ ] Logout-everywhere endpoint that invalidates all refresh tokens
-- [ ] Audit log of every login, logout, password change, role change → `SystemLog`
+- [/] Audit log of every login, logout, password change, role change → `SystemLog` — login/logout/register done; password/role-change events deferred
 
 #### 2.3 Clinician Verification Workflow
 The [HPCSA](https://www.hpcsa.co.za) / [SANC](https://www.sanc.co.za) verification today is a manual admin form. Make it harder to spoof.
@@ -842,9 +842,9 @@ The final shake-out before real parents and clinicians.
 The "tell people about it" phase. Cheap to defer, expensive to skip entirely.
 
 - [ ] Final landing page copy and SEO (`about`, `pricing`, `contact`, `blog` already scaffolded)
-- [ ] [Open Graph](https://ogp.me) + [Twitter card](https://developer.x.com/en/docs/twitter-for-websites/cards/overview/abouts-cards) metadata on every public route
-- [ ] Sitemap + robots.txt + [Google Search Console](https://search.google.com/search-console) verification
-- [ ] Analytics: **[Plausible](https://plausible.io)** or **PostHog** (POPIA-friendlier than [GA4](https://marketingplatform.google.com/about/analytics/)), avoid GA4 unless we have a clean DPA story
+- [x] [Open Graph](https://ogp.me) + [Twitter card](https://developer.x.com/en/docs/twitter-for-websites/cards/overview/abouts-cards) metadata on every public route
+- [x] Sitemap + robots.txt + [Google Search Console](https://search.google.com/search-console) verification
+- [x] Analytics: **[Plausible](https://plausible.io)** or **PostHog** (POPIA-friendlier than [GA4](https://marketingplatform.google.com/about/analytics/)), avoid GA4 unless we have a clean DPA story
 - [ ] Launch announcement channels: [LinkedIn](https://www.linkedin.com), paediatric-association mailing lists, parenting groups
 - [ ] Press kit (logo, screenshots, founder bio, one-pager) hosted on the marketing site
 - [ ] Pricing-page CTA → Stripe Checkout (live)

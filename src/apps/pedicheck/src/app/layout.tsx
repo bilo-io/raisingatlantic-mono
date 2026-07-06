@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { Fraunces, DM_Sans, Nunito } from 'next/font/google';
 import './globals.css';
+import { PlausibleAnalytics } from '@/components/plausible-analytics';
+import { JsonLd } from '@/components/json-ld';
+import { siteUrl } from '@/lib/site';
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -25,15 +28,25 @@ const nunito = Nunito({
   display: 'swap',
 });
 
-const SITE_URL = 'https://pedicheck.co.za';
+const SITE_URL = siteUrl;
+
+// Page-level SEO — browser tab + search snippet.
+const PAGE_TITLE = "PediCheck — When you don't know if it's serious";
+const PAGE_DESCRIPTION =
+  'Paediatrician-built guidance for every fever, bump and 2am worry. Calm, clear answers in under two minutes. Launching soon — join the waitlist.';
+
+// Social share card — OpenGraph + Twitter.
 const OG_TITLE = "PediCheck: When you don't know if it's serious";
 const OG_DESCRIPTION =
-  'Paediatrician-built guidance for every fever, bump and 2am worry. Calm, clear answers in under two minutes. Launching soon — join the waitlist.';
+  'A calm second opinion for the 2am worries. Built by paediatricians.';
+const OG_IMAGE = '/brand/og-image.png';
+const OG_IMAGE_ALT =
+  "PediCheck — when you don't know if it's serious. A calm, paediatrician-built second opinion for the 2am worries.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: OG_TITLE,
-  description: OG_DESCRIPTION,
+  title: PAGE_TITLE,
+  description: PAGE_DESCRIPTION,
   applicationName: 'PediCheck',
   keywords: [
     'paediatrician',
@@ -47,6 +60,9 @@ export const metadata: Metadata = {
     'Atlantic Children’s Practice',
   ],
   authors: [{ name: 'Atlantic Children’s Practice', url: SITE_URL }],
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
   icons: {
     icon: '/brand/icon-32.png',
     apple: '/brand/icon-180.png',
@@ -60,10 +76,10 @@ export const metadata: Metadata = {
     locale: 'en_ZA',
     images: [
       {
-        url: '/brand/og-image.png',
+        url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: 'PediCheck — calm, paediatrician-built guidance for 2am worries.',
+        alt: OG_IMAGE_ALT,
         type: 'image/png',
       },
     ],
@@ -72,7 +88,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: OG_TITLE,
     description: OG_DESCRIPTION,
-    images: ['/brand/og-image.png'],
+    images: [OG_IMAGE],
   },
 };
 
@@ -84,7 +100,11 @@ export default function RootLayout({
       lang="en"
       className={`${fraunces.variable} ${dmSans.variable} ${nunito.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <JsonLd />
+        <PlausibleAnalytics />
+        {children}
+      </body>
     </html>
   );
 }

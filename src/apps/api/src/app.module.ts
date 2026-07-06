@@ -44,6 +44,7 @@ import { SystemLogsModule } from './system-logs/system-logs.module';
 import { SystemLog } from './common/models/system-log.model';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PrivacyModule } from './privacy/privacy.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -137,6 +138,7 @@ import { PrivacyModule } from './privacy/privacy.module';
     }),
 
     NotificationsModule,
+    AuthModule,
     ExamplesModule,
     UsersModule,
     TenantsModule,

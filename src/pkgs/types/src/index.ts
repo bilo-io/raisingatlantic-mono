@@ -1,6 +1,7 @@
 export * from "./common";
 export * from "./role";
 export * from "./user";
+export * from "./auth";
 export * from "./child";
 export * from "./practice";
 export * from "./records";
