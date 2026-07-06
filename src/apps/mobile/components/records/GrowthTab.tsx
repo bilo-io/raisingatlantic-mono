@@ -90,7 +90,7 @@ export function GrowthTab({ child }: Props) {
         </Text>
         <View style={{ gap: 12 }}>
           <FormDateField name="date" control={form.control} label="Date" />
-          <FormField name="weight" control={form.control} label="Weight (kg)" keyboardType="decimal-pad" />
+          <FormField name="weight" control={form.control} label="Weight (kg)" keyboardType="decimal-pad" testID="growth-weight" />
           <FormField name="height" control={form.control} label="Height (cm)" keyboardType="decimal-pad" />
           <FormField name="headCircumference" control={form.control} label="Head circumference (cm)" keyboardType="decimal-pad" />
           <FormField name="notes" control={form.control} label="Notes" multiline />

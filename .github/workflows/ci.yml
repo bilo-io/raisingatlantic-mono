@@ -282,3 +282,49 @@ jobs:
         run: eas build --platform all --profile preview --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+  # ── Mobile E2E (Maestro — needs a device runner) ──────────────────────────
+  # Runs the smoke suite on push to `dev`. GitHub-hosted runners have no emulator by
+  # default, so this is gated the same way as eas-preview: green-by-default, and only
+  # does real work once `vars.RUN_MOBILE_E2E` is set to 'true' on a runner that can boot
+  # an Android emulator. Framework decision: docs/adr/0005-mobile-e2e-framework.md.
+  # "Block release builds on failure" (§M5.4) is enforced on the production build path,
+  # not on this advisory dev job — see docs/GO_LIVE/MOBILE_PHASE_M5_TODO.md.
+  mobile-e2e:
+    name: Mobile E2E (Maestro)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && github.ref_name == 'dev' }}
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check device-runner availability
+        id: check_device
+        run: |
+          if [ "${{ vars.RUN_MOBILE_E2E }}" != "true" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "RUN_MOBILE_E2E not set — no device runner; skipping Maestro E2E"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.check_device.outputs.enabled == 'true'
+        with:
+          node-version: 20
+      - name: Install Moon + Maestro CLI
+        if: steps.check_device.outputs.enabled == 'true'
+        run: |
+          npm install -g @moonrepo/cli
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+      - name: Install mobile deps
+        if: steps.check_device.outputs.enabled == 'true'
+        run: moon run mobile:install
+      # A device runner must build a debug/dev APK in mock mode (EXPO_PUBLIC_USE_API=false),
+      # boot an emulator, and install the APK before the next step. Wire that here when the
+      # runner is provisioned (e.g. reactivecircus/android-emulator-runner + eas build --local).
+      - name: Run Maestro smoke suite
+        if: steps.check_device.outputs.enabled == 'true'
+        working-directory: src/apps/mobile
+        run: moon run mobile:e2e-smoke

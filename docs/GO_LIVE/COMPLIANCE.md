@@ -112,6 +112,8 @@ POPIA Section 72 restricts sending personal information outside South Africa.
 - [ ] For non-SA processors: confirm they offer "adequate protection" (contractually via SCCs, ideally)
 - [ ] Disclose all sub-processors in the public privacy policy
 
+> **Mobile app binary:** the shipped Expo bundle contains its own cross-border SDKs (Sentry, Expo push, FCM/APNs, EAS Update) independent of the `africa-south1` API. Their per-SDK Section 72 assessment is in [MOBILE_POPIA_S72.md](MOBILE_POPIA_S72.md) (DEV-owned assessment; DPA signing tracked in the bullets above).
+
 #### 4.4 Breach Notification
 Required by POPIA Section 22, "as soon as reasonably possible" after discovery.
 

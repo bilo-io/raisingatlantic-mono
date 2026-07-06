@@ -73,8 +73,8 @@ export function ChildForm({ existing, onSaved, onCancel }: Props) {
   return (
     <View style={{ gap: 14 }}>
       <Text variant="heading">{existing ? "Edit child" : "Add a child"}</Text>
-      <FormField name="firstName" control={form.control} label="First name" autoCapitalize="words" />
-      <FormField name="lastName" control={form.control} label="Last name" autoCapitalize="words" />
+      <FormField name="firstName" control={form.control} label="First name" autoCapitalize="words" testID="child-form-first-name" />
+      <FormField name="lastName" control={form.control} label="Last name" autoCapitalize="words" testID="child-form-last-name" />
       <FormSelect
         name="gender"
         control={form.control}
@@ -102,6 +102,7 @@ export function ChildForm({ existing, onSaved, onCancel }: Props) {
             label={existing ? "Save changes" : "Add child"}
             onPress={form.handleSubmit(onSubmit)}
             loading={submitting}
+            testID="child-form-submit"
           />
         </View>
       </View>
