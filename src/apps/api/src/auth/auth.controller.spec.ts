@@ -4,7 +4,12 @@ import { AuthService } from './auth.service';
 import { ACCESS_TOKEN_COOKIE } from '../common/guards/jwt-auth.guard';
 
 describe('AuthController', () => {
-  const user = { id: 'u1', email: 'a@b.com', role: 'parent', name: 'A' } as never;
+  const user = {
+    id: 'u1',
+    email: 'a@b.com',
+    role: 'parent',
+    name: 'A',
+  } as never;
   const authService = {
     register: jest.fn().mockResolvedValue({ user, token: 'tok' }),
     login: jest.fn().mockResolvedValue({ user, token: 'tok' }),
@@ -17,11 +22,7 @@ describe('AuthController', () => {
   } as unknown as ConfigService;
   const controller = new AuthController(authService, config);
 
-  const mockRes = () =>
-    ({ cookie: jest.fn(), clearCookie: jest.fn() }) as never as {
-      cookie: jest.Mock;
-      clearCookie: jest.Mock;
-    };
+  const mockRes = () => ({ cookie: jest.fn(), clearCookie: jest.fn() });
   const req = { ip: '127.0.0.1' } as never;
 
   it('register sets an httpOnly auth cookie and returns the user', async () => {
@@ -38,19 +39,33 @@ describe('AuthController', () => {
   it('login sets the auth cookie', async () => {
     const res = mockRes();
     await controller.login({} as never, req, res as never);
-    expect(res.cookie).toHaveBeenCalledWith(ACCESS_TOKEN_COOKIE, 'tok', expect.any(Object));
+    expect(res.cookie).toHaveBeenCalledWith(
+      ACCESS_TOKEN_COOKIE,
+      'tok',
+      expect.any(Object),
+    );
   });
 
   it('google sets the auth cookie', async () => {
     const res = mockRes();
     await controller.google({} as never, req, res as never);
-    expect(res.cookie).toHaveBeenCalledWith(ACCESS_TOKEN_COOKIE, 'tok', expect.any(Object));
+    expect(res.cookie).toHaveBeenCalledWith(
+      ACCESS_TOKEN_COOKIE,
+      'tok',
+      expect.any(Object),
+    );
   });
 
   it('logout clears the auth cookie', async () => {
     const res = mockRes();
-    await controller.logout({ ip: 'x', user: { sub: 'u1' } } as never, res as never);
-    expect(res.clearCookie).toHaveBeenCalledWith(ACCESS_TOKEN_COOKIE, expect.any(Object));
+    await controller.logout(
+      { ip: 'x', user: { sub: 'u1' } } as never,
+      res as never,
+    );
+    expect(res.clearCookie).toHaveBeenCalledWith(
+      ACCESS_TOKEN_COOKIE,
+      expect.any(Object),
+    );
   });
 
   it('me returns the current user', async () => {

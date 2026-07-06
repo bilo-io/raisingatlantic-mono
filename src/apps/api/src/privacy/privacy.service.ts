@@ -163,6 +163,20 @@ export class PrivacyService {
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
+      const asText = (v: unknown): string => {
+        if (v == null) return '';
+        switch (typeof v) {
+          case 'string':
+            return v;
+          case 'number':
+          case 'boolean':
+          case 'bigint':
+            return String(v);
+          default:
+            return JSON.stringify(v) ?? '';
+        }
+      };
+
       const subject = data.dataSubject;
       doc.fontSize(18).text('Raising Atlantic — Personal Data Export');
       doc.moveDown(0.3);
@@ -172,7 +186,7 @@ export class PrivacyService {
       doc.fontSize(13).text('Data subject');
       doc.fontSize(10);
       for (const key of ['name', 'email', 'phone', 'role'] as const) {
-        doc.text(`${key}: ${String(subject[key] ?? '')}`);
+        doc.text(`${key}: ${asText(subject[key])}`);
       }
       doc.moveDown();
 
@@ -180,9 +194,9 @@ export class PrivacyService {
       doc.fontSize(10);
       for (const child of data.children) {
         doc.moveDown(0.5);
-        doc.font('Helvetica-Bold').text(String(child.name ?? ''));
+        doc.font('Helvetica-Bold').text(asText(child.name));
         doc.font('Helvetica');
-        doc.text(`Date of birth: ${String(child.dateOfBirth ?? '')}`);
+        doc.text(`Date of birth: ${asText(child.dateOfBirth)}`);
         const counts: Array<[string, unknown]> = [
           ['Growth records', child.growthRecords],
           ['Milestones', child.milestones],

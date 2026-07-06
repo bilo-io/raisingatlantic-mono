@@ -11,11 +11,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { CookieOptions, Request, Response } from 'express';
-import {
-  PrivacyService,
-  DsarExport,
-  ErasureResult,
-} from './privacy.service';
+import { PrivacyService, DsarExport, ErasureResult } from './privacy.service';
 import { JwtVerifiedGuard } from '../common/guards/jwt-verified.guard';
 import {
   ACCESS_TOKEN_COOKIE,

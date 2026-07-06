@@ -35,7 +35,9 @@ describe('JwtVerifiedGuard (strict)', () => {
   });
 
   it('accepts a valid Bearer token from the Authorization header', async () => {
-    const req = { headers: { authorization: `Bearer ${jwtService.sign(payload)}` } };
+    const req = {
+      headers: { authorization: `Bearer ${jwtService.sign(payload)}` },
+    };
     await expect(guard.canActivate(buildContext(req))).resolves.toBe(true);
   });
 

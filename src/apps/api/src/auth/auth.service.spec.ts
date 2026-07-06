@@ -51,7 +51,8 @@ const entities = [
 ];
 
 const EMAIL_DOMAIN = 'phase2-auth-test.local';
-const uniqueEmail = () => `user-${Date.now()}-${Math.floor(Math.random() * 1e6)}@${EMAIL_DOMAIN}`;
+const uniqueEmail = () =>
+  `user-${Date.now()}-${Math.floor(Math.random() * 1e6)}@${EMAIL_DOMAIN}`;
 
 describe('AuthService (integration)', () => {
   let moduleRef: TestingModule;
@@ -125,7 +126,9 @@ describe('AuthService (integration)', () => {
 
     expect(result.user.email).toBe(email);
     expect(result.token).toBeTruthy();
-    expect((result.user as Record<string, unknown>).passwordHash).toBeUndefined();
+    expect(
+      (result.user as Record<string, unknown>).passwordHash,
+    ).toBeUndefined();
 
     const stored = await users
       .createQueryBuilder('u')
@@ -149,7 +152,9 @@ describe('AuthService (integration)', () => {
       role: UserRole.PARENT,
     };
     await service.register(base);
-    await expect(service.register(base)).rejects.toBeInstanceOf(ConflictException);
+    await expect(service.register(base)).rejects.toBeInstanceOf(
+      ConflictException,
+    );
   });
 
   it('logs in with correct credentials and rejects a wrong password', async () => {
@@ -162,7 +167,10 @@ describe('AuthService (integration)', () => {
       role: UserRole.CLINICIAN,
     });
 
-    const ok = await service.login({ email, password: 'correct-horse-battery' });
+    const ok = await service.login({
+      email,
+      password: 'correct-horse-battery',
+    });
     expect(ok.user.email).toBe(email);
     expect(ok.user.role).toBe(UserRole.CLINICIAN);
 
