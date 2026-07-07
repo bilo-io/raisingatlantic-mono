@@ -7,9 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings, Bell, Palette, Languages, Trash2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { deleteUser } from "@/lib/api/adapters/user.adapter";
+import { requestErasure } from "@/lib/api/privacy";
+import { logout } from "@/lib/auth";
 import { useToast } from "@/hooks/useToast";
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
   AlertDialog, 
@@ -26,23 +26,18 @@ import {
 export default function SettingsPage() {
   const { addToast } = useToast();
   const router = useRouter();
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const storedUserId = localStorage.getItem('currentUserId') || 'user-1';
-    setCurrentUserId(storedUserId);
-  }, []);
 
   const handleAccountDeletion = async () => {
-    if (!currentUserId) return;
     try {
-      await deleteUser(currentUserId);
+      const result = await requestErasure();
       addToast({
-        title: "Account Deleted",
-        description: "Your account and all associated data have been permanently removed.",
-        type: 'error',
+        title: "Account scheduled for deletion",
+        description: `Your account is deactivated and will be permanently erased on ${new Date(
+          result.scheduledHardDeleteAt,
+        ).toLocaleDateString()}. Contact support within 30 days to cancel.`,
+        type: 'success',
       });
-      // Redirect to landing or login
+      await logout();
       router.push('/');
     } catch (error) {
       console.error("Failed to delete account:", error);
@@ -160,7 +155,9 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">
-            Warning: This action is irreversible. All your data, including child profiles, notes, and collaboration history, will be permanently erased.
+            Your account is deactivated immediately and permanently erased after a 30-day grace period.
+            To download a copy of your data first, visit{" "}
+            <a href="/dashboard/account/privacy" className="underline text-primary">Privacy &amp; Your Data</a>.
           </p>
           <AlertDialog>
             <AlertDialogTrigger asChild>

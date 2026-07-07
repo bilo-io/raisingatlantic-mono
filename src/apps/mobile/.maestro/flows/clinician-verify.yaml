@@ -1,0 +1,17 @@
+# Clinician verify journey (M5.4): sign-in → Verifications → Records queue → Approve.
+# Mock mode; approval is optimistic in mock (real-API PATCH blocked on G-VER-02).
+appId: com.raisingatlantic.app
+tags:
+  - smoke
+---
+- runFlow:
+    file: ../common/sign-in.yaml
+    env:
+      ROLE: Clinician
+# Clinician lands on the dashboard (center tab); open the Verifications tab.
+- tapOn: "Verifications"
+# "Records" is the default sub-tab; select it explicitly for determinism.
+- tapOn: "Records"
+# Approve the first pending record.
+- tapOn: "Approve"
+- assertVisible: "Verifications"

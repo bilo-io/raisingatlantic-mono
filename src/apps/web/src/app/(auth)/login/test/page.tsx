@@ -13,9 +13,11 @@ import { SITE_NAME, UserRole } from "@/lib/constants";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import Image from 'next/image';
 import { dummyUsers } from "@/data/users";
+import type { User as AppUser } from "@/types/models";
 import { SiteLogo } from "@/components/layout/SiteLogo";
 import { useApi } from "@/lib/api/data-source";
 import { getUsers } from "@/lib/api/adapters/user.adapter";
+import { setMockCurrentUser } from "@/lib/auth";
 import { useEffect, useMemo, useState } from 'react';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -67,20 +69,11 @@ export default function LoginPage() {
   }
 
   const handleUserLogin = () => {
-    if (selectedUserId) {
-      if (isApiEnabled && selectedUser) {
-        // Sync to mock auth storage so synchronous lookups (getCurrentUser) work
-        const storageKey = 'mock_auth_users';
-        const existingRaw = localStorage.getItem(storageKey);
-        const existing = existingRaw ? JSON.parse(existingRaw) : [];
-        if (!existing.find((u: any) => u.id === selectedUserId)) {
-          localStorage.setItem(storageKey, JSON.stringify([...existing, selectedUser]));
-        }
-      }
-      localStorage.setItem('currentUserId', selectedUserId);
-      localStorage.setItem('mock_auth_current_user_id', selectedUserId);
-      router.push('/dashboard');
-    }
+    if (!selectedUser) return;
+    // Dev-only bypass: seeds a mock session (no real IdP/GCP). Gated by
+    // NEXT_PUBLIC_ENABLE_TEST_LOGIN — a no-op in production builds.
+    setMockCurrentUser(selectedUser as AppUser);
+    router.push('/dashboard');
   };
 
   return (

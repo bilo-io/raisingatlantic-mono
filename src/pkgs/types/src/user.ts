@@ -9,6 +9,8 @@ export const userSchema = z.object({
   phone: z.string(),
   imageUrl: z.string().optional(),
   role: userRoleSchema,
+  emailVerified: z.boolean().optional(),
+  authProvider: z.enum(["email", "google"]).optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

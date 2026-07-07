@@ -1,0 +1,16 @@
+# Admin triage journey (M5.4): sign-in → Users → Verifications.
+# Mock mode; read-only spot-check journey.
+appId: com.raisingatlantic.app
+tags:
+  - smoke
+---
+- runFlow:
+    file: ../common/sign-in.yaml
+    env:
+      ROLE: Admin
+# Admin lands on the dashboard (center tab); open the Users tab.
+- tapOn: "Users"
+- assertVisible: "Search by name or email"
+# Open the admin-wide Verifications tab (reuses the clinician queue component).
+- tapOn: "Verifications"
+- assertVisible: "Records"

@@ -12,7 +12,11 @@
     "baseUrl": "./",
     "paths": {
       "@core/*": ["../../core/*"],
-      "@pkgs/*": ["../../pkgs/*"]
+      "@pkgs/*": ["../../pkgs/*"],
+      "@raising-atlantic/clinical": ["../../pkgs/clinical/src/index.ts"],
+      "@raising-atlantic/clinical/*": ["../../pkgs/clinical/src/*"],
+      "@raising-atlantic/types": ["../../pkgs/types/src/index.ts"],
+      "@raising-atlantic/types/*": ["../../pkgs/types/src/*"]
     },
     "incremental": true,
     "skipLibCheck": true,
