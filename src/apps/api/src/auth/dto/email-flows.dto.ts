@@ -1,10 +1,4 @@
-import {
-  IsEmail,
-  IsString,
-  Length,
-  Matches,
-  MinLength,
-} from 'class-validator';
+import { IsEmail, IsString, Length, Matches, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RequestEmailVerificationDto {

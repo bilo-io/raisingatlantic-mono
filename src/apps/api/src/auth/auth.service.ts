@@ -14,11 +14,7 @@ import { MoreThan, Repository } from 'typeorm';
 import { OAuth2Client } from 'google-auth-library';
 import * as bcrypt from 'bcryptjs';
 import { createHash, randomBytes } from 'crypto';
-import {
-  generateSecret as generateTotpSecret,
-  generateURI as generateTotpUri,
-  verify as verifyTotp,
-} from 'otplib';
+import { generateTotpSecret, totpUri, verifyTotp } from './totp';
 import { User } from '../users/users.model';
 import { AuthProvider, UserRole } from '../users/constants';
 import { SystemLogsService } from '../system-logs/system-logs.service';
@@ -141,9 +137,7 @@ export class AuthService {
     }
 
     if (user.authProvider === AuthProvider.EMAIL && !user.emailVerified) {
-      void this.requestEmailVerification(user.email, ipAddress).catch(
-        () => {},
-      );
+      void this.requestEmailVerification(user.email, ipAddress).catch(() => {});
       await this.audit('LOGIN_FAILURE', 'Login failed', user.id, ipAddress, {
         reason: 'email_not_verified',
       });
@@ -312,10 +306,7 @@ export class AuthService {
 
   // ── Password reset ────────────────────────────────────────────────────────
 
-  async requestPasswordReset(
-    email: string,
-    ipAddress?: string,
-  ): Promise<void> {
+  async requestPasswordReset(email: string, ipAddress?: string): Promise<void> {
     const user = await this.usersRepository.findOne({
       where: { email: email.toLowerCase().trim() },
     });
@@ -380,11 +371,7 @@ export class AuthService {
     await this.usersRepository.update(user.id, { mfaSecret: secret });
     return {
       secret,
-      otpauthUrl: generateTotpUri({
-        secret,
-        issuer: TOTP_ISSUER,
-        label: user.email,
-      }),
+      otpauthUrl: totpUri(secret, TOTP_ISSUER, user.email),
     };
   }
 
@@ -397,11 +384,7 @@ export class AuthService {
     if (!user?.mfaSecret) {
       throw new BadRequestException('Run MFA setup before enabling');
     }
-    const { valid } = await verifyTotp({
-      secret: user.mfaSecret,
-      token: code,
-    });
-    if (!valid) {
+    if (!verifyTotp(user.mfaSecret, code)) {
       await this.audit(
         'MFA_CHALLENGE_FAILURE',
         'MFA enrolment code rejected',
@@ -437,11 +420,7 @@ export class AuthService {
     if (!user?.mfaSecret || !user.mfaEnabled) {
       throw new UnauthorizedException('MFA is not enabled for this account');
     }
-    const { valid } = await verifyTotp({
-      secret: user.mfaSecret,
-      token: code,
-    });
-    if (!valid) {
+    if (!verifyTotp(user.mfaSecret, code)) {
       await this.audit(
         'MFA_CHALLENGE_FAILURE',
         'MFA challenge code rejected',

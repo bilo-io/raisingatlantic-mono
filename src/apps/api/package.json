@@ -61,7 +61,6 @@
     "nestjs-cls": "^5.4.2",
     "nestjs-pino": "^4.4.0",
     "nodemailer": "^8.0.5",
-    "otplib": "^13.4.1",
     "pdfkit": "^0.15.1",
     "pg": "^8.11.5",
     "pino": "^9.5.0",

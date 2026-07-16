@@ -62,9 +62,9 @@ describe('JwtVerifiedGuard (strict)', () => {
           authorization: `Bearer ${jwtService.sign({ ...payload, scope })}`,
         },
       };
-      await expect(
-        guard.canActivate(buildContext(req)),
-      ).rejects.toBeInstanceOf(UnauthorizedException);
+      await expect(guard.canActivate(buildContext(req))).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
     },
   );
 });

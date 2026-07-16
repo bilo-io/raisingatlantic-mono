@@ -11,7 +11,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { generate as generateTotpCode } from 'otplib';
+import { totpCode } from './totp';
 import { AuthService, isMfaChallenge } from './auth.service';
 import type { AuthResult, MfaChallengeResult } from './auth.service';
 import { SystemLogsModule } from '../system-logs/system-logs.module';
@@ -173,9 +173,7 @@ describe('AuthService (integration)', () => {
     expect(
       (result.user as Record<string, unknown>).passwordHash,
     ).toBeUndefined();
-    expect(
-      (result.user as Record<string, unknown>).mfaSecret,
-    ).toBeUndefined();
+    expect((result.user as Record<string, unknown>).mfaSecret).toBeUndefined();
 
     const stored = await users
       .createQueryBuilder('u')
@@ -307,11 +305,11 @@ describe('AuthService (integration)', () => {
     const { secret, otpauthUrl } = await service.setupMfa(user.id);
     expect(otpauthUrl).toContain('otpauth://totp/');
 
-    await expect(
-      service.enableMfa(user.id, '000000'),
-    ).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(service.enableMfa(user.id, '000000')).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
 
-    const code = await generateTotpCode({ secret });
+    const code = totpCode(secret);
     const enabled = await service.enableMfa(user.id, code);
     expect(enabled.mfaEnabled).toBe(true);
 
@@ -321,7 +319,7 @@ describe('AuthService (integration)', () => {
     );
     expect(next.mfaRequired).toBe(true);
 
-    const code2 = await generateTotpCode({ secret });
+    const code2 = totpCode(secret);
     const session = await service.verifyMfaChallenge(next.mfaToken, code2);
     expect(session.user.email).toBe(email);
     expect(session.token).toBeTruthy();
@@ -352,7 +350,7 @@ describe('AuthService (integration)', () => {
     expect(ok.user.role).toBe(UserRole.PARENT);
 
     const { secret } = await service.setupMfa(user.id);
-    const code = await generateTotpCode({ secret });
+    const code = totpCode(secret);
     await service.enableMfa(user.id, code);
 
     const challenge = asChallenge(
