@@ -7,10 +7,15 @@ import { Request } from 'express';
 // controller (which sets/clears it) so there is one source of truth.
 export const ACCESS_TOKEN_COOKIE = 'ra_access_token';
 
+// `scope` marks limited-purpose tokens (MFA login flow) that must never be
+// accepted as a full session — JwtVerifiedGuard rejects any scoped token.
+export type AuthTokenScope = 'mfa' | 'mfa_setup';
+
 export interface AuthTokenPayload {
   sub: string;
   email: string;
   role: string;
+  scope?: AuthTokenScope;
 }
 
 export interface RequestWithAuth extends Request {
@@ -116,7 +121,8 @@ export class JwtAuthGuard implements CanActivate {
         this.jwtService,
         this.configService,
       );
-      if (payload) request.user = payload;
+      // Scoped (MFA-flow) tokens are not sessions — never attach them here.
+      if (payload && !payload.scope) request.user = payload;
     }
     return true;
   }

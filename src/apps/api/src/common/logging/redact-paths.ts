@@ -68,6 +68,7 @@ export const PII_REDACT_PATHS: readonly string[] = [
 
   // Generic secret-ish fields
   '*.password',
+  '*.mfaSecret',
   '*.token',
   '*.refreshToken',
   '*.accessToken',

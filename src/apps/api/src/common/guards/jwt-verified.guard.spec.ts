@@ -53,4 +53,18 @@ describe('JwtVerifiedGuard (strict)', () => {
       UnauthorizedException,
     );
   });
+
+  it.each(['mfa', 'mfa_setup'] as const)(
+    'rejects a %s-scoped token — scoped tokens are not sessions',
+    async (scope) => {
+      const req = {
+        headers: {
+          authorization: `Bearer ${jwtService.sign({ ...payload, scope })}`,
+        },
+      };
+      await expect(
+        guard.canActivate(buildContext(req)),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+    },
+  );
 });

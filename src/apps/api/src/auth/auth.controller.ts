@@ -12,15 +12,25 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { ConfigService } from '@nestjs/config';
 import type { CookieOptions, Request, Response } from 'express';
-import { AuthService } from './auth.service';
+import { AuthService, isMfaChallenge } from './auth.service';
+import type { AuthResult, LoginResult } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
+import {
+  MfaChallengeDto,
+  MfaCodeDto,
+  RequestEmailVerificationDto,
+  RequestPasswordResetDto,
+  ResetPasswordDto,
+  VerifyEmailDto,
+} from './dto/email-flows.dto';
 import {
   ACCESS_TOKEN_COOKIE,
   type AuthTokenPayload,
 } from '../common/guards/jwt-auth.guard';
 import { JwtVerifiedGuard } from '../common/guards/jwt-verified.guard';
+import { JwtMfaFlowGuard } from '../common/guards/jwt-mfa-flow.guard';
 
 // Keep the cookie lifetime roughly in step with JWT_ACCESS_TOKEN_EXPIRY (15m).
 const ACCESS_TOKEN_MAX_AGE_MS = 15 * 60 * 1000;
@@ -43,8 +53,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.register(dto, req.ip);
-    this.setAuthCookie(res, result.token);
-    return { user: result.user };
+    return this.sessionResponse(res, result);
   }
 
   @Post('login')
@@ -56,8 +65,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.login(dto, req.ip);
-    this.setAuthCookie(res, result.token);
-    return { user: result.user };
+    return this.loginResponse(res, result);
   }
 
   @Post('google')
@@ -69,8 +77,90 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.loginWithGoogle(dto, req.ip);
-    this.setAuthCookie(res, result.token);
-    return { user: result.user };
+    return this.loginResponse(res, result);
+  }
+
+  @Post('verify-email/request')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 5, ttl: 60_000 } })
+  async requestEmailVerification(
+    @Body() dto: RequestEmailVerificationDto,
+    @Req() req: Request,
+  ) {
+    await this.authService.requestEmailVerification(dto.email, req.ip);
+    return { success: true };
+  }
+
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 5, ttl: 60_000 } })
+  async verifyEmail(@Body() dto: VerifyEmailDto, @Req() req: Request) {
+    await this.authService.verifyEmail(dto.token, req.ip);
+    return { success: true };
+  }
+
+  @Post('password-reset/request')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 5, ttl: 60_000 } })
+  async requestPasswordReset(
+    @Body() dto: RequestPasswordResetDto,
+    @Req() req: Request,
+  ) {
+    await this.authService.requestPasswordReset(dto.email, req.ip);
+    return { success: true };
+  }
+
+  @Post('password-reset')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 5, ttl: 60_000 } })
+  async resetPassword(@Body() dto: ResetPasswordDto, @Req() req: Request) {
+    await this.authService.resetPassword(dto.token, dto.newPassword, req.ip);
+    return { success: true };
+  }
+
+  @Post('mfa/setup')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtMfaFlowGuard)
+  async setupMfa(@Req() req: AuthedRequest) {
+    return this.authService.setupMfa(req.user!.sub);
+  }
+
+  @Post('mfa/enable')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 5, ttl: 60_000 } })
+  @UseGuards(JwtMfaFlowGuard)
+  async enableMfa(
+    @Body() dto: MfaCodeDto,
+    @Req() req: AuthedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const user = await this.authService.enableMfa(
+      req.user!.sub,
+      dto.code,
+      req.ip,
+    );
+    // An mfa_setup-scoped caller has proven password + TOTP — complete their
+    // sign-in; a full-session caller (parent opting in) just gets confirmation.
+    if (req.user!.scope === 'mfa_setup') {
+      return this.sessionResponse(res, this.authService.sessionFor(user));
+    }
+    return { success: true };
+  }
+
+  @Post('mfa/verify')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 5, ttl: 60_000 } })
+  async verifyMfa(
+    @Body() dto: MfaChallengeDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.verifyMfaChallenge(
+      dto.mfaToken,
+      dto.code,
+      req.ip,
+    );
+    return this.sessionResponse(res, result);
   }
 
   @Post('logout')
@@ -89,6 +179,20 @@ export class AuthController {
   async me(@Req() req: AuthedRequest) {
     const user = await this.authService.getMe(req.user!.sub);
     return { user };
+  }
+
+  // Session responses carry the JWT both as the httpOnly cookie (web) and in
+  // the body (mobile / Bearer clients, which cannot read the cookie).
+  private sessionResponse(res: Response, result: AuthResult) {
+    this.setAuthCookie(res, result.token);
+    return { user: result.user, token: result.token };
+  }
+
+  private loginResponse(res: Response, result: LoginResult) {
+    if (isMfaChallenge(result)) {
+      return result;
+    }
+    return this.sessionResponse(res, result);
   }
 
   private cookieOptions(): CookieOptions {

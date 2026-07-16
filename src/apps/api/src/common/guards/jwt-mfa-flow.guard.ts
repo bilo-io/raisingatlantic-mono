@@ -13,12 +13,14 @@ import {
 } from './jwt-auth.guard';
 
 /**
- * Strict authentication: rejects the request with 401 unless a valid access
- * token is present (httpOnly cookie or Bearer header). Use on endpoints that
- * require an authenticated session, e.g. GET /v1/auth/me.
+ * Guard for the MFA setup/enable routes only. Accepts either a full session
+ * (a parent opting in to MFA) or an `mfa_setup`-scoped token (a privileged
+ * user who must enrol before receiving a session). Challenge-scoped (`mfa`)
+ * tokens are NOT accepted — those belong exclusively to /auth/mfa/verify,
+ * which takes the token in the request body.
  */
 @Injectable()
-export class JwtVerifiedGuard implements CanActivate {
+export class JwtMfaFlowGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -35,13 +37,8 @@ export class JwtVerifiedGuard implements CanActivate {
       this.jwtService,
       this.configService,
     );
-    if (!payload) {
+    if (!payload || (payload.scope && payload.scope !== 'mfa_setup')) {
       throw new UnauthorizedException('Invalid or expired session');
-    }
-    // Scoped tokens (MFA login flow) are limited-purpose credentials, not
-    // sessions — only the dedicated /auth/mfa routes accept them.
-    if (payload.scope) {
-      throw new UnauthorizedException('Insufficient token scope');
     }
     request.user = payload;
     return true;
