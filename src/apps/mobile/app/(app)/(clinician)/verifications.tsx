@@ -154,20 +154,32 @@ function DecisionActions({
   );
 }
 
+function childName(r: VerifiableRecord): string | null {
+  return r.child ? `${r.child.firstName} ${r.child.lastName}`.trim() : null;
+}
+
 function recordTitle(r: VerifiableRecord) {
+  const name = childName(r);
+  return name ?? recordKind(r);
+}
+
+function recordKind(r: VerifiableRecord) {
   if (r.type === "Growth") return `Growth entry · ${formatDate(r.date)}`;
   if (r.type === "Milestone") return `Milestone · ${r.milestoneId}`;
   return `Vaccination · ${r.vaccineId}`;
 }
 
 function recordSubtitle(r: VerifiableRecord) {
+  // When the title carries the child's name, lead the subtitle with the record kind
+  // so no context is lost.
+  const prefix = childName(r) ? `${recordKind(r)} · ` : "";
   if (r.type === "Growth") {
     const w = r.weight ? `${r.weight} kg` : "—";
     const h = r.height ? `${r.height} cm` : "—";
-    return `${w} · ${h}${r.notes ? ` · ${r.notes}` : ""}`;
+    return `${prefix}${w} · ${h}${r.notes ? ` · ${r.notes}` : ""}`;
   }
-  if (r.type === "Milestone") return `Achieved ${formatDate(r.dateAchieved)}`;
-  return `Administered ${formatDate(r.dateAdministered)} · ${r.source ?? "PARENT"}`;
+  if (r.type === "Milestone") return `${prefix}Achieved ${formatDate(r.dateAchieved)}`;
+  return `${prefix}Administered ${formatDate(r.dateAdministered)} · ${r.source ?? "PARENT"}`;
 }
 
 function formatDate(iso: string) {

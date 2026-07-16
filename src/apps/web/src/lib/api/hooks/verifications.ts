@@ -54,12 +54,17 @@ export function useRecordVerifications(): UseQueryResult<RecordVerification[], A
 }
 
 /**
- * Approve/reject mutations — backend endpoints are not yet implemented
- * (gap G-VER-02 in the audit). The hook is wired so calling code can be
- * written against the final shape; the hook will fail with a clear toast
- * until the backend lands.
+ * Approve/reject mutations. Backed by the verification decision endpoints
+ * (PATCH /verifications/{records,clinicians}/:id), which speak the canonical
+ * { outcome, notes } contract shared with the mobile app.
  */
 type DecisionInput = { id: string; status: 'approved' | 'rejected'; notes?: string };
+
+// The API speaks a single canonical decision contract ({ outcome, notes });
+// map the web hook's status vocabulary onto it.
+function toOutcome(status: 'approved' | 'rejected'): 'APPROVED' | 'REJECTED' {
+  return status === 'approved' ? 'APPROVED' : 'REJECTED';
+}
 
 export function useDecideClinicianVerification() {
   const qc = useQueryClient();
@@ -68,7 +73,7 @@ export function useDecideClinicianVerification() {
     mutationFn: async ({ id, status, notes }) => {
       const res = await apiClient.patch<ClinicianVerification>(
         `/verifications/clinicians/${id}`,
-        { status, notes },
+        { outcome: toOutcome(status), notes },
       );
       return res.data;
     },
@@ -87,7 +92,7 @@ export function useDecideRecordVerification() {
     mutationFn: async ({ id, status, notes }) => {
       const res = await apiClient.patch<RecordVerification>(
         `/verifications/records/${id}`,
-        { status, notes },
+        { outcome: toOutcome(status), notes },
       );
       return res.data;
     },

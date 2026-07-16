@@ -1,72 +1,28 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { Child } from "@raising-atlantic/types";
+import type { Child, RecordSource } from "@raising-atlantic/types";
 import { milestonesByAge } from "@raising-atlantic/clinical";
 import { Check, Clock } from "lucide-react-native";
-import React, { useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import React, { useRef } from "react";
 import { Pressable, ScrollView, View } from "react-native";
-import { z } from "zod";
-import {
-  Badge,
-  BottomSheet,
-  BottomSheetRef,
-  Button,
-  Card,
-  FormDateField,
-  FormField,
-  SectionHeader,
-  Text,
-  toast,
-} from "../ui";
-import { useChildRecordsAll, useMilestoneAdd } from "../../lib/api/hooks/adapter-hooks";
+import { Badge, Card, SectionHeader, Text } from "../ui";
+import { useChildRecordsAll } from "../../lib/api/hooks/adapter-hooks";
 import { useTheme } from "../../theme/useTheme";
-
-const schema = z.object({
-  dateAchieved: z.string().min(1, "Date is required"),
-  notes: z.string().optional(),
-});
-type FormValues = z.infer<typeof schema>;
+import {
+  MilestoneEntrySheet,
+  type MilestoneEntrySheetHandle,
+} from "./RecordEntrySheets";
 
 type Props = {
   child: Child;
+  source?: RecordSource;
 };
 
-export function MilestonesTab({ child }: Props) {
+export function MilestonesTab({ child, source }: Props) {
   const recordsQuery = useChildRecordsAll(child.id);
-  const addMilestone = useMilestoneAdd(child.id);
   const { tokens } = useTheme();
-  const sheetRef = useRef<BottomSheetRef>(null);
-  const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
+  const sheetRef = useRef<MilestoneEntrySheetHandle>(null);
 
   const completed = recordsQuery.data?.milestones ?? [];
   const completedMap = new Map(completed.map((m) => [m.milestoneId, m]));
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    mode: "onBlur",
-    defaultValues: { dateAchieved: "", notes: "" },
-  });
-
-  function openLog(milestoneId: string) {
-    setSelectedMilestoneId(milestoneId);
-    form.reset({ dateAchieved: "", notes: "" });
-    sheetRef.current?.present();
-  }
-
-  async function onSubmit(values: FormValues) {
-    if (!selectedMilestoneId) return;
-    try {
-      await addMilestone.mutateAsync({
-        milestoneId: selectedMilestoneId,
-        dateAchieved: values.dateAchieved,
-        notes: values.notes || undefined,
-      });
-      toast.success("Milestone logged", { description: "Pending clinician review" });
-      sheetRef.current?.dismiss();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not save");
-    }
-  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -93,7 +49,7 @@ export function MilestonesTab({ child }: Props) {
                         ) : status === "pending" ? (
                           <Badge label="Pending review" variant="muted" />
                         ) : (
-                          <Pressable onPress={() => openLog(ms.id)} hitSlop={6}>
+                          <Pressable onPress={() => sheetRef.current?.open(ms.id)} hitSlop={6}>
                             <Text variant="bodyStrong" tone="primary">
                               Log this milestone
                             </Text>
@@ -116,16 +72,7 @@ export function MilestonesTab({ child }: Props) {
         ))}
       </ScrollView>
 
-      <BottomSheet ref={sheetRef} snapPoints={["60%", "90%"]}>
-        <Text variant="heading" style={{ marginBottom: 12 }}>
-          Log milestone
-        </Text>
-        <View style={{ gap: 12 }}>
-          <FormDateField name="dateAchieved" control={form.control} label="Date achieved" />
-          <FormField name="notes" control={form.control} label="Notes" multiline />
-          <Button label="Save" onPress={form.handleSubmit(onSubmit)} loading={addMilestone.isPending} />
-        </View>
-      </BottomSheet>
+      <MilestoneEntrySheet ref={sheetRef} childId={child.id} source={source} />
     </View>
   );
 }

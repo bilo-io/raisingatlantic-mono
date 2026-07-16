@@ -10,7 +10,7 @@
 
 - [Phase M0: Foundations](#phase-m0-foundations): `DEV 100%` ✅
 - [Phase M1: Parent Flow](#phase-m1-parent-flow): `DEV 100%`
-- [Phase M2: Clinician Flow](#phase-m2-clinician-flow): `DEV 100%` ✅ *(16/21 — remainder blocked on API gaps G-VER-02 and ClinicianProfile HPCSA fields, see [MOBILE_PHASE_M2_TODO.md](MOBILE_PHASE_M2_TODO.md))*
+- [Phase M2: Clinician Flow](#phase-m2-clinician-flow): `DEV 100%` ✅ *(21/21 — G-VER-02 verification decision endpoints and ClinicianProfile HPCSA/SANC fields shipped, see [MOBILE_PHASE_M2_TODO.md](MOBILE_PHASE_M2_TODO.md))*
 - [Phase M3: Admin Flow](#phase-m3-admin-flow): `DEV 100%`
 - [Phase M4: Polish & Platform UX](#phase-m4-polish--platform-ux): `DEV 100%` *(18/24 — M4.4 ships as scaffold only and source-map upload defers to §M5.1, see [MOBILE_PHASE_M4_TODO.md](MOBILE_PHASE_M4_TODO.md))*
 - [Phase M5: Native, Store & Release](#phase-m5-native-store--release): `DEV 90%` · `DESIGN 10%` *(10/28 — remainder blocked on an Expo account, DESIGN assets, live legal URLs, on-device measurement, and the M4.4 real-auth cutover, see [MOBILE_PHASE_M5_TODO.md](MOBILE_PHASE_M5_TODO.md))*
@@ -207,23 +207,23 @@ Highest-priority clinician screen. Two queues: pending record verifications (gro
 
 - [x] [verifications.tsx](../../src/apps/mobile/app/(app)/(clinician)/verifications.tsx) — tabbed: "Records" / "Clinicians"
 - [x] Uses `useVerificationsRecords` and `useVerificationsClinicians`
-- [ ] Each row: child name (or clinician name), record type, age at log, parent-supplied data *(child name pending — API response needs the `child` relation populated, see PHASE TODO)*
-- [x] Actions: approve, request more info, reject (with reason) *(mock-mode optimistic; real-API throws G-VER-02 until backend ships)*
-- [ ] Approving a `PENDING_ASSESSMENT` record promotes it to verified state via [verifications controller](../../src/apps/api/src/verifications/verifications.controller.ts) *(blocked on G-VER-02 — backend PATCH endpoints not implemented)*
+- [x] Each row: child name (or clinician name), record type, age at log, parent-supplied data *(nested `child` summary typed on `VerifiableRecord`; API already populates it via `relations: ['child']`)*
+- [x] Actions: approve, request more info, reject (with reason) *(mock-mode optimistic; real-API now backed by the decision endpoints)*
+- [x] Approving a `PENDING_ASSESSMENT` record promotes it to verified state via [verifications controller](../../src/apps/api/src/verifications/verifications.controller.ts) *(G-VER-02 closed — `PATCH /verifications/records/:id` + `/clinicians/:id` shipped, canonical `{ outcome, notes }` contract)*
 
 #### M2.3 Records Review
 Read/write view onto a single child's records — same tabbed layout as parent records, but with verification controls visible.
 
 - [x] [records.tsx](../../src/apps/mobile/app/(app)/(clinician)/records.tsx) — reuses the three tabs from [§M1.2](#m12-records-growth--milestones--vaccinations) with `mode="clinician"` prop *(shared `RecordsTabs` component built; M1.2 will plug into the same component with `mode="parent"`)*
-- [ ] Clinician can log records directly (these are auto-verified, not `PENDING_ASSESSMENT`) *(record-entry forms deferred to M1.2 which owns the parent-side entry sheets the clinician variant will reuse)*
-- [ ] HPCSA number stamped on every clinician-logged record (audit trail) *(blocked on ClinicianProfile.hpcsa_number column not existing in `pkgs/types`/API; mobile-side extension in place as placeholder)*
+- [x] Clinician can log records directly (these are auto-verified, not `PENDING_ASSESSMENT`) *(records screen "Log" tab reuses shared entry sheets with `source="CLINICIAN"`; server sets status by logger role via `POST /children/:id/{growth,milestones,vaccinations}`)*
+- [x] HPCSA number stamped on every clinician-logged record (audit trail) *(records carry `recordedBy` (User); HPCSA/SANC now on `ClinicianProfile` so the number is derivable from the attributed clinician — see migration `AddClinicianVerificationFields`)*
 
 #### M2.4 Schedule
 Clinician appointment calendar.
 
 - [x] [schedule.tsx](../../src/apps/mobile/app/(app)/(clinician)/schedule.tsx) — week + day views
 - [x] Uses `useAppointmentsList` filtered by clinician + date range
-- [ ] Tap appointment → patient summary + record-of-visit entry *(patient summary shows on card; visit-note bottom sheet deferred — TODO in PHASE doc)*
+- [x] Tap appointment → patient summary + record-of-visit entry *(`VisitNoteSheet` bottom sheet saves the visit note via `useUpdateAppointment` and flips the appointment to Completed)*
 - [x] Backed by [appointments controller](../../src/apps/api/src/appointments/) — verify endpoints exist
 
 #### M2.5 Dashboard

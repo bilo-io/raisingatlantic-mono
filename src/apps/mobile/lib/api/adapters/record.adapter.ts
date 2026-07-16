@@ -57,7 +57,7 @@ export async function addGrowthRecord(
     weight: dto.weight,
     headCircumference: dto.headCircumference,
     notes: dto.notes,
-    status: "Pending Assessment",
+    status: dto.source === "CLINICIAN" ? "Active" : "Pending Assessment",
     createdAt: now,
     updatedAt: now,
   };
@@ -78,7 +78,7 @@ export async function addMilestone(
     milestoneId: dto.milestoneId,
     dateAchieved: dto.dateAchieved,
     notes: dto.notes,
-    status: "Pending Assessment",
+    status: dto.source === "CLINICIAN" ? "Active" : "Pending Assessment",
     createdAt: now,
     updatedAt: now,
   };

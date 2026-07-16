@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { ChildrenService } from './children.service';
 import {
   Child,
@@ -11,6 +11,8 @@ import {
   MedicalCondition,
 } from './children.model';
 import { User } from '../users/users.model';
+import { UserRole } from '../users/constants';
+import { ResourceStatus } from '../common/enums';
 import {
   createMockRepository,
   createMockLogger,
@@ -31,6 +33,8 @@ describe('ChildrenService', () => {
   let service: ChildrenService;
   let childRepo: any;
   let vaccineRepo: any;
+  let growthRepo: any;
+  let milestoneRepo: any;
   let allergyRepo: any;
   let conditionRepo: any;
   let userRepo: any;
@@ -81,6 +85,8 @@ describe('ChildrenService', () => {
     service = module.get<ChildrenService>(ChildrenService);
     childRepo = module.get(getRepositoryToken(Child));
     vaccineRepo = module.get(getRepositoryToken(CompletedVaccination));
+    growthRepo = module.get(getRepositoryToken(GrowthRecord));
+    milestoneRepo = module.get(getRepositoryToken(CompletedMilestone));
     allergyRepo = module.get(getRepositoryToken(Allergy));
     conditionRepo = module.get(getRepositoryToken(MedicalCondition));
     userRepo = module.get(getRepositoryToken(User));
@@ -238,7 +244,7 @@ describe('ChildrenService', () => {
 
   describe('addAllergy', () => {
     it('attaches and saves the allergy onto the resolved child', async () => {
-      const child = { id: 'c-1' };
+      const child = OWNED_CHILD;
       childRepo.findOne.mockResolvedValue(child);
       const dto = { name: 'Peanuts' } as any;
       const entity = { id: 'a-1', ...dto, child };
@@ -250,49 +256,164 @@ describe('ChildrenService', () => {
     });
   });
 
+  const CLINICIAN_ACTOR = { userId: 'clin-1', role: UserRole.CLINICIAN };
+  const PARENT_ACTOR = { userId: 'parent-1', role: UserRole.PARENT };
+  // Child owned by PARENT_ACTOR and assigned to CLINICIAN_ACTOR, so both pass
+  // the ownership guard.
+  const OWNED_CHILD = {
+    id: 'c-1',
+    parent: { id: 'parent-1' },
+    clinician: { id: 'clin-1' },
+  };
+
   describe('addCompletedVaccination', () => {
-    it('defaults source to CLINICIAN and coerces dates', async () => {
-      const child = { id: 'c-1' };
+    it('a clinician-logged vaccination is CLINICIAN-sourced, auto-verified and attributed', async () => {
+      const child = OWNED_CHILD;
       childRepo.findOne.mockResolvedValue(child);
       vaccineRepo.create.mockImplementation((x: any) => x);
       vaccineRepo.save.mockImplementation((x: any) =>
         Promise.resolve({ id: 'v-1', ...x }),
       );
 
-      const result = await service.addCompletedVaccination('c-1', {
-        vaccineId: 'hexaxim3',
-        dateAdministered: '2024-11-26',
-      });
+      const result = await service.addCompletedVaccination(
+        'c-1',
+        { vaccineId: 'hexaxim3', dateAdministered: '2024-11-26' },
+        CLINICIAN_ACTOR,
+      );
 
       expect(result).toEqual(
         expect.objectContaining({
           source: 'CLINICIAN',
+          status: ResourceStatus.ACTIVE,
+          recordedBy: { id: 'clin-1' },
           dateAdministered: expect.any(Date),
         }),
       );
     });
 
-    it('respects an explicit source = PARENT and an expiryDate', async () => {
-      const child = { id: 'c-1' };
+    it('a parent-logged vaccination is PARENT-sourced and Pending Assessment', async () => {
+      const child = OWNED_CHILD;
       childRepo.findOne.mockResolvedValue(child);
       vaccineRepo.create.mockImplementation((x: any) => x);
       vaccineRepo.save.mockImplementation((x: any) => Promise.resolve(x));
 
-      const result = await service.addCompletedVaccination('c-1', {
-        vaccineId: 'opv',
-        dateAdministered: '2024-11-26',
-        expiryDate: '2025-08-01',
-        source: 'PARENT',
-      } as any);
+      const result = await service.addCompletedVaccination(
+        'c-1',
+        {
+          vaccineId: 'opv',
+          dateAdministered: '2024-11-26',
+          expiryDate: '2025-08-01',
+        },
+        PARENT_ACTOR,
+      );
 
       expect(result.source).toBe('PARENT');
+      expect(result.status).toBe(ResourceStatus.PENDING_ASSESSMENT);
       expect(result.expiryDate).toBeInstanceOf(Date);
+    });
+
+    it('honours an explicit source override', async () => {
+      childRepo.findOne.mockResolvedValue(OWNED_CHILD);
+      vaccineRepo.create.mockImplementation((x: any) => x);
+      vaccineRepo.save.mockImplementation((x: any) => Promise.resolve(x));
+
+      const result = await service.addCompletedVaccination(
+        'c-1',
+        {
+          vaccineId: 'opv',
+          dateAdministered: '2024-11-26',
+          source: 'PARENT',
+        } as any,
+        CLINICIAN_ACTOR,
+      );
+
+      expect(result.source).toBe('PARENT');
+    });
+  });
+
+  describe('addGrowthRecord', () => {
+    it('a clinician entry is auto-verified (Active) and attributed', async () => {
+      childRepo.findOne.mockResolvedValue(OWNED_CHILD);
+      growthRepo.create.mockImplementation((x: any) => x);
+      growthRepo.save.mockImplementation((x: any) => Promise.resolve(x));
+
+      const result = await service.addGrowthRecord(
+        'c-1',
+        { date: '2024-11-26', weight: '7.8' },
+        CLINICIAN_ACTOR,
+      );
+
+      expect(result.status).toBe(ResourceStatus.ACTIVE);
+      expect(result.recordedBy).toEqual({ id: 'clin-1' });
+      expect(result.date).toBeInstanceOf(Date);
+    });
+
+    it('a parent entry lands in Pending Assessment', async () => {
+      childRepo.findOne.mockResolvedValue(OWNED_CHILD);
+      growthRepo.create.mockImplementation((x: any) => x);
+      growthRepo.save.mockImplementation((x: any) => Promise.resolve(x));
+
+      const result = await service.addGrowthRecord(
+        'c-1',
+        { date: '2024-11-26', weight: '7.8' },
+        PARENT_ACTOR,
+      );
+
+      expect(result.status).toBe(ResourceStatus.PENDING_ASSESSMENT);
+    });
+
+    it('forbids a parent writing to a child they do not own', async () => {
+      childRepo.findOne.mockResolvedValue({
+        id: 'c-1',
+        parent: { id: 'someone-else' },
+        clinician: { id: 'clin-1' },
+      });
+
+      await expect(
+        service.addGrowthRecord(
+          'c-1',
+          { date: '2024-11-26', weight: '7.8' },
+          PARENT_ACTOR,
+        ),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+    });
+  });
+
+  describe('addCompletedMilestone', () => {
+    it('a clinician entry is auto-verified (Active) and attributed', async () => {
+      childRepo.findOne.mockResolvedValue(OWNED_CHILD);
+      milestoneRepo.create.mockImplementation((x: any) => x);
+      milestoneRepo.save.mockImplementation((x: any) => Promise.resolve(x));
+
+      const result = await service.addCompletedMilestone(
+        'c-1',
+        { milestoneId: 'locomotor.walking', dateAchieved: '2024-11-26' },
+        CLINICIAN_ACTOR,
+      );
+
+      expect(result.status).toBe(ResourceStatus.ACTIVE);
+      expect(result.recordedBy).toEqual({ id: 'clin-1' });
+      expect(result.dateAchieved).toBeInstanceOf(Date);
+    });
+
+    it('a parent entry lands in Pending Assessment', async () => {
+      childRepo.findOne.mockResolvedValue(OWNED_CHILD);
+      milestoneRepo.create.mockImplementation((x: any) => x);
+      milestoneRepo.save.mockImplementation((x: any) => Promise.resolve(x));
+
+      const result = await service.addCompletedMilestone(
+        'c-1',
+        { milestoneId: 'locomotor.walking', dateAchieved: '2024-11-26' },
+        PARENT_ACTOR,
+      );
+
+      expect(result.status).toBe(ResourceStatus.PENDING_ASSESSMENT);
     });
   });
 
   describe('addMedicalCondition', () => {
     it('saves the condition with an optional diagnosis date', async () => {
-      childRepo.findOne.mockResolvedValue({ id: 'c-1' });
+      childRepo.findOne.mockResolvedValue(OWNED_CHILD);
       conditionRepo.create.mockImplementation((x: any) => x);
       conditionRepo.save.mockImplementation((x: any) => Promise.resolve(x));
 
@@ -305,7 +426,7 @@ describe('ChildrenService', () => {
     });
 
     it('leaves diagnosisDate undefined when not supplied', async () => {
-      childRepo.findOne.mockResolvedValue({ id: 'c-1' });
+      childRepo.findOne.mockResolvedValue(OWNED_CHILD);
       conditionRepo.create.mockImplementation((x: any) => x);
       conditionRepo.save.mockImplementation((x: any) => Promise.resolve(x));
 
@@ -332,7 +453,7 @@ describe('ChildrenService', () => {
 
   describe('remove', () => {
     it('removes the resolved child', async () => {
-      const child = { id: 'c-1' };
+      const child = OWNED_CHILD;
       childRepo.findOne.mockResolvedValue(child);
       childRepo.remove.mockResolvedValue(undefined);
 
