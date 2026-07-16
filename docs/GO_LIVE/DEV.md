@@ -351,15 +351,15 @@ Building auth from scratch for a regulated product is a long, thankless job. Buy
 #### 2.2 Account Security Hardening
 The user-facing controls that prevent account takeover.
 
-- [ ] Email verification required before first login
-- [ ] Password reset flow (magic-link or token-based), wired through [`nodemailer`](https://nodemailer.com) or [SendGrid](https://sendgrid.com)
-- [ ] Mandatory MFA for `CLINICIAN`, `ADMIN`, `SUPER_ADMIN` roles (TOTP or SMS)
-- [ ] Optional MFA for `PARENT` (encouraged but not blocking)
-- [x] Rate-limit login attempts (already have [`@nestjs/throttler`](https://docs.nestjs.com/security/rate-limiting), apply per-IP + per-account) — `@Throttle(5/60s)` on login + google
+- [x] Email verification required before first login — enforced in `login()` (403 `EMAIL_NOT_VERIFIED`, auto re-send); sha256-hashed 24h tokens; pre-existing accounts grandfathered in the migration
+- [x] Password reset flow (magic-link or token-based), wired through [`nodemailer`](https://nodemailer.com) or [SendGrid](https://sendgrid.com) — token flow via the Phase-8 dispatcher seam (`nodemailer` when SMTP env is set, no-op otherwise)
+- [x] Mandatory MFA for `CLINICIAN`, `ADMIN`, `SUPER_ADMIN` roles (TOTP or SMS) — TOTP via `otplib`; login yields only a scoped `mfa`/`mfa_setup` token until the challenge passes
+- [x] Optional MFA for `PARENT` (encouraged but not blocking) — opt-in enrolment via `/v1/auth/mfa/setup` + `/enable`
+- [x] Rate-limit login attempts (already have [`@nestjs/throttler`](https://docs.nestjs.com/security/rate-limiting), apply per-IP + per-account) — `@Throttle(5/60s)` on login + google + all new auth flows
 - [ ] Account lockout after N failed attempts with admin unlock path
 - [/] Session management: short-lived access tokens (15min) + refresh tokens with rotation — access token (httpOnly cookie) done; **refresh-token rotation deferred**
 - [ ] Logout-everywhere endpoint that invalidates all refresh tokens
-- [/] Audit log of every login, logout, password change, role change → `SystemLog` — login/logout/register done; password/role-change events deferred
+- [/] Audit log of every login, logout, password change, role change → `SystemLog` — login/logout/register/password-reset/email-verify/MFA events done; role-change events deferred
 
 #### 2.3 Clinician Verification Workflow
 The [HPCSA](https://www.hpcsa.co.za) / [SANC](https://www.sanc.co.za) verification today is a manual admin form. Make it harder to spoof.

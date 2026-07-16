@@ -41,21 +41,27 @@
 - Verified no `allowFontScaling={false}` anywhere in `src/apps/mobile/`
 - [MOBILE_A11Y_AUDIT.md](MOBILE_A11Y_AUDIT.md) — per-role per-screen checklist with WCAG ratio table for light + dark themes
 
-## Still outstanding
+## Completed 2026-07-16 — M4.4 full real-auth cutover
 
-### M4.4 (Tier 3 — full real-auth cutover)
-- Drop-in replacement for `signInAs(role)` against a real provider — blocked on [DEV.md §2.1](DEV.md#21-auth-provider-decision) auth provider decision.
-- Email verification + password reset flows
-- MFA enforced for `CLINICIAN` / `ADMIN` / `SUPER_ADMIN`
-- Switch storage driver to `SecureStoreDriver` for the real ID token
-- Remove fixture-JWT injection from production bundles (currently gated behind `__DEV__`; remove the call entirely once real tokens flow)
+The §2.1 decision landed as **build-your-own NestJS JWT**, so the cutover targets `/v1/auth/*`, not Firebase:
+
+- `ApiAuthProvider` in [provider.ts](../../src/apps/mobile/auth/provider.ts) — active when `EXPO_PUBLIC_USE_API=true`; `signInWithPassword(email, password)` against `POST /v1/auth/login` (Bearer flow; token also returned in the body for non-cookie clients), plus `completeMfaChallenge` / `setupMfa` / `enableMfa`. `FixtureAuthProvider` unchanged for mock mode.
+- **Email verification + password reset** — new API endpoints (`/v1/auth/verify-email[/request]`, `/v1/auth/password-reset[/request]`, hashed single-use tokens) + mobile screens [verify-email.tsx](../../src/apps/mobile/app/(auth)/verify-email.tsx), [forgot-password.tsx](../../src/apps/mobile/app/(auth)/forgot-password.tsx), [reset-password.tsx](../../src/apps/mobile/app/(auth)/reset-password.tsx) (deep-linked `?token=` supported). Login is blocked with 403 `EMAIL_NOT_VERIFIED` until verified.
+- **MFA enforced** for clinician/admin/super_admin — TOTP; login returns a 5-min scoped token; [mfa.tsx](../../src/apps/mobile/app/(auth)/mfa.tsx) handles both first-time enrolment (secret + otpauth URL) and the recurring challenge. Parents can opt in.
+- **SecureStoreDriver** in [storage.ts](../../src/apps/mobile/auth/storage.ts) — user + JWT live in the device keychain in API mode (keys sanitised for SecureStore); AsyncStorage remains fixture-only.
+- **Fixture-JWT injection removed from AuthContext** — publishing moved inside `FixtureAuthProvider` behind `__DEV__` with an inline require, so API-mode/production code paths never touch `fixture-jwt.ts`. The `X-User-Id`/`X-User-Role` shim headers are now fixture-mode-only too.
+- 401 interceptor no longer signs the user out for auth-flow endpoints (bad password ≠ dead session).
+
+## Still outstanding
 
 ### M4.5 Sentry — source-map upload
 - Deferred to [§M5.1](MOBILE.md#m51-eas-build--release-channels). Needs `eas.json` and a Sentry org / DSN.
 
 ## Blockers / notes
 
-- **DEV.md §2.1 auth provider decision** — gates the M4.4 full cutover.
+- **SMTP env unset** — verification/reset emails dispatch through the Phase-8 seam and silently no-op until `SMTP_HOST/USER/PASS` are configured (DEV.md §8.1). The flows and tokens work; delivery needs the provider.
+- **Web UX gap** — web `/login` doesn't yet handle `EMAIL_NOT_VERIFIED` / MFA challenge responses (tracked in PHASE_2_TODO.md).
+- **Session lifetime on mobile** — access token is 15 min with no refresh rotation (deferred §2.2 item): expiry surfaces as a 401 → sign-out → re-login.
 - **Sentry org / DSN** — needs Sentry account + project provisioning; until `EXPO_PUBLIC_SENTRY_DSN` is set, `initSentry()` is a no-op.
 - **Backend `POST /v1/users/me/push-tokens`** — pushTokens adapter ships with a `useApi()` switch; until DEV.md §8.3 delivers the endpoint, the mock branch persists tokens locally.
 - **EAS account + `eas.json`** — required for §M5.1 and for the M4.5 source-map upload.

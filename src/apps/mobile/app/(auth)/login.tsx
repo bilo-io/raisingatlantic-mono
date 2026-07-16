@@ -1,24 +1,68 @@
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import { View } from "react-native";
 import { useAuth } from "../../auth/useAuth";
 import { Role } from "../../auth/types";
 import { Branding } from "../../components/Branding";
 import { GradientBlob, GradientBlobBottom } from "../../components/GradientBlob";
-import { Button, Card, Input, Screen, Separator, Text } from "../../components/ui";
+import {
+  Button,
+  Card,
+  FormField,
+  Screen,
+  Separator,
+  Text,
+  toast,
+} from "../../components/ui";
+import { useApi } from "../../lib/api/data-source";
+import { signInSchema, type SignInValues } from "../../lib/forms/schemas/auth";
+import { useZodForm } from "../../lib/forms";
 import { consumePendingDeepLink } from "../../lib/linking/pending";
 
 export default function LoginScreen() {
-  const { signInAs } = useAuth();
+  const { user, signInAs, signInWithPassword } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const form = useZodForm<SignInValues>(signInSchema, {
+    defaultValues: { email: "", password: "" },
+  });
 
-  const handleRole = async (role: Role) => {
-    await signInAs(role);
+  const goHome = (role: Role) => {
     const pending = consumePendingDeepLink();
     router.replace((pending ?? `/(app)/(${role})/dashboard`) as any);
   };
+
+  const handleRole = async (role: Role) => {
+    await signInAs(role);
+    goHome(role);
+  };
+
+  async function onSubmit(values: SignInValues) {
+    if (!useApi()) {
+      // Fixture mode has no credential store — the role buttons below are the
+      // supported dev path.
+      toast.info("Fixture mode", {
+        description: "Use a test sign-in button below.",
+      });
+      return;
+    }
+    try {
+      const outcome = await signInWithPassword(values.email, values.password);
+      if (outcome === "mfa") {
+        router.push("/(auth)/mfa" as any);
+        return;
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Sign-in failed";
+      toast.error("Could not sign in", { description: message });
+    }
+  }
+
+  // adoptUser lands asynchronously after signInWithPassword resolves; route
+  // once the context reflects the session.
+  React.useEffect(() => {
+    if (user) goHome(user.role);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -40,46 +84,70 @@ export default function LoginScreen() {
             Sign in to continue
           </Text>
 
-          <View style={{ gap: 12, marginBottom: 18 }}>
-            <Input
-              placeholder="Email"
+          <View style={{ gap: 12, marginBottom: 12 }}>
+            <FormField
+              name="email"
+              control={form.control}
+              label="Email"
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
             />
-            <Input
-              placeholder="Password"
+            <FormField
+              name="password"
+              control={form.control}
+              label="Password"
               secureTextEntry
-              value={password}
-              onChangeText={setPassword}
             />
-            <Button label="Sign in" onPress={() => handleRole("parent")} />
+            <Button
+              label="Sign in"
+              onPress={form.handleSubmit(onSubmit)}
+              loading={form.formState.isSubmitting}
+            />
           </View>
 
-          <Separator label="Test sign-in" />
-
-          <View style={{ gap: 10, marginTop: 14 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 18 }}>
             <Button
-              label="Continue as Parent"
-              description="Jane Doe"
-              variant="outline"
-              onPress={() => handleRole("parent")}
+              label="Forgot password?"
+              variant="ghost"
+              size="sm"
+              fullWidth={false}
+              onPress={() => router.push("/(auth)/forgot-password" as any)}
             />
             <Button
-              label="Continue as Clinician"
-              description="Dr. John Smith"
-              variant="outline"
-              onPress={() => handleRole("clinician")}
-            />
-            <Button
-              label="Continue as Admin"
-              description="Admin User"
-              variant="outline"
-              onPress={() => handleRole("admin")}
+              label="Verify email"
+              variant="ghost"
+              size="sm"
+              fullWidth={false}
+              onPress={() => router.push("/(auth)/verify-email" as any)}
             />
           </View>
+
+          {!useApi() ? (
+            <>
+              <Separator label="Test sign-in" />
+              <View style={{ gap: 10, marginTop: 14 }}>
+                <Button
+                  label="Continue as Parent"
+                  description="Jane Doe"
+                  variant="outline"
+                  onPress={() => handleRole("parent")}
+                />
+                <Button
+                  label="Continue as Clinician"
+                  description="Dr. John Smith"
+                  variant="outline"
+                  onPress={() => handleRole("clinician")}
+                />
+                <Button
+                  label="Continue as Admin"
+                  description="Admin User"
+                  variant="outline"
+                  onPress={() => handleRole("admin")}
+                />
+              </View>
+            </>
+          ) : null}
         </Card>
       </Screen>
     </View>

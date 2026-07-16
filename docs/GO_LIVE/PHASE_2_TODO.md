@@ -29,17 +29,35 @@ still works with no GCP.
 - **Tests:** API auth specs pass against real Postgres (register/login/getMe/google-unavailable +
   optional/strict guard specs). Web + API typecheck clean; web build green.
 
+## Completed 2026-07-16 (landed with MOBILE §M4.4 — PR "Phase M4")
+
+- [x] Email verification required before first login (§2.2) — `POST /v1/auth/verify-email[/request]`,
+      sha256-hashed 24h single-use tokens on `users`, `login()` rejects unverified email accounts with
+      403 `EMAIL_NOT_VERIFIED` + auto re-send; pre-existing accounts grandfathered in
+      `AddAccountSecurityFields` migration. Emails go through the Phase-8 dispatcher seam (no-op until
+      SMTP env is set — flows work, mail delivery needs Phase 8 provider).
+- [x] Password reset flow (§2.2) — `POST /v1/auth/password-reset[/request]`, 1h single-use hashed
+      token, bcrypt-12 re-hash, no user enumeration; completing a reset also marks the email verified.
+- [x] MFA (mandatory clinician/admin, optional parent) (§2.2) — TOTP (`otplib`), `mfaSecret`
+      (`select:false`, redacted, KMS-flagged) + `mfaEnabled` on `users`. Login returns a 5-min scoped
+      JWT (`scope: mfa` / `mfa_setup`) instead of a session for MFA users and un-enrolled privileged
+      roles; `JwtVerifiedGuard` rejects scoped tokens everywhere; `/v1/auth/mfa/setup|enable|verify`
+      complete the flow (enable issues the session for `mfa_setup` callers). Applies to Google SSO too.
+- [x] Audit password-reset / email-verify / MFA events (§2.2) — `PASSWORD_RESET(_REQUESTED)`,
+      `EMAIL_VERIFY_SENT`, `EMAIL_VERIFIED`, `MFA_ENROLLED`, `MFA_CHALLENGE_FAILURE`.
+
 ## Still outstanding (deferred within Phase 2)
 
-- [ ] Email verification required before first login (§2.2) — needs a live email provider (Phase 8).
-- [ ] Password reset flow (§2.2) — needs email provider.
-- [ ] MFA (mandatory clinician/admin, optional parent) (§2.2).
 - [ ] Account lockout after N failed attempts (§2.2).
 - [ ] Refresh-token rotation + logout-everywhere (§2.2) — only a short-lived access token today.
-- [ ] Audit password-change / role-change events (§2.2).
+- [ ] Audit role-change events (§2.2).
 - [ ] Clinician verification: HPCSA/SANC regex, cert upload to GCS, annual re-verify (§2.3).
 - [ ] **Strict per-route enforcement:** flip the 8 controllers from best-effort `JwtAuthGuard` to
       strict, add `@Public()` for genuinely public routes (e.g. `GET /practices/public`), audit each.
+- [ ] **Web UX for the new flows:** web `/login` does not yet handle 403 `EMAIL_NOT_VERIFIED` or the
+      `mfaRequired`/`mfaSetupRequired` challenge responses (mobile screens exist; web needs the
+      equivalent pages). Note `register` still returns an immediate session — first *re*-login is
+      where verification is enforced; tighten to verification-before-any-session if PRODUCT wants.
 
 ## Blockers / notes
 

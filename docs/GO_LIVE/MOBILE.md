@@ -12,7 +12,7 @@
 - [Phase M1: Parent Flow](#phase-m1-parent-flow): `DEV 100%`
 - [Phase M2: Clinician Flow](#phase-m2-clinician-flow): `DEV 100%` ✅ *(21/21 — G-VER-02 verification decision endpoints and ClinicianProfile HPCSA/SANC fields shipped, see [MOBILE_PHASE_M2_TODO.md](MOBILE_PHASE_M2_TODO.md))*
 - [Phase M3: Admin Flow](#phase-m3-admin-flow): `DEV 100%`
-- [Phase M4: Polish & Platform UX](#phase-m4-polish--platform-ux): `DEV 100%` *(18/24 — M4.4 ships as scaffold only and source-map upload defers to §M5.1, see [MOBILE_PHASE_M4_TODO.md](MOBILE_PHASE_M4_TODO.md))*
+- [Phase M4: Polish & Platform UX](#phase-m4-polish--platform-ux): `DEV 100%` ✅ *(23/24 — real-auth cutover landed; only §M4.5 source-map upload remains, deferred to §M5.1, see [MOBILE_PHASE_M4_TODO.md](MOBILE_PHASE_M4_TODO.md))*
 - [Phase M5: Native, Store & Release](#phase-m5-native-store--release): `DEV 90%` · `DESIGN 10%` *(10/28 — remainder blocked on an Expo account, DESIGN assets, live legal URLs, on-device measurement, and the M4.4 real-auth cutover, see [MOBILE_PHASE_M5_TODO.md](MOBILE_PHASE_M5_TODO.md))*
 
 ---
@@ -306,13 +306,13 @@ Push notifications and email links open the right screen, not the home tab.
 - [x] Test matrix: cold start, warm start, signed-out target (auth gate then redirect)
 
 #### M4.4 Real auth cutover
-Replace fixture auth with [Firebase Auth](https://firebase.google.com/docs/auth) (or whichever provider [DEV.md §2.1](DEV.md#21-auth-provider-decision) lands on). Tier 3 — only after the rest of the app is stable on fixtures. *(M4 ships a `StorageDriver` + `AuthProvider` interface + `expo-secure-store` wrapper so the cutover can drop in once §2.1 lands — see [MOBILE_PHASE_M4_TODO.md](MOBILE_PHASE_M4_TODO.md).)*
+Replace fixture auth with the provider [DEV.md §2.1](DEV.md#21-auth-provider-decision) landed on: **build-your-own NestJS JWT**. `ApiAuthProvider` signs in against `/v1/auth/login` (Bearer flow) with MFA challenges, and is active whenever `EXPO_PUBLIC_USE_API=true`; fixture mode is unchanged. See [MOBILE_PHASE_M4_TODO.md](MOBILE_PHASE_M4_TODO.md).
 
-- [ ] Drop-in replacement for `signInAs(role)` — same `AuthContext` shape, real ID token under the hood
-- [ ] Email verification + password reset flows ([DEV.md §2.2](DEV.md#22-account-security-hardening))
-- [ ] MFA enforced for `CLINICIAN` / `ADMIN` / `SUPER_ADMIN` per CLAUDE.md
-- [ ] Secure token storage via [`expo-secure-store`](https://docs.expo.dev/versions/latest/sdk/securestore/), **not** AsyncStorage (AsyncStorage is fine for fixture mode only)
-- [ ] Remove fixture-JWT injection from M0.4 in production builds
+- [x] Drop-in replacement for `signInAs(role)` — same `AuthContext` shape, real ID token under the hood *(`ApiAuthProvider` + `signInWithPassword`; role-picker remains fixture-mode only)*
+- [x] Email verification + password reset flows ([DEV.md §2.2](DEV.md#22-account-security-hardening)) *(API endpoints + `verify-email` / `forgot-password` / `reset-password` screens; deep-linked tokens)*
+- [x] MFA enforced for `CLINICIAN` / `ADMIN` / `SUPER_ADMIN` per CLAUDE.md *(TOTP; login yields only a scoped token until enrolment + challenge complete)*
+- [x] Secure token storage via [`expo-secure-store`](https://docs.expo.dev/versions/latest/sdk/securestore/), **not** AsyncStorage (AsyncStorage is fine for fixture mode only) *(`SecureStoreDriver` active in API mode)*
+- [x] Remove fixture-JWT injection from M0.4 in production builds *(moved into `FixtureAuthProvider` behind `__DEV__`; API mode never touches `fixture-jwt.ts`)*
 
 #### M4.5 Error boundaries & crash reporting
 - [x] Route-level error boundaries (one per top-level tab)

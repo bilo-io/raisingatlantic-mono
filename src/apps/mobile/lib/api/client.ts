@@ -18,11 +18,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Auth-flow endpoints legitimately return 401 for bad credentials/codes —
+// only an invalid *session* (any other route, incl. /auth/me) forces sign-out.
+const AUTH_FLOW_401 =
+  /\/auth\/(login|google|mfa|password-reset|verify-email)/;
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  (error: unknown) => {
     const apiError = toApiError(error);
-    if (apiError.status === 401) {
+    const url =
+      (error as { config?: { url?: string } })?.config?.url ?? "";
+    if (apiError.status === 401 && !AUTH_FLOW_401.test(url)) {
       void triggerSignOut();
     }
     return Promise.reject(apiError);

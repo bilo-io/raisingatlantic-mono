@@ -9,6 +9,24 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 // way AsyncStorage is. `isDevice: false` makes usePushRegistration a no-op in
 // tests, which is the correct behaviour off a physical device anyway.
 jest.mock('expo-device', () => ({ isDevice: false }));
+
+// M4.4: storage.ts imports expo-secure-store at module scope for the real-auth
+// SecureStoreDriver. In-memory stub keeps fixture-mode tests native-free.
+jest.mock('expo-secure-store', () => {
+  const store = new Map<string, string>();
+  return {
+    WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
+    getItemAsync: jest.fn((k: string) => Promise.resolve(store.get(k) ?? null)),
+    setItemAsync: jest.fn((k: string, v: string) => {
+      store.set(k, v);
+      return Promise.resolve();
+    }),
+    deleteItemAsync: jest.fn((k: string) => {
+      store.delete(k);
+      return Promise.resolve();
+    }),
+  };
+});
 jest.mock('expo-notifications', () => ({
   setNotificationHandler: jest.fn(),
   setNotificationChannelAsync: jest.fn().mockResolvedValue(undefined),
