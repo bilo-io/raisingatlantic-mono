@@ -7,5 +7,6 @@ export * from "./practice";
 export * from "./records";
 export * from "./verification";
 export * from "./appointment";
+export * from "./conversation";
 export * from "./clinical";
 export * from "./system";

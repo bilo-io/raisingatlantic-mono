@@ -24,11 +24,13 @@
 - `usePublicPracticesList` adapter hook (uses `/v1/practices/public` in real-API mode)
 - Practice detail at `directory/[id].tsx` with phone / email / website / address (Linking-launched)
 
-### §M1.4 Messages (fixture-only, deferred backend)
+### §M1.4 Messages
 - `messages.tsx` conversations list + unread badge
 - `messages/[conversationId].tsx` thread view with composer
-- `message.adapter.ts` mock-only with explicit "Messages backend not available" error in real-API branch
 - React Query `refetchInterval: 30s` (list) / `15s` (thread) per spec
+- **Backend landed (2026-07-16):** NestJS `messages` module (`src/apps/api/src/messages/`) serving `/v1/conversations` — list / thread / send / create-conversation. Participant-membership scoped (non-participant → 404), hard-authenticated via `JwtVerifiedGuard` + `RolesGuard`. Sender identity derived from the JWT, never client-supplied. Entities `Conversation` / `ConversationParticipant` (per-user `lastReadAt` for unread counts) / `Message`; migration `1782700000000-AddMessaging.ts`, registered in `app.module.ts` + `db/data-source.ts`.
+- Shared `Conversation` / `Message` types added to `@raising-atlantic/types`; `message.adapter.ts` real-API branches now call the API (no more "backend not available" throw).
+- Integration spec (`messages.service.spec.ts`) against real Postgres: participant vs non-participant access, unread counts, read-marking, server-side sender stamping.
 
 ### §M1.5 Dashboard
 - `DashboardHome.tsx` is now a thin role router
@@ -49,12 +51,12 @@
 
 ## Still outstanding
 
-- §M1.4 backend wiring (whole NestJS messages module needs to exist before real-API mode can list conversations or send messages). Tracked as Tier 3 in MOBILE.md.
+- None for M1 checklist completion. Remaining messaging work is post-beta: real-time WebSocket/Pub-Sub delivery (currently polling) stays **Tier 3**, and message-body field-level encryption is deferred to **DEV.md Phase 5.3** (GCP KMS) — bodies are stored plaintext and flagged in `messages.model.ts`.
 
 ## Blockers / notes
 
 - **Parent role write API gap**: `POST /v1/children`, `PATCH /v1/children/:id`, `POST /v1/children/:id/growth`, `POST /v1/children/:id/milestones` are restricted to `ADMIN, CLINICIAN`. Mobile create/update works on fixtures but will 403 against real API. Needs DEV.md follow-up: either (a) allow `PARENT` role on these endpoints with `parentId === user.id` ownership check, or (b) introduce parent-scoped `/v1/me/children` routes.
-- **Messages module missing**: no NestJS module for conversations/messages in `src/apps/api/`. M1 ships fixture-only adapter; switch to real API blocked on that module landing.
+- ~~**Messages module missing**~~: **RESOLVED (2026-07-16)** — NestJS `messages` module landed at `src/apps/api/src/messages/`; real-API mode now lists conversations and sends messages. Message-body encryption (Phase 5.3) and WebSocket delivery (Tier 3) remain follow-ups.
 - **DSAR / data-export / account-deletion endpoints missing**: M1.6 POPIA buttons currently record intent locally in AsyncStorage with a "we'll be in touch" toast. Needs DEV.md §4.2 backend (POPIA data subject rights endpoints + 30-day soft-delete job).
 - **`createResourceHooks` does not honor `EXPO_PUBLIC_USE_API`**: the M0-generated hooks in `lib/api/hooks/{children,practices,records,users,verifications,appointments}.ts` always call the real API. M1 added `lib/api/hooks/adapter-hooks.ts` as the mock-aware alternative — long-term we should either fix `createResourceHooks` or migrate fully to adapter-hooks.
 - **Clinical data refactor scope**: `pkgs/clinical` was created and consumed by mobile only. Web (`src/apps/web/src/data/charts/*`) and API (`src/apps/api/src/master-data/master-data.service.ts`) still have their own copies of the EPI schedule and percentile arrays. A follow-up DEV/WEB PR should re-export from `pkgs/clinical` to remove duplication.

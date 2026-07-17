@@ -16,6 +16,11 @@ import {
 } from '../src/children/children.model';
 import { Report } from '../src/reports/reports.model';
 import { Appointment } from '../src/appointments/appointments.model';
+import {
+  Conversation,
+  ConversationParticipant,
+  Message,
+} from '../src/messages/messages.model';
 import { BlogPost } from '../src/blog/blog.model';
 import { SystemLog } from '../src/common/models/system-log.model';
 
@@ -54,6 +59,9 @@ const entities = [
   MedicalCondition,
   Report,
   Appointment,
+  Conversation,
+  ConversationParticipant,
+  Message,
   BlogPost,
   SystemLog,
 ];
