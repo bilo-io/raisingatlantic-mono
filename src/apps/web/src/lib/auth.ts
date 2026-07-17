@@ -29,14 +29,27 @@ export const validateEmail = (email: string): boolean => {
   return emailRegex.test(email);
 };
 
+// The API returns an MFA challenge instead of a session for MFA-enrolled users
+// and privileged roles (clinician/admin/super_admin). The web MFA screens are
+// not built yet (tracked in docs/GO_LIVE/PHASE_2_TODO.md), so surface a clear
+// error rather than silently caching an undefined user.
+const WEB_MFA_UNSUPPORTED_MESSAGE =
+  'This account requires multi-factor authentication, which is not yet ' +
+  'available on the web. Please sign in with the mobile app for now.';
+
 /** Real login against the API. The access token is set as an httpOnly cookie. */
 export const login = async (email: string, password: string): Promise<User> => {
   const { data } = await apiClient.post('/auth/login', { email, password });
+  if (!data.user) throw new Error(WEB_MFA_UNSUPPORTED_MESSAGE);
   return setCurrentUser(data.user as User);
 };
 
-/** Real registration; logs the user in (httpOnly cookie) on success. */
-export const signup = async (data: SignupData): Promise<User> => {
+/**
+ * Real registration. Parents receive a session (httpOnly cookie) immediately;
+ * clinician accounts get an MFA-setup challenge instead, so no session is
+ * cached — the success flow only needs to know the account was created.
+ */
+export const signup = async (data: SignupData): Promise<User | null> => {
   const { data: res } = await apiClient.post('/auth/register', {
     title: data.title,
     name: data.name,
@@ -45,12 +58,14 @@ export const signup = async (data: SignupData): Promise<User> => {
     password: data.password,
     role: data.role,
   });
+  if (!res.user) return null;
   return setCurrentUser(res.user as User);
 };
 
 /** Exchange a Google ID token (from Google Identity Services) for a session. */
 export const loginWithGoogle = async (idToken: string): Promise<User> => {
   const { data } = await apiClient.post('/auth/google', { idToken });
+  if (!data.user) throw new Error(WEB_MFA_UNSUPPORTED_MESSAGE);
   return setCurrentUser(data.user as User);
 };
 

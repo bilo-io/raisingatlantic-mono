@@ -31,9 +31,10 @@ export default function LoginScreen() {
     router.replace((pending ?? `/(app)/(${role})/dashboard`) as any);
   };
 
+  // Navigation happens once, from the user-effect below — goHome consumes the
+  // pending deep link, so a second call would override the deep-link target.
   const handleRole = async (role: Role) => {
     await signInAs(role);
-    goHome(role);
   };
 
   async function onSubmit(values: SignInValues) {
@@ -57,8 +58,8 @@ export default function LoginScreen() {
     }
   }
 
-  // adoptUser lands asynchronously after signInWithPassword resolves; route
-  // once the context reflects the session.
+  // Single navigation source: route once the context reflects a session,
+  // whether it came from the fixture role buttons or the password flow.
   React.useEffect(() => {
     if (user) goHome(user.role);
     // eslint-disable-next-line react-hooks/exhaustive-deps

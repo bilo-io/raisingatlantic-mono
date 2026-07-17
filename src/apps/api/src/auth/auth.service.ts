@@ -42,15 +42,18 @@ const MFA_REQUIRED_ROLES: readonly UserRole[] = [
   UserRole.SUPER_ADMIN,
 ];
 
-export type PublicUser = Omit<
-  User,
-  | 'passwordHash'
-  | 'mfaSecret'
-  | 'emailVerificationTokenHash'
-  | 'emailVerificationTokenExpiresAt'
-  | 'passwordResetTokenHash'
-  | 'passwordResetTokenExpiresAt'
->;
+// Single source of truth for the columns that must never leave the API —
+// sanitize() strips exactly this list and PublicUser is derived from it.
+const SENSITIVE_USER_FIELDS = [
+  'passwordHash',
+  'mfaSecret',
+  'emailVerificationTokenHash',
+  'emailVerificationTokenExpiresAt',
+  'passwordResetTokenHash',
+  'passwordResetTokenExpiresAt',
+] as const;
+
+export type PublicUser = Omit<User, (typeof SENSITIVE_USER_FIELDS)[number]>;
 
 export interface AuthResult {
   user: PublicUser;
@@ -85,7 +88,7 @@ export class AuthService {
     private readonly notifications: INotificationDispatcher,
   ) {}
 
-  async register(dto: RegisterDto, ipAddress?: string): Promise<AuthResult> {
+  async register(dto: RegisterDto, ipAddress?: string): Promise<LoginResult> {
     const email = dto.email.toLowerCase().trim();
     const existing = await this.usersRepository.findOne({ where: { email } });
     if (existing) {
@@ -109,7 +112,13 @@ export class AuthService {
     // Fire-and-forget: verification is enforced at the next login, so a mail
     // failure must not fail registration.
     void this.requestEmailVerification(saved.email, ipAddress).catch(() => {});
-    return this.buildResult(saved);
+    // Same gating as login: privileged roles get an mfa_setup challenge, never
+    // an ungated session straight from registration. The just-registered
+    // account is unverified by definition, so it gets the one grace pass —
+    // every later login enforces verification.
+    return this.finishLogin(saved, 'email', ipAddress, {
+      allowUnverified: true,
+    });
   }
 
   async login(dto: LoginDto, ipAddress?: string): Promise<LoginResult> {
@@ -136,7 +145,23 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    if (user.authProvider === AuthProvider.EMAIL && !user.emailVerified) {
+    return this.finishLogin(user, 'email', ipAddress);
+  }
+
+  // Shared post-identity step for every session-minting path: email
+  // verification first (unless the caller explicitly grants the registration
+  // grace), then MFA gating. Privileged roles never get a session without TOTP.
+  private async finishLogin(
+    user: User,
+    provider: 'email' | 'google',
+    ipAddress?: string,
+    opts?: { allowUnverified?: boolean },
+  ): Promise<LoginResult> {
+    if (
+      !opts?.allowUnverified &&
+      user.authProvider === AuthProvider.EMAIL &&
+      !user.emailVerified
+    ) {
       void this.requestEmailVerification(user.email, ipAddress).catch(() => {});
       await this.audit('LOGIN_FAILURE', 'Login failed', user.id, ipAddress, {
         reason: 'email_not_verified',
@@ -147,16 +172,6 @@ export class AuthService {
       });
     }
 
-    return this.finishLogin(user, 'email', ipAddress);
-  }
-
-  // Shared post-identity step for every login path: MFA gating first, then a
-  // full session. Privileged roles never get a session without TOTP.
-  private async finishLogin(
-    user: User,
-    provider: 'email' | 'google',
-    ipAddress?: string,
-  ): Promise<LoginResult> {
     if (user.mfaEnabled) {
       return { mfaRequired: true, mfaToken: this.scopedToken(user, 'mfa') };
     }
@@ -438,8 +453,12 @@ export class AuthService {
   }
 
   // Public wrapper so the controller can issue a session after MFA enrolment
-  // completes for an `mfa_setup`-scoped caller.
-  sessionFor(user: User): AuthResult {
+  // completes for an `mfa_setup`-scoped caller. Audits like any other login.
+  async sessionFor(user: User, ipAddress?: string): Promise<AuthResult> {
+    await this.audit('LOGIN_SUCCESS', 'Login succeeded', user.id, ipAddress, {
+      provider: 'email',
+      mfa: true,
+    });
     return this.buildResult(user);
   }
 
@@ -488,16 +507,11 @@ export class AuthService {
   }
 
   private sanitize(user: User): PublicUser {
-    const {
-      passwordHash: _passwordHash,
-      mfaSecret: _mfaSecret,
-      emailVerificationTokenHash: _evth,
-      emailVerificationTokenExpiresAt: _evte,
-      passwordResetTokenHash: _prth,
-      passwordResetTokenExpiresAt: _prte,
-      ...rest
-    } = user;
-    return rest;
+    const clean: Record<string, unknown> = { ...user };
+    for (const field of SENSITIVE_USER_FIELDS) {
+      delete clean[field];
+    }
+    return clean as PublicUser;
   }
 
   // Audit trail for auth events. Pseudonymous user id only — never email,

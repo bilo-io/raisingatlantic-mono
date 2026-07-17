@@ -160,13 +160,15 @@ describe('AuthService (integration)', () => {
 
   it('registers a user, hashes the password, and never returns the hash', async () => {
     const email = uniqueEmail();
-    const result = await service.register({
-      name: 'Test Parent',
-      email,
-      phone: '+27000000000',
-      password: 'a-strong-passphrase',
-      role: UserRole.PARENT,
-    });
+    const result = asSession(
+      await service.register({
+        name: 'Test Parent',
+        email,
+        phone: '+27000000000',
+        password: 'a-strong-passphrase',
+        role: UserRole.PARENT,
+      }),
+    );
 
     expect(result.user.email).toBe(email);
     expect(result.token).toBeTruthy();
@@ -195,7 +197,7 @@ describe('AuthService (integration)', () => {
       phone: '+27000000001',
       password: 'a-strong-passphrase',
       role: UserRole.PARENT,
-    };
+    } as const;
     await service.register(base);
     await expect(service.register(base)).rejects.toBeInstanceOf(
       ConflictException,
@@ -287,13 +289,19 @@ describe('AuthService (integration)', () => {
 
   it('forces MFA setup for privileged roles and completes the enrolment flow', async () => {
     const email = uniqueEmail();
-    const { user } = await service.register({
-      name: 'Dr Privileged',
-      email,
-      phone: '+27000000006',
-      password: 'clinician-pass-1',
-      role: UserRole.CLINICIAN,
-    });
+    // Registration itself must not hand a privileged role a session — it
+    // returns the mfa_setup challenge straight away.
+    const registered = asChallenge(
+      await service.register({
+        name: 'Dr Privileged',
+        email,
+        phone: '+27000000006',
+        password: 'clinician-pass-1',
+        role: UserRole.CLINICIAN,
+      }),
+    );
+    expect(registered.mfaSetupRequired).toBe(true);
+    const user = (await users.findOne({ where: { email } }))!;
     await markVerified(email);
 
     const challenge = asChallenge(
@@ -335,13 +343,15 @@ describe('AuthService (integration)', () => {
 
   it('keeps MFA optional for parents (normal session, opt-in enrolment allowed)', async () => {
     const email = uniqueEmail();
-    const { user } = await service.register({
-      name: 'Opt-in Parent',
-      email,
-      phone: '+27000000007',
-      password: 'parent-pass-123',
-      role: UserRole.PARENT,
-    });
+    const { user } = asSession(
+      await service.register({
+        name: 'Opt-in Parent',
+        email,
+        phone: '+27000000007',
+        password: 'parent-pass-123',
+        role: UserRole.PARENT,
+      }),
+    );
     await markVerified(email);
 
     const ok = asSession(
@@ -361,13 +371,15 @@ describe('AuthService (integration)', () => {
 
   it('returns the current user for getMe and rejects an unknown id', async () => {
     const email = uniqueEmail();
-    const { user } = await service.register({
-      name: 'Me User',
-      email,
-      phone: '+27000000003',
-      password: 'a-strong-passphrase',
-      role: UserRole.PARENT,
-    });
+    const { user } = asSession(
+      await service.register({
+        name: 'Me User',
+        email,
+        phone: '+27000000003',
+        password: 'a-strong-passphrase',
+        role: UserRole.PARENT,
+      }),
+    );
 
     const me = await service.getMe(user.id);
     expect(me.email).toBe(email);

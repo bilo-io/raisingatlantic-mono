@@ -27,17 +27,13 @@ import {
 } from './dto/email-flows.dto';
 import {
   ACCESS_TOKEN_COOKIE,
-  type AuthTokenPayload,
+  type RequestWithAuth,
 } from '../common/guards/jwt-auth.guard';
 import { JwtVerifiedGuard } from '../common/guards/jwt-verified.guard';
 import { JwtMfaFlowGuard } from '../common/guards/jwt-mfa-flow.guard';
 
 // Keep the cookie lifetime roughly in step with JWT_ACCESS_TOKEN_EXPIRY (15m).
 const ACCESS_TOKEN_MAX_AGE_MS = 15 * 60 * 1000;
-
-interface AuthedRequest extends Request {
-  user?: AuthTokenPayload;
-}
 
 @Controller('auth')
 export class AuthController {
@@ -53,7 +49,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.register(dto, req.ip);
-    return this.sessionResponse(res, result);
+    return this.loginResponse(res, result);
   }
 
   @Post('login')
@@ -87,7 +83,11 @@ export class AuthController {
     @Body() dto: RequestEmailVerificationDto,
     @Req() req: Request,
   ) {
-    await this.authService.requestEmailVerification(dto.email, req.ip);
+    // Deliberately not awaited: a uniform, immediate response leaks no timing
+    // signal about whether the address is registered.
+    void this.authService
+      .requestEmailVerification(dto.email, req.ip)
+      .catch(() => undefined);
     return { success: true };
   }
 
@@ -106,7 +106,9 @@ export class AuthController {
     @Body() dto: RequestPasswordResetDto,
     @Req() req: Request,
   ) {
-    await this.authService.requestPasswordReset(dto.email, req.ip);
+    void this.authService
+      .requestPasswordReset(dto.email, req.ip)
+      .catch(() => undefined);
     return { success: true };
   }
 
@@ -121,7 +123,7 @@ export class AuthController {
   @Post('mfa/setup')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtMfaFlowGuard)
-  async setupMfa(@Req() req: AuthedRequest) {
+  async setupMfa(@Req() req: RequestWithAuth) {
     return this.authService.setupMfa(req.user!.sub);
   }
 
@@ -131,7 +133,7 @@ export class AuthController {
   @UseGuards(JwtMfaFlowGuard)
   async enableMfa(
     @Body() dto: MfaCodeDto,
-    @Req() req: AuthedRequest,
+    @Req() req: RequestWithAuth,
     @Res({ passthrough: true }) res: Response,
   ) {
     const user = await this.authService.enableMfa(
@@ -142,7 +144,10 @@ export class AuthController {
     // An mfa_setup-scoped caller has proven password + TOTP — complete their
     // sign-in; a full-session caller (parent opting in) just gets confirmation.
     if (req.user!.scope === 'mfa_setup') {
-      return this.sessionResponse(res, this.authService.sessionFor(user));
+      return this.sessionResponse(
+        res,
+        await this.authService.sessionFor(user, req.ip),
+      );
     }
     return { success: true };
   }
@@ -166,7 +171,7 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(
-    @Req() req: AuthedRequest,
+    @Req() req: RequestWithAuth,
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.authService.logout(req.user?.sub, req.ip);
@@ -176,7 +181,7 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtVerifiedGuard)
-  async me(@Req() req: AuthedRequest) {
+  async me(@Req() req: RequestWithAuth) {
     const user = await this.authService.getMe(req.user!.sub);
     return { user };
   }

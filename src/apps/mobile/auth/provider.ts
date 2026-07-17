@@ -154,11 +154,7 @@ export const ApiAuthProvider: AuthProvider = {
   getIdToken,
 };
 
-let active: AuthProvider = useApi() ? ApiAuthProvider : FixtureAuthProvider;
-
-export function setActiveAuthProvider(next: AuthProvider): void {
-  active = next;
-}
+const active: AuthProvider = useApi() ? ApiAuthProvider : FixtureAuthProvider;
 
 export function getActiveAuthProvider(): AuthProvider {
   return active;

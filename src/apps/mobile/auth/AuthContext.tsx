@@ -116,8 +116,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [pendingMfa]);
 
   const signOut = useCallback(async () => {
-    await deregisterDevice().catch(() => undefined);
-    await getActiveAuthProvider().signOut().catch(() => undefined);
+    // Independent network calls — run them together so sign-out latency is
+    // the slower of the two, not the sum.
+    await Promise.all([
+      deregisterDevice().catch(() => undefined),
+      getActiveAuthProvider()
+        .signOut()
+        .catch(() => undefined),
+    ]);
     await clearUser();
     setUser(null);
     setPendingMfa(null);
