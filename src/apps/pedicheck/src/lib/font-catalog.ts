@@ -29,9 +29,9 @@ export const FONT_STORAGE_KEY = 'pedicheck-font-settings';
 
 /** What the app currently hard-codes in globals.css — the reset target. */
 export const DEFAULT_FONT_IDS: Record<FontSlot, string> = {
-  headline: 'fraunces',
+  headline: 'poppins',
   wordmark: 'nunito',
-  body: 'dm-sans',
+  body: 'poppins',
 };
 
 const serif = 'Georgia, serif';
