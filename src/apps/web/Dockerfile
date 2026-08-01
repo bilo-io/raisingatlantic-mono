@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:20-alpine AS deps
+FROM node:25-alpine AS deps
 WORKDIR /app
 
 COPY package*.json ./
@@ -7,7 +7,7 @@ RUN npm ci --legacy-peer-deps
 
 # ---
 
-FROM node:20-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 
 # shared packages must be available at build time
@@ -19,7 +19,7 @@ RUN npm run build
 
 # ---
 
-FROM node:20-alpine AS runner
+FROM node:25-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
