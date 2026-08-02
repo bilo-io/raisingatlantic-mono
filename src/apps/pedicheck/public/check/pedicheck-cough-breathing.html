@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PediCheck — Cough & Breathing Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --seafoam:#7FC9D9; --teal:#3F9FB8; --teal-deep:#1F6F8A;
+    --slate:#2B3A45; --cream:#FBF7F2; --cream2:#f4ede2;
+    --bg:#FBF7F2; --card:#fff; --border:#ece4d6; --border2:#e0e6ea;
+    --sub:#6b7a84; --text:#2B3A45; --fog:#f3f6f8;
+    --ok:#2d8a6d; --ok-bg:#e6f5ee; --warn:#c47f2b; --warn-bg:#fbf1e2;
+    --stop:#c0483d; --stop-bg:#fbeae8;
+    --concern:#7B5EA7; --concern-bg:#f1ecf7;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:0;
+  }
+  .phone{
+    width:100%;
+    max-width:460px;
+    min-height:100vh;
+    background:var(--bg);
+    position:relative;
+    padding-bottom:40px;
+  }
+  header{
+    background:var(--slate);
+    color:var(--cream);
+    padding:26px 22px 22px;
+    border-bottom-left-radius:28px;
+    border-bottom-right-radius:28px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::before{
+    content:'';
+    position:absolute;
+    width:200px;height:200px;
+    background:radial-gradient(circle,rgba(63,159,184,0.32) 0%,transparent 70%);
+    top:-60px;right:-40px;
+  }
+  .eyebrow{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--seafoam);
+    margin-bottom:8px;
+    position:relative;
+    z-index:1;
+  }
+  h1{
+    font-family:'DM Sans',sans-serif;
+    font-size:23px;
+    font-weight:700;
+    margin:0 0 6px;
+    line-height:1.2;
+    color:#fff;
+    position:relative;
+    z-index:1;
+  }
+  .sub{
+    font-size:13px;
+    color:rgba(255,255,255,0.62);
+    line-height:1.5;
+    margin:0;
+    position:relative;
+    z-index:1;
+  }
+  .pulse{
+    width:100%;
+    height:30px;
+    margin-top:14px;
+    position:relative;
+    z-index:1;
+  }
+  .pulse path{
+    fill:none;
+    stroke:var(--seafoam);
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-dasharray:240;
+    stroke-dashoffset:240;
+    animation:draw 2.6s ease-in-out infinite;
+  }
+  @keyframes draw{
+    0%{stroke-dashoffset:240;}
+    50%{stroke-dashoffset:0;}
+    100%{stroke-dashoffset:-240;}
+  }
+  main{padding:20px 16px 0;}
+  .progress{
+    display:flex;
+    gap:6px;
+    margin-bottom:18px;
+  }
+  .progress div{
+    height:4px;
+    flex:1;
+    border-radius:4px;
+    background:var(--border2);
+  }
+  .progress div.done{background:var(--teal);}
+  .card{
+    background:var(--card);
+    border-radius:20px;
+    padding:22px 20px;
+    box-shadow:0 4px 24px rgba(43,58,69,0.06);
+    border:1px solid var(--border);
+  }
+  .tag{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    opacity:0.85;
+    margin-bottom:10px;
+    display:block;
+  }
+  .question{
+    font-family:'DM Sans',sans-serif;
+    font-size:18px;
+    font-weight:700;
+    line-height:1.35;
+    margin:0 0 6px;
+    color:var(--slate);
+  }
+  .hint{
+    font-size:13px;
+    color:var(--sub);
+    line-height:1.55;
+    margin:0 0 18px;
+  }
+  .opt{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:var(--fog);
+    border:1.5px solid var(--border2);
+    border-radius:12px;
+    padding:14px 16px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    color:var(--slate);
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease, transform .08s ease;
+  }
+  .opt:hover{border-color:var(--teal);background:#eef7fa;}
+  .opt:active{transform:scale(0.98);}
+  .back{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:none;
+    border:none;
+    color:var(--teal-deep);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    padding:14px 2px 0;
+    cursor:pointer;
+    opacity:0.8;
+  }
+  .result{
+    border-radius:20px;
+    padding:24px 20px 20px;
+    color:var(--slate);
+  }
+  .result.red{background:var(--stop-bg); border:1.5px solid var(--stop);}
+  .result.amber{background:var(--warn-bg); border:1.5px solid var(--warn);}
+  .result.green{background:var(--ok-bg); border:1.5px solid var(--ok);}
+  .result.concern{background:var(--concern-bg); border:1.5px solid var(--concern);}
+  .result-badge{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:5px 12px;
+    border-radius:100px;
+    color:#fff;
+    margin-bottom:14px;
+  }
+  .red .result-badge{background:var(--stop);}
+  .amber .result-badge{background:var(--warn);}
+  .green .result-badge{background:var(--ok);}
+  .concern .result-badge{background:var(--concern);}
+  .result h2{
+    font-family:'DM Sans',sans-serif;
+    font-size:20px;
+    font-weight:700;
+    margin:0 0 10px;
+    line-height:1.3;
+    color:var(--slate);
+  }
+  .result p{
+    font-size:14px;
+    line-height:1.6;
+    margin:0 0 14px;
+    color:var(--text);
+  }
+  .result ul{
+    margin:0 0 16px;
+    padding-left:18px;
+  }
+  .result li{
+    font-size:13.5px;
+    line-height:1.6;
+    margin-bottom:6px;
+    color:var(--text);
+  }
+  .restart{
+    width:100%;
+    background:var(--teal);
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    padding:14px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    margin-top:6px;
+  }
+  .restart:active{background:var(--teal-deep);}
+  .evidence{
+    margin-top:22px;
+    padding:16px 18px;
+    border-radius:14px;
+    background:var(--fog);
+  }
+  .evidence-title{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    margin-bottom:8px;
+  }
+  .evidence p{
+    font-size:12px;
+    line-height:1.6;
+    color:var(--sub);
+    margin:0 0 6px;
+  }
+  .disclaimer{
+    text-align:center;
+    font-size:11px;
+    color:var(--sub);
+    line-height:1.5;
+    padding:18px 24px 0;
+  }
+  .considerations{
+    margin-top:4px;
+    padding:16px 18px;
+    border-radius:14px;
+    background:var(--fog);
+    border:1px dashed var(--border2);
+  }
+  .considerations-title{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--sub);
+    margin-bottom:8px;
+  }
+  .considerations ul{
+    margin:0;
+    padding-left:18px;
+  }
+  .considerations li{
+    font-size:13px;
+    line-height:1.55;
+    margin-bottom:6px;
+    color:var(--text);
+  }
+  .why{
+    background:var(--fog);
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:12.5px;
+    line-height:1.55;
+    color:var(--sub);
+    margin-top:14px;
+  }
+  .why b{color:var(--slate);}
+  .safety-net{
+    background:var(--card);
+    border:1.5px solid var(--border2);
+    border-radius:14px;
+    padding:16px 18px;
+    margin-top:16px;
+    font-size:13px;
+    line-height:1.55;
+  }
+  .safety-net b{display:block; margin-bottom:8px; font-size:13px; color:var(--slate);}
+  .safety-net ul{margin:0; padding-left:18px;}
+  .home-care{
+    background:var(--card);
+    border:1.5px solid var(--border2);
+    border-radius:14px;
+    padding:16px 18px;
+    margin-top:14px;
+    font-size:13px;
+    line-height:1.55;
+  }
+  .home-care .label{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    margin-bottom:8px;
+  }
+  .home-care ul{margin:0; padding-left:18px;}
+  .home-care li{margin-bottom:6px;}
+  .dosing-btn{
+    display:block;
+    width:100%;
+    margin-top:12px;
+    padding:12px;
+    background:none;
+    border:1.5px dashed var(--teal);
+    border-radius:12px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    color:var(--teal-deep);
+    cursor:pointer;
+    text-align:center;
+  }
+  .dosing-note{
+    display:none;
+    margin-top:10px;
+    padding:12px 14px;
+    background:#eef7fa;
+    border-radius:10px;
+    font-size:12.5px;
+    line-height:1.5;
+    color:var(--sub);
+  }
+  .precheck-note{
+    background:#eef7fa;
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:13px;
+    line-height:1.55;
+    color:var(--text);
+    margin-bottom:18px;
+  }
+  .precheck-note b{display:block; margin-bottom:4px; color:var(--slate);}
+
+  .home-link{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:11.5px; font-weight:600; color:var(--seafoam);
+    text-decoration:none; margin-bottom:12px; position:relative; z-index:1;
+    opacity:0.85;
+  }
+  .home-link:hover{ opacity:1; }
+
+</style>
+<style id="pc-gate-styles">
+  #pc-gate-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(31, 43, 51, 0.72);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: flex-end; justify-content: center;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 0;
+  }
+  @media (min-width: 560px) {
+    #pc-gate-overlay { align-items: center; padding: 20px; }
+  }
+  .pc-gate-card {
+    background: #FBF7F2;
+    width: 100%; max-width: 460px;
+    max-height: 92vh; overflow-y: auto;
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -8px 40px rgba(43,58,69,0.25);
+  }
+  @media (min-width: 560px) {
+    .pc-gate-card { border-radius: 24px; box-shadow: 0 20px 60px rgba(43,58,69,0.35); }
+  }
+  .pc-gate-head {
+    background: #2B3A45;
+    padding: 26px 26px 22px;
+    border-radius: 24px 24px 0 0;
+    position: relative; overflow: hidden;
+  }
+  .pc-gate-head::before {
+    content: ''; position: absolute; width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(63,159,184,0.32) 0%, transparent 70%);
+    top: -60px; right: -40px;
+  }
+  .pc-gate-brand { display: flex; align-items: center; gap: 10px; position: relative; z-index: 1; }
+  .pc-gate-wordmark { font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
+  .pc-gate-wordmark span { color: #7FC9D9; }
+  .pc-gate-title {
+    font-family: 'DM Sans', sans-serif; font-size: 21px; font-weight: 700;
+    color: #fff; margin-top: 14px; position: relative; z-index: 1;
+  }
+  .pc-gate-sub {
+    font-size: 12.5px; color: rgba(255,255,255,0.6); line-height: 1.55;
+    margin-top: 6px; position: relative; z-index: 1;
+  }
+  .pc-gate-body { padding: 22px 24px 24px; }
+  .pc-gate-notice {
+    font-size: 12px; line-height: 1.6; color: #6b7a84;
+    background: #eef7fa; border: 1px solid rgba(63,159,184,0.25);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 18px;
+  }
+  .pc-gate-check-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 13px 0; border-bottom: 1px solid #ece4d6;
+  }
+  .pc-gate-check-row:last-of-type { border-bottom: none; }
+  .pc-gate-check-row input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px;
+    border: 2px solid #c8d2d6; border-radius: 7px;
+    cursor: pointer; position: relative; transition: .15s;
+    background: #fff;
+  }
+  .pc-gate-check-row input[type="checkbox"]:checked {
+    background: #3F9FB8; border-color: #3F9FB8;
+  }
+  .pc-gate-check-row input[type="checkbox"]:checked::after {
+    content: ''; position: absolute; left: 6px; top: 2px;
+    width: 6px; height: 11px;
+    border: solid #fff; border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+  }
+  .pc-gate-check-row input[type="checkbox"]:focus-visible {
+    outline: 2px solid #1F6F8A; outline-offset: 2px;
+  }
+  .pc-gate-check-row label {
+    font-size: 13.5px; line-height: 1.5; color: #2B3A45; cursor: pointer;
+  }
+  .pc-gate-links { margin: 16px 0 4px; font-size: 12px; color: #6b7a84; }
+  .pc-gate-links a { color: #1F6F8A; font-weight: 600; text-decoration: none; }
+  .pc-gate-links a:hover { text-decoration: underline; }
+  .pc-gate-continue {
+    width: 100%; margin-top: 18px;
+    background: #c8d2d6; color: #fff; border: none; border-radius: 14px;
+    padding: 15px; font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.2px;
+    cursor: not-allowed; transition: .18s;
+  }
+  .pc-gate-continue.pc-gate-ready {
+    background: #3F9FB8; cursor: pointer;
+  }
+  .pc-gate-continue.pc-gate-ready:active { background: #1F6F8A; transform: scale(0.99); }
+  .pc-gate-emergency {
+    margin-top: 14px; font-size: 11.5px; line-height: 1.6; color: #8a5a2e;
+    background: #fbf1e2; border: 1px solid #ecd3a8; border-radius: 12px;
+    padding: 10px 13px;
+  }
+  body.pc-gate-locked { overflow: hidden; }
+</style>
+</head>
+<body>
+
+<div id="pc-gate-overlay">
+  <div class="pc-gate-card">
+    <div class="pc-gate-head">
+      <div class="pc-gate-brand">
+        <svg width="26" height="26" viewBox="0 0 40 40" fill="none">
+          <defs><linearGradient id="pcg" x1="20" y1="6" x2="20" y2="36" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#7FC9D9"/><stop offset="100%" stop-color="#1F6F8A"/>
+          </linearGradient></defs>
+          <path d="M20 35 C20 35 5 25 5 15.5 C5 10.8 8.8 7 13.5 7 C16.3 7 18.7 8.5 20 10.8 C21.3 8.5 23.7 7 26.5 7 C31.2 7 35 10.8 35 15.5 C35 25 20 35 20 35Z" fill="url(#pcg)"/>
+          <path d="M13.5 18.5 L18 23 L27 13.5" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <div class="pc-gate-wordmark">Pedi<span>Check</span></div>
+      </div>
+      <div class="pc-gate-title">Before you start</div>
+      <div class="pc-gate-sub">Please read and confirm the four points below. This takes about ten seconds and only appears once.</div>
+    </div>
+
+    <div class="pc-gate-body">
+      <div class="pc-gate-notice">
+        <strong>PediCheck is a guide, not a prescription.</strong> It supports — but does not replace — assessment by a qualified healthcare professional.
+      </div>
+
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c1">
+        <label for="pc-gate-c1">I understand PediCheck provides general guidance only, and does not give medical advice, diagnosis or treatment.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c2">
+        <label for="pc-gate-c2">I understand I must confirm every dose or decision against the product packaging and a healthcare professional.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c3">
+        <label for="pc-gate-c3">I understand PediCheck is not a substitute for consulting a doctor, and that I use it at my own risk.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c4">
+        <label for="pc-gate-c4">I confirm I am 18 or older and am the parent or legal guardian of the child, or am authorised to act for them.</label>
+      </div>
+
+      <div class="pc-gate-links">
+        Read the full <a href="/terms" target="_blank" rel="noopener">Terms of Use</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Notice</a>.
+      </div>
+
+      <button class="pc-gate-continue" id="pc-gate-continue-btn" disabled>Continue</button>
+
+      <div class="pc-gate-emergency">
+        If your child is very unwell, difficult to wake, struggling to breathe, or is under 3 months old with a fever — don't use this app. Call <strong>10177</strong> (ambulance) or <strong>112</strong> from a mobile, or go to your nearest emergency department now.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="phone">
+  <header>
+    <a class="home-link" href="index.html">&larr; All tools</a>
+    <div class="eyebrow">PediCheck · Symptom Check</div>
+    <h1>My child has a cough & fast breathing</h1>
+    <p class="sub">A few quick questions, adjusted for your child's age, to work out what to do next — based on the WHO/IMCI guidelines used in South African primary care.</p>
+    <svg class="pulse" viewBox="0 0 300 34" preserveAspectRatio="none">
+      <path d="M0 17 H100 L112 4 L124 30 L136 17 H160 L172 8 L182 26 L192 17 H300"/>
+    </svg>
+  </header>
+
+  <main>
+    <div class="progress" id="progress"></div>
+    <div id="quiz"></div>
+    <div class="disclaimer" id="disclaimer">This tool supports, but doesn't replace, your own judgement. If you're ever unsure, trust your instinct and seek care.</div>
+  </main>
+</div>
+
+<script>
+const steps = [
+  {
+    id: 'q1',
+    tag: 'Step 1 of 6',
+    question: "How old is your child?",
+    hint: "Breathing rate thresholds and danger signs are different at each age, so the questions ahead adjust accordingly.",
+    options: [
+      { label: "Under 2 months", next: 'q2_young' },
+      { label: "2–11 months", next: 'q2_infant' },
+      { label: "1–5 years", next: 'q2_child' },
+      { label: "Older than 5 years", next: 'q2_older' }
+    ]
+  },
+  {
+    id: 'q2_young',
+    tag: 'Step 2 of 6',
+    question: "Any of these right now?",
+    hint: "Not feeding at all or too weak to feed, very hard to wake or floppy, convulsions (fits), unusually cold to the touch, or a bluish tinge to the lips or tongue.",
+    options: [
+      { label: "Yes, one or more of these", next: 'RED_DANGER_SIGNS' },
+      { label: "No, none of these", next: 'q3_young' }
+    ]
+  },
+  {
+    id: 'q3_young',
+    tag: 'Step 3 of 6',
+    question: "Watch their chest while they breathe in. Does the skin between or below the ribs pull sharply inward with every breath?",
+    hint: "This is chest indrawing — easiest to see with their chest bare, while they're calm or asleep.",
+    options: [
+      { label: "Yes, clearly pulling in with every breath", next: 'RED_CHEST_INDRAWING' },
+      { label: "No, or I'm not sure", next: 'q4_young' }
+    ]
+  },
+  {
+    id: 'q4_young',
+    tag: 'Step 4 of 6',
+    question: "Is there a grunting sound with every breath, or flaring of the nostrils?",
+    hint: "Grunting is a low sound at the end of each breath — a sign of real effort to breathe.",
+    options: [
+      { label: "Yes, grunting or flaring nostrils", next: 'RED_DANGER_SIGNS' },
+      { label: "No", next: 'q5_young' }
+    ]
+  },
+  {
+    id: 'q5_young',
+    tag: 'Step 5 of 6',
+    question: "Count their breaths for a full 60 seconds while they're calm or asleep. Is it 60 breaths per minute or more?",
+    hint: "Count the rise and fall of the chest or belly. A phone stopwatch helps — count for the full minute rather than estimating.",
+    options: [
+      { label: "Yes, 60 or more per minute", next: 'RED_FAST_BREATHING_YOUNG' },
+      { label: "No, under 60 per minute", next: 'GREEN' }
+    ]
+  },
+  {
+    id: 'q2_infant',
+    tag: 'Step 2 of 6',
+    question: "Any of these right now?",
+    hint: "Unable to breastfeed or drink anything, vomiting everything they take in, convulsions (fits), or very difficult to wake or unusually drowsy.",
+    options: [
+      { label: "Yes, one or more of these", next: 'RED_DANGER_SIGNS' },
+      { label: "No, none of these", next: 'q3_infant' }
+    ]
+  },
+  {
+    id: 'q3_infant',
+    tag: 'Step 3 of 6',
+    question: "Does the skin between or below the ribs pull sharply inward with every breath, or do you hear a harsh noise breathing in even when they're calm?",
+    hint: "Chest indrawing and stridor (a harsh in-breath sound) are both signs of real breathing difficulty.",
+    options: [
+      { label: "Yes, chest indrawing or stridor when calm", next: 'RED_CHEST_INDRAWING' },
+      { label: "No, or I'm not sure", next: 'q4_infant' }
+    ]
+  },
+  {
+    id: 'q4_infant',
+    tag: 'Step 4 of 6',
+    question: "Are their lips, tongue, or face looking bluish or grey?",
+    hint: "This can be subtle — check in good light.",
+    options: [
+      { label: "Yes", next: 'RED_DANGER_SIGNS' },
+      { label: "No", next: 'q5_infant' }
+    ]
+  },
+  {
+    id: 'q5_infant',
+    tag: 'Step 5 of 6',
+    question: "Count their breaths for a full 60 seconds while they're calm or asleep. Is it 50 breaths per minute or more?",
+    hint: "Count the rise and fall of the chest or belly for the full minute.",
+    options: [
+      { label: "Yes, 50 or more per minute", next: 'AMBER_FAST_BREATHING' },
+      { label: "No, under 50 per minute", next: 'GREEN' }
+    ]
+  },
+  {
+    id: 'q2_child',
+    tag: 'Step 2 of 6',
+    question: "Any of these right now?",
+    hint: "Unable to drink or breastfeed at all, vomiting everything, convulsions (fits), or unusually drowsy and difficult to wake.",
+    options: [
+      { label: "Yes, one or more of these", next: 'RED_DANGER_SIGNS' },
+      { label: "No, none of these", next: 'q3_child' }
+    ]
+  },
+  {
+    id: 'q3_child',
+    tag: 'Step 3 of 6',
+    question: "Does the skin between or below the ribs pull sharply inward with every breath, or do you hear a harsh noise breathing in even when they're calm?",
+    hint: "Chest indrawing and stridor (a harsh in-breath sound) are both signs of real breathing difficulty.",
+    options: [
+      { label: "Yes, chest indrawing or stridor when calm", next: 'RED_CHEST_INDRAWING' },
+      { label: "No, or I'm not sure", next: 'q4_child' }
+    ]
+  },
+  {
+    id: 'q4_child',
+    tag: 'Step 4 of 6',
+    question: "Are their lips, tongue, or face looking bluish or grey?",
+    hint: "This can be subtle — check in good light.",
+    options: [
+      { label: "Yes", next: 'RED_DANGER_SIGNS' },
+      { label: "No", next: 'q5_child' }
+    ]
+  },
+  {
+    id: 'q5_child',
+    tag: 'Step 5 of 6',
+    question: "Count their breaths for a full 60 seconds while they're calm or resting. Is it 40 breaths per minute or more?",
+    hint: "Count the rise and fall of the chest for the full minute — fever alone can push this up temporarily, so count when they're not mid-crying-fit if possible.",
+    options: [
+      { label: "Yes, 40 or more per minute", next: 'AMBER_FAST_BREATHING' },
+      { label: "No, under 40 per minute", next: 'GREEN' }
+    ]
+  },
+  {
+    id: 'q2_older',
+    tag: 'Step 2 of 4',
+    question: "Any of these right now?",
+    hint: "Lips or face turning blue or grey, too breathless to speak, walk, or feed in short sentences/sips, chest pulling in sharply with breathing, or very drowsy/difficult to rouse.",
+    options: [
+      { label: "Yes, one or more of these", next: 'RED_DANGER_SIGNS' },
+      { label: "No, none of these", next: 'q3_older' }
+    ]
+  },
+  {
+    id: 'q3_older',
+    tag: 'Step 3 of 4',
+    question: "Is their breathing clearly faster or more laboured than normal, even though they can still talk and drink?",
+    hint: "This tool doesn't have a validated breath-count cutoff for this age group, so use your judgement alongside how unwell they otherwise seem.",
+    options: [
+      { label: "Yes, noticeably faster or working harder to breathe", next: 'AMBER_FAST_BREATHING_OLDER' },
+      { label: "No, breathing looks normal for them", next: 'GREEN' }
+    ]
+  }
+];
+
+const results = {
+  RED_DANGER_SIGNS: {
+    level: 'red',
+    badge: 'Go to the emergency department now',
+    title: "This needs urgent in-person assessment",
+    body: "One or more danger signs are present. In young children, these signs mean a chest infection or breathing problem could be serious, even if your child still looks reasonably well in between.",
+    points: ["Go directly to your nearest emergency department or clinic — don't wait to see if it settles", "Keep your child upright and as calm as possible on the way", "If they stop breathing or turn blue and stay blue, this is a medical emergency — call your local emergency number"]
+  },
+  RED_CHEST_INDRAWING: {
+    level: 'red',
+    badge: 'Go to the emergency department now',
+    title: "Chest indrawing needs urgent assessment",
+    body: "Chest indrawing (or stridor when calm) means the chest is working hard to move air, and it's treated as a marker of severe illness at any age — this needs to be seen today, not tomorrow.",
+    points: ["Go directly to your nearest emergency department or clinic", "Keep them upright, which is usually the most comfortable position", "Bring a note of how long the fast or laboured breathing has been going on"]
+  },
+  RED_FAST_BREATHING_YOUNG: {
+    level: 'red',
+    badge: 'Go to the emergency department now',
+    title: "Fast breathing in a young baby needs urgent care",
+    body: "In babies under 2 months, fast breathing on its own — even without other danger signs — is treated as a marker of serious illness, because young infants can deteriorate quickly and often don't show other obvious signs.",
+    points: ["Go directly to your nearest emergency department or clinic today", "Keep feeding if they're willing and able to — don't withhold feeds while arranging transport", "Dress them normally, not overly bundled, on the way"]
+  },
+  AMBER_FAST_BREATHING: {
+    level: 'amber',
+    badge: 'See a doctor or clinic today',
+    title: "This looks like it needs same-day treatment",
+    body: "Fast breathing without any danger signs or chest indrawing usually means a chest infection that can be managed as an outpatient, but it does need same-day assessment and very likely an antibiotic.",
+    points: ["Arrange a same-day visit to your GP or nearest clinic", "Keep offering fluids/feeds — dehydration makes any chest infection harder to fight", "Go back sooner if breathing becomes noticeably harder, they stop drinking, or a fever persists beyond 2–3 days despite treatment"]
+  },
+  AMBER_FAST_BREATHING_OLDER: {
+    level: 'amber',
+    badge: 'See a doctor today',
+    title: "Worth a same-day check-up",
+    body: "Breathing that's clearly working harder than usual is worth having assessed today, even without the classic red-flag signs — a doctor can listen to the chest and check oxygen levels if needed.",
+    points: ["Arrange a same-day medical review", "Keep them upright and comfortable, and keep fluids going", "Seek urgent care if breathing worsens, lips look blue, or they become drowsy"]
+  },
+  GREEN: {
+    level: 'green',
+    badge: 'Safe to manage at home',
+    title: "Home care should be fine for now",
+    body: "Based on what you've shared, this looks like an uncomplicated cough or cold — most children in this category recover on their own without needing antibiotics or a clinic visit.",
+    points: ["Keep feeds/fluids going and let them rest", "Paracetamol can be used for fever or discomfort if needed, at the correct weight-based dose", "Go back for a check-up if breathing becomes faster or harder, they stop feeding well, a fever lasts more than 2–3 days, or they simply seem to be getting worse rather than better", "Trust your instinct — if something feels wrong, get them checked regardless of what this tool suggests"]
+  }
+};
+
+
+let history = ['q1'];
+
+function render(){
+  const stepIdx = steps.findIndex(s => s.id === history[history.length-1]);
+  const quiz = document.getElementById('quiz');
+  const progress = document.getElementById('progress');
+
+  if (stepIdx === -1) {
+    // it's a result
+    const r = results[history[history.length-1]];
+    progress.innerHTML = '';
+    quiz.innerHTML = `
+      <div class="result ${r.level}">
+        <span class="result-badge">${r.badge}</span>
+        <h2>${r.title}</h2>
+        <p>${r.body}</p>
+        <ul>${r.points.map(p => `<li>${p}</li>`).join('')}</ul>
+      </div>
+      <div class="evidence">
+        <div class="evidence-title">Where this comes from</div>
+        <p>This follows the WHO Integrated Management of Childhood Illness (IMCI) cough/difficult-breathing algorithm — the same age-banded danger signs, chest-indrawing criterion, and fast-breathing cutoffs (≥60/min under 2 months, ≥50/min from 2–11 months, ≥40/min from 1–5 years) used in South African primary health care clinics under the national IMCI chart booklet.</p>
+        <p>Unlike the head injury tool, this one runs on an SA-endorsed protocol directly — IMCI is Department of Health policy here, not an international rule applied by extension. The over-5s branch is the exception: IMCI's validated cutoffs stop at 5 years, so that path uses general safety-netting signs rather than a breath-count threshold.</p>
+      </div>
+      <button class="restart" onclick="restart()">Start over</button>
+    `;
+    document.getElementById('disclaimer').style.display = 'block';
+    return;
+  }
+
+  const step = steps[stepIdx];
+  const totalDepth = parseInt(step.tag.match(/of (\d+)/)[1], 10);
+  const currentDepth = history.length;
+  progress.innerHTML = Array.from({length: totalDepth}, (_, i) => `<div class="${i < currentDepth ? 'done' : ''}"></div>`).join('');
+  quiz.innerHTML = `
+    <div class="card">
+      <span class="tag">${step.tag}</span>
+      <p class="question">${step.question}</p>
+      <p class="hint">${step.hint}</p>
+      ${step.options.map((o,i) => `<button class="opt" onclick="choose('${o.next}')">${o.label}</button>`).join('')}
+    </div>
+    ${history.length > 1 ? '<button class="back" onclick="goBack()">← Back</button>' : ''}
+  `;
+}
+
+function choose(next){
+  history.push(next);
+  render();
+}
+function goBack(){
+  history.pop();
+  render();
+}
+function restart(){
+  history = ['q1'];
+  render();
+}
+
+render();
+</script>
+<script>
+(function () {
+  // Bump this on any material change to the Terms — every user gets re-gated.
+  var CONSENT_VERSION = "1.0";
+  var STORAGE_KEY = "pedicheck_consent";
+
+  var overlay = document.getElementById("pc-gate-overlay");
+  var boxes = ["pc-gate-c1", "pc-gate-c2", "pc-gate-c3", "pc-gate-c4"].map(function (id) {
+    return document.getElementById(id);
+  });
+  var continueBtn = document.getElementById("pc-gate-continue-btn");
+
+  function alreadyConsented() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      var record = JSON.parse(raw);
+      return record.version === CONSENT_VERSION && record.accepted === true;
+    } catch (e) {
+      return false; // corrupt/blocked storage -> fail safe, show the gate
+    }
+  }
+
+  function recordAcceptance() {
+    var record = {
+      accepted: true,
+      version: CONSENT_VERSION,
+      timestamp: new Date().toISOString()
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
+    } catch (e) {
+      // localStorage unavailable (private browsing, storage disabled, etc.)
+      // Gate will simply reappear next load — acceptable degradation.
+    }
+    // TODO once there's a backend: also send `record` (plus a user/device
+    // identifier) to a server endpoint here, so acceptance can be proven
+    // later — see the caveat note at the top of this file.
+  }
+
+  function updateContinueState() {
+    var allChecked = boxes.every(function (b) { return b.checked; });
+    continueBtn.disabled = !allChecked;
+    continueBtn.classList.toggle("pc-gate-ready", allChecked);
+  }
+
+  function hideGate() {
+    overlay.style.display = "none";
+    document.body.classList.remove("pc-gate-locked");
+  }
+
+  function showGate() {
+    overlay.style.display = "flex";
+    document.body.classList.add("pc-gate-locked");
+    boxes[0].focus();
+  }
+
+  boxes.forEach(function (b) { b.addEventListener("change", updateContinueState); });
+
+  continueBtn.addEventListener("click", function () {
+    if (continueBtn.disabled) return;
+    recordAcceptance();
+    hideGate();
+  });
+
+  if (alreadyConsented()) {
+    hideGate();
+  } else {
+    showGate();
+  }
+})();
+</script>
+
+</body>
+</html>

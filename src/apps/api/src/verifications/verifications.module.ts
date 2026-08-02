@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { VerificationsService } from './verifications.service';
 import { VerificationsController } from './verifications.controller';
 import { User } from '../users/users.model';
+import { ClinicianProfile } from '../users/clinician-profile.model';
 import {
   Child,
   GrowthRecord,
@@ -15,6 +16,7 @@ import { GcpMetricService } from '@core/telemetry/gcp/metric.service';
   imports: [
     TypeOrmModule.forFeature([
       User,
+      ClinicianProfile,
       Child,
       GrowthRecord,
       CompletedMilestone,

@@ -9,9 +9,20 @@ import { ProfileScreenBase } from "./ProfileScreenBase";
 export function ProfileScreenClinician() {
   const { user } = useAuth();
   const { practice, practices } = useActivePractice();
-  // TODO: source HPCSA/SANC, verification status, and clinical role from the API once
-  // ClinicianProfile carries these fields. See MOBILE_PHASE_M2_TODO.md (G-CLIN-01).
+  // Prefer the API-sourced ClinicianProfile (HPCSA/SANC + verification status);
+  // fall back to the mock-only fixture shim when the profile isn't populated
+  // (e.g. EXPO_PUBLIC_USE_API=false). See MOBILE_PHASE_M2_TODO.md (G-CLIN-01).
+  const profile = user?.clinicianProfile;
   const extension = findClinicianExtension(user?.id);
+
+  const registryLabel = profile?.hpcsaNumber
+    ? "HPCSA"
+    : profile?.sancNumber
+      ? "SANC"
+      : extension?.registry ?? "HPCSA / SANC";
+  const registryNumber =
+    profile?.hpcsaNumber ?? profile?.sancNumber ?? extension?.registryNumber ?? "Not set";
+  const verificationStatus = profile?.verificationStatus ?? extension?.verificationStatus;
 
   return (
     <ProfileScreenBase>
@@ -19,10 +30,7 @@ export function ProfileScreenClinician() {
         Practitioner
       </Text>
       <Card style={{ marginBottom: 22 }}>
-        <KeyValueRow
-          label={extension ? extension.registry : "HPCSA / SANC"}
-          value={extension?.registryNumber ?? "Not set"}
-        />
+        <KeyValueRow label={registryLabel} value={registryNumber} />
         <KeyValueRow
           label="Clinical role"
           value={extension?.clinicalRole ?? "Not set"}
@@ -31,9 +39,9 @@ export function ProfileScreenClinician() {
           <Text variant="muted" style={{ flex: 1 }}>
             Verification
           </Text>
-          {extension?.verificationStatus === "verified" ? (
+          {verificationStatus === "verified" ? (
             <Badge label="Verified" variant="primary" />
-          ) : extension?.verificationStatus === "rejected" ? (
+          ) : verificationStatus === "rejected" ? (
             <Badge label="Rejected" variant="destructive" />
           ) : (
             <Badge label="Pending" variant="muted" />

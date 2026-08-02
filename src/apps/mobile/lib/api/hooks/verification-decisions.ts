@@ -1,5 +1,6 @@
 import type { ClinicianForVerification, VerifiableRecord } from "@raising-atlantic/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "../client";
 import { useApi } from "../data-source";
 import { useToastBridge } from "../toast-bridge";
 import { verificationKeys } from "./verifications";
@@ -11,9 +12,6 @@ export type VerificationDecision = {
 
 export type RecordDecisionVars = { id: string; decision: VerificationDecision };
 export type ClinicianDecisionVars = { id: string; decision: VerificationDecision };
-
-const REAL_API_GAP_MESSAGE =
-  "Verification decisions are not yet implemented in the API (G-VER-02). Use mock mode (EXPO_PUBLIC_USE_API=false) until the backend ships.";
 
 type Activity = {
   id: string;
@@ -41,7 +39,7 @@ export function useDecideRecordVerification() {
   return useMutation<{ id: string }, Error, RecordDecisionVars>({
     mutationFn: async (vars) => {
       if (useApi()) {
-        throw new Error(REAL_API_GAP_MESSAGE);
+        await api.patch(`/verifications/records/${vars.id}`, vars.decision);
       }
       return { id: vars.id };
     },
@@ -81,7 +79,7 @@ export function useDecideClinicianVerification() {
   return useMutation<{ id: string }, Error, ClinicianDecisionVars>({
     mutationFn: async (vars) => {
       if (useApi()) {
-        throw new Error(REAL_API_GAP_MESSAGE);
+        await api.patch(`/verifications/clinicians/${vars.id}`, vars.decision);
       }
       return { id: vars.id };
     },

@@ -27,23 +27,23 @@ export function HeroSection() {
           <div className="hero-right fade-up d3">
             <div className="hero-image-wrap">
               <div className="hero-phone">
-                <PhoneMockup time="02:14" step="Q4 / 6">
-                  <div className="q-label">Tick what you see</div>
-                  <h3 className="q-text">Anything happening right now?</h3>
+                <PhoneMockup time="02:14" step="Question 4 of 8">
+                  <div className="q-label">Red flags check</div>
+                  <h3 className="q-text">Tick anything you&apos;re seeing right now</h3>
                   <div className="opt">
                     <span className="circle" />
-                    Difficulty breathing
+                    Difficulty or fast breathing
                   </div>
                   <div className="opt selected">
                     <span className="circle" />
-                    Drowsy or hard to wake
+                    Drowsy, floppy, hard to wake
                   </div>
                   <div className="opt">
                     <span className="circle" />
-                    Stiff neck or arching
+                    Stiff neck or arching back
                   </div>
                   <div className="phone-progress">
-                    <span style={{ width: '65%' }} />
+                    <span style={{ width: '50%' }} />
                   </div>
                 </PhoneMockup>
               </div>

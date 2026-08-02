@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
 import { ILoggerService } from '@core/telemetry/interfaces/logger.interface';
@@ -17,11 +22,28 @@ import {
   MedicalCondition,
 } from './children.model';
 import { User } from '../users/users.model';
+import { UserRole } from '../users/constants';
+import { ResourceStatus } from '../common/enums';
 import { CreateChildDto } from './dto/create-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
 import { CreateAllergyDto } from './dto/create-allergy.dto';
 import { CreateMedicalConditionDto } from './dto/create-medical-condition.dto';
 import { CreateCompletedVaccinationDto } from './dto/create-completed-vaccination.dto';
+import { CreateGrowthRecordDto } from './dto/create-growth-record.dto';
+import { CreateCompletedMilestoneDto } from './dto/create-completed-milestone.dto';
+
+// The authenticated caller logging a record. Clinician/admin entries are
+// auto-verified (Active); parent entries land Pending Assessment for review.
+export interface RecordActor {
+  userId: string;
+  role: UserRole;
+}
+
+const VERIFIED_LOGGER_ROLES: UserRole[] = [
+  UserRole.CLINICIAN,
+  UserRole.ADMIN,
+  UserRole.SUPER_ADMIN,
+];
 
 @Injectable()
 export class ChildrenService {
@@ -217,16 +239,86 @@ export class ChildrenService {
     return await this.allergyRepo.save(allergy);
   }
 
+  // Authorization boundary for writing to a child's record. A parent may only
+  // write to their own child; a clinician only to a child assigned to them;
+  // admins are platform-wide. Prevents cross-tenant / IDOR record injection.
+  private assertActorMayAccessChild(child: Child, actor?: RecordActor): void {
+    if (!actor) return;
+    const { role, userId } = actor;
+    if (role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN) return;
+    if (role === UserRole.PARENT && child.parent?.id === userId) return;
+    if (role === UserRole.CLINICIAN && child.clinician?.id === userId) return;
+    throw new ForbiddenException(
+      "You do not have access to this child's records",
+    );
+  }
+
+  // Clinician/admin-logged records are auto-verified; parent-logged records
+  // wait in Pending Assessment for clinician sign-off (load-bearing per CLAUDE.md).
+  private statusForActor(actor?: RecordActor): ResourceStatus {
+    return actor && VERIFIED_LOGGER_ROLES.includes(actor.role)
+      ? ResourceStatus.ACTIVE
+      : ResourceStatus.PENDING_ASSESSMENT;
+  }
+
+  private recordedByRef(actor?: RecordActor): User | undefined {
+    return actor ? ({ id: actor.userId } as User) : undefined;
+  }
+
+  async addGrowthRecord(
+    childId: string,
+    dto: CreateGrowthRecordDto,
+    actor?: RecordActor,
+  ): Promise<GrowthRecord> {
+    const child = await this.findOne(childId);
+    this.assertActorMayAccessChild(child, actor);
+    const record = this.growthRepo.create({
+      date: new Date(dto.date),
+      height: dto.height,
+      weight: dto.weight,
+      headCircumference: dto.headCircumference,
+      notes: dto.notes,
+      status: this.statusForActor(actor),
+      recordedBy: this.recordedByRef(actor),
+      child,
+    });
+    return await this.growthRepo.save(record);
+  }
+
+  async addCompletedMilestone(
+    childId: string,
+    dto: CreateCompletedMilestoneDto,
+    actor?: RecordActor,
+  ): Promise<CompletedMilestone> {
+    const child = await this.findOne(childId);
+    this.assertActorMayAccessChild(child, actor);
+    const record = this.milestoneRepo.create({
+      milestoneId: dto.milestoneId,
+      dateAchieved: new Date(dto.dateAchieved),
+      notes: dto.notes,
+      status: this.statusForActor(actor),
+      recordedBy: this.recordedByRef(actor),
+      child,
+    });
+    return await this.milestoneRepo.save(record);
+  }
+
   async addCompletedVaccination(
     childId: string,
     dto: CreateCompletedVaccinationDto,
+    actor?: RecordActor,
   ): Promise<CompletedVaccination> {
     const child = await this.findOne(childId);
+    this.assertActorMayAccessChild(child, actor);
+    const isClinicianLogged =
+      !!actor && VERIFIED_LOGGER_ROLES.includes(actor.role);
     const record = this.vaccineRepo.create({
       ...dto,
       dateAdministered: new Date(dto.dateAdministered),
       expiryDate: dto.expiryDate ? new Date(dto.expiryDate) : undefined,
-      source: dto.source ?? 'CLINICIAN',
+      source: dto.source ?? (isClinicianLogged ? 'CLINICIAN' : 'PARENT'),
+      status: this.statusForActor(actor),
+      recordedBy: this.recordedByRef(actor),
       child,
     });
     return await this.vaccineRepo.save(record);

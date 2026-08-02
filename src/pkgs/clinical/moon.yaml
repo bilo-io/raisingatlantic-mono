@@ -1,0 +1,36 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+project:
+  name: 'clinical'
+  description: 'Shared clinical domain logic (EPI schedule, growth charts, milestones)'
+
+tasks:
+  install:
+    command: 'npm install --legacy-peer-deps --cache /tmp/npm-cache'
+    inputs:
+      - 'package.json'
+
+  # NOTE: intentionally no `build` task. Standalone `tsc --noEmit` on this
+  # package cannot resolve `zod` transitively through the
+  # `@raising-atlantic/types` source symlink (types is type-checked in-context
+  # by the web/mobile apps that own the zod dependency). Tests run transpile-only
+  # via ts-jest `isolatedModules`, so they are unaffected.
+
+  test:
+    command: 'npm run test'
+    deps:
+      - 'install'
+    inputs:
+      - 'src/**/*'
+      - 'package.json'
+
+  test-cov:
+    command: 'npm run test:cov'
+    deps:
+      - 'install'
+    inputs:
+      - 'src/**/*'
+      - 'package.json'
+
+  clean:
+    command: 'rm -rf node_modules'

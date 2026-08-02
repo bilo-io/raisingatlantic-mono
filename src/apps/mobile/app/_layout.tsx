@@ -1,4 +1,5 @@
 import "../global.css";
+import { useReactQueryDevTools } from "@dev-plugins/react-query";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
@@ -48,6 +49,13 @@ function DeepLinkGate() {
   return null;
 }
 
+// Streams React Query cache state to the Expo dev tools / React Native DevTools.
+// Rendered only under __DEV__ so the hook never runs in production builds.
+function ReactQueryDevTools() {
+  useReactQueryDevTools(queryClient);
+  return null;
+}
+
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -55,6 +63,7 @@ export default function RootLayout() {
         <ThemeProvider>
           <ErrorBoundary>
             <QueryClientProvider client={queryClient}>
+              {__DEV__ ? <ReactQueryDevTools /> : null}
               <AuthProvider>
                 <BottomSheetModalProvider>
                   <StatusBarThemed />

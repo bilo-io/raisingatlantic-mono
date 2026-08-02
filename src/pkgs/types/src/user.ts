@@ -9,6 +9,8 @@ export const userSchema = z.object({
   phone: z.string(),
   imageUrl: z.string().optional(),
   role: userRoleSchema,
+  emailVerified: z.boolean().optional(),
+  authProvider: z.enum(["email", "google"]).optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -30,10 +32,23 @@ export const updateUserSchema = createUserSchema.partial();
 
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
+export const clinicianVerificationStatusSchema = z.enum([
+  "pending",
+  "verified",
+  "rejected",
+]);
+
+export type ClinicianVerificationStatus = z.infer<
+  typeof clinicianVerificationStatusSchema
+>;
+
 export const clinicianProfileSchema = z.object({
   id: z.string(),
   specialty: z.string(),
   bio: z.string().optional(),
+  hpcsaNumber: z.string().optional(),
+  sancNumber: z.string().optional(),
+  verificationStatus: clinicianVerificationStatusSchema.optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

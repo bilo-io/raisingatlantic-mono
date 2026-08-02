@@ -57,5 +57,19 @@ tasks:
       - 'jest.config.js'
       - 'jest.setup.ts'
 
+  e2e:
+    # Maestro E2E — needs a booted device/emulator with the app installed.
+    # Framework decision: docs/adr/0005-mobile-e2e-framework.md. Local: moon run mobile:e2e
+    command: 'maestro test .maestro/flows'
+    options:
+      runInCI: false
+
+  e2e-smoke:
+    # Smoke-tagged subset, driven explicitly by the gated CI job (like cypress:open,
+    # this stays runInCI:false because GitHub-hosted runners have no device by default).
+    command: 'maestro test .maestro/flows --include-tags smoke --format junit'
+    options:
+      runInCI: false
+
   clean:
     command: 'rm -rf .expo node_modules dist'

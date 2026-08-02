@@ -8,19 +8,24 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#F3F1E9"
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/PLACEHOLDER-PROJECT-ID"
     },
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.raisingatlantic.app",
+      "buildNumber": "1",
       "associatedDomains": ["applinks:app.raisingatlantic.com"],
       "infoPlist": {
         "NSUserNotificationsUsageDescription": "Raising Atlantic uses notifications to remind you about vaccinations, appointments and messages from your care team. No personal information is included in the notification text."
       }
     },
     "android": {
+      "package": "com.raisingatlantic.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F3F1E9"
@@ -50,6 +55,14 @@
       "@react-native-community/datetimepicker",
       "expo-secure-store",
       [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#F3F1E9"
+        }
+      ],
+      [
         "@sentry/react-native/expo",
         {
           "organization": "raising-atlantic",
@@ -65,7 +78,10 @@
       ]
     ],
     "extra": {
-      "EXPO_PUBLIC_USE_API": "false"
+      "EXPO_PUBLIC_USE_API": "false",
+      "eas": {
+        "projectId": "PLACEHOLDER-REPLACE-VIA-eas-init"
+      }
     }
   }
 }

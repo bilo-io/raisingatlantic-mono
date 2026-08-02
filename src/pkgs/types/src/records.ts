@@ -17,12 +17,16 @@ export const growthRecordSchema = z.object({
 
 export type GrowthRecord = z.infer<typeof growthRecordSchema>;
 
+export const recordSourceSchema = z.enum(["CLINICIAN", "PARENT"]);
+export type RecordSource = z.infer<typeof recordSourceSchema>;
+
 export const createGrowthRecordSchema = z.object({
   date: isoDateString,
   height: z.string().optional(),
   weight: z.string().optional(),
   headCircumference: z.string().optional(),
   notes: z.string().optional(),
+  source: recordSourceSchema.optional(),
 });
 
 export type CreateGrowthRecordInput = z.infer<typeof createGrowthRecordSchema>;
@@ -45,11 +49,12 @@ export const createCompletedMilestoneSchema = z.object({
   milestoneId: z.string().min(1),
   dateAchieved: isoDateString,
   notes: z.string().optional(),
+  source: recordSourceSchema.optional(),
 });
 
 export type CreateCompletedMilestoneInput = z.infer<typeof createCompletedMilestoneSchema>;
 
-export const vaccinationSourceSchema = z.enum(["CLINICIAN", "PARENT"]);
+export const vaccinationSourceSchema = recordSourceSchema;
 export type VaccinationSource = z.infer<typeof vaccinationSourceSchema>;
 
 export const completedVaccinationSchema = z.object({

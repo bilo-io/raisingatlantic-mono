@@ -1,0 +1,45 @@
+# Parent core journey (M5.4): sign-in → add child → log growth → log milestone → next vaccine due.
+# Mock mode, synthetic identity only ("Test Baby").
+#
+# NOTE (first device run): the child DOB, growth date, and milestone date use a NATIVE date
+# picker. Maestro cannot pick a date platform-agnostically, so the date-picker taps are marked
+# TODO below — fill them in per-platform on the first real-device run before the forms submit.
+appId: com.raisingatlantic.app
+tags:
+  - smoke
+---
+- runFlow:
+    file: ../common/sign-in.yaml
+    env:
+      ROLE: Parent
+# Parent lands on the dashboard (center tab); open the Children tab.
+- tapOn: "Children"
+# The FAB and the form submit both carry the "Add child" a11y label — disambiguate by testID.
+- tapOn:
+    id: "parent-add-child-fab"
+- tapOn:
+    id: "child-form-first-name"
+- inputText: "Test"
+- tapOn:
+    id: "child-form-last-name"
+- inputText: "Baby"
+# TODO(device): tap "Date of birth" and select a DOB via the native picker (required to submit).
+- tapOn:
+    id: "child-form-submit"
+# Growth: log a weight entry.
+- tapOn: "Records"
+- tapOn: "Growth"
+- tapOn: "Log entry"
+# TODO(device): tap "Date" and select the entry date via the native picker (required to submit).
+- tapOn:
+    id: "growth-weight"
+- inputText: "7.2"
+- tapOn: "Save"
+# Milestones: log the first open milestone.
+- tapOn: "Milestones"
+- tapOn: "Log this milestone"
+# TODO(device): tap "Date achieved" and select the date via the native picker (required to submit).
+- tapOn: "Save"
+# Vaccinations: confirm the EPI schedule renders a "Due now" bucket.
+- tapOn: "Vaccinations"
+- assertVisible: "Due now"

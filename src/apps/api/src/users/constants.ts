@@ -4,3 +4,8 @@ export enum UserRole {
   ADMIN = 'admin',
   SUPER_ADMIN = 'super_admin',
 }
+
+export enum AuthProvider {
+  EMAIL = 'email',
+  GOOGLE = 'google',
+}

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SystemLogsController } from './system-logs.controller';
 import { SystemLogsService } from './system-logs.service';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 describe('SystemLogsController', () => {
   let controller: SystemLogsController;
@@ -12,7 +13,10 @@ describe('SystemLogsController', () => {
       providers: [
         { provide: SystemLogsService, useValue: { findAll: jest.fn() } },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get(SystemLogsController);
     service = module.get(SystemLogsService);

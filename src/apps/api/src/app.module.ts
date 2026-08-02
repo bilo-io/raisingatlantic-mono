@@ -31,6 +31,12 @@ import {
 } from './children/children.model';
 import { Report } from './reports/reports.model';
 import { Appointment } from './appointments/appointments.model';
+import { MessagesModule } from './messages/messages.module';
+import {
+  Conversation,
+  ConversationParticipant,
+  Message,
+} from './messages/messages.model';
 import { MasterDataModule } from './master-data/master-data.module';
 import { VerificationsModule } from './verifications/verifications.module';
 import { ReportsModule } from './reports/reports.module';
@@ -43,6 +49,9 @@ import { GoogleSheetsModule } from './common/google-sheets/google-sheets.module'
 import { SystemLogsModule } from './system-logs/system-logs.module';
 import { SystemLog } from './common/models/system-log.model';
 import { NotificationsModule } from './notifications/notifications.module';
+import { PrivacyModule } from './privacy/privacy.module';
+import { AuthModule } from './auth/auth.module';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   imports: [
@@ -106,6 +115,9 @@ import { NotificationsModule } from './notifications/notifications.module';
           MedicalCondition,
           Report,
           Appointment,
+          Conversation,
+          ConversationParticipant,
+          Message,
           BlogPost,
           SystemLog,
         ];
@@ -136,6 +148,8 @@ import { NotificationsModule } from './notifications/notifications.module';
     }),
 
     NotificationsModule,
+    AuthModule,
+    PrivacyModule,
     ExamplesModule,
     UsersModule,
     TenantsModule,
@@ -143,6 +157,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     ChildrenModule,
     ReportsModule,
     AppointmentsModule,
+    MessagesModule,
     MasterDataModule,
     VerificationsModule,
     BlogModule,
@@ -150,6 +165,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     LeadsModule,
     FeatureRequestsModule,
     SystemLogsModule,
+    MetricsModule,
   ],
   controllers: [AppController],
   providers: [

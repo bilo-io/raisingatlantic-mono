@@ -1,9 +1,14 @@
-import type { CompletedVaccination, Vaccination } from "@raising-atlantic/types";
+import type {
+  CompletedMilestone,
+  CompletedVaccination,
+  GrowthRecord,
+  Vaccination,
+} from "@raising-atlantic/types";
 import { standardVaccinationSchedule } from "@raising-atlantic/types";
 import { Activity, Baby, Check, ShieldQuestion, Syringe, X } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import { View } from "react-native";
-import { useGrowthRecords, useMilestones, useVaccinations } from "../../lib/api/hooks";
+import { useChildRecordsAll } from "../../lib/api/hooks/adapter-hooks";
 import { useDecideRecordVerification } from "../../lib/api/hooks/verification-decisions";
 import { useTheme } from "../../theme/useTheme";
 import { Badge, Button, Card, EmptyState, Skeleton, Tabs, Text } from "../ui";
@@ -19,6 +24,9 @@ type TabKey = "growth" | "milestones" | "vaccinations";
 
 export function RecordsTabs({ childId, mode }: Props) {
   const [tab, setTab] = useState<TabKey>("growth");
+  // Shares the childrenKeys.records(childId) cache that record-entry mutations
+  // invalidate, so a clinician-logged record shows up here immediately.
+  const { data, isLoading } = useChildRecordsAll(childId);
 
   return (
     <View style={{ gap: 14 }}>
@@ -31,17 +39,29 @@ export function RecordsTabs({ childId, mode }: Props) {
           { value: "vaccinations", label: "Vaccinations" },
         ]}
       />
-      {tab === "growth" ? <GrowthList childId={childId} mode={mode} /> : null}
-      {tab === "milestones" ? <MilestonesList childId={childId} mode={mode} /> : null}
-      {tab === "vaccinations" ? <VaccinationsList childId={childId} mode={mode} /> : null}
+      {tab === "growth" ? (
+        <GrowthList rows={data?.growth ?? []} isLoading={isLoading} mode={mode} />
+      ) : null}
+      {tab === "milestones" ? (
+        <MilestonesList rows={data?.milestones ?? []} isLoading={isLoading} mode={mode} />
+      ) : null}
+      {tab === "vaccinations" ? (
+        <VaccinationsList rows={data?.vaccinations ?? []} isLoading={isLoading} mode={mode} />
+      ) : null}
     </View>
   );
 }
 
-function GrowthList({ childId, mode }: { childId: string; mode: Mode }) {
-  const { data, isLoading } = useGrowthRecords(childId);
+function GrowthList({
+  rows,
+  isLoading,
+  mode,
+}: {
+  rows: GrowthRecord[];
+  isLoading: boolean;
+  mode: Mode;
+}) {
   if (isLoading) return <SkeletonStack />;
-  const rows = data ?? [];
   if (rows.length === 0) {
     return <EmptyState Icon={Activity} title="No growth entries yet" />;
   }
@@ -68,10 +88,16 @@ function GrowthList({ childId, mode }: { childId: string; mode: Mode }) {
   );
 }
 
-function MilestonesList({ childId, mode }: { childId: string; mode: Mode }) {
-  const { data, isLoading } = useMilestones(childId);
+function MilestonesList({
+  rows,
+  isLoading,
+  mode,
+}: {
+  rows: CompletedMilestone[];
+  isLoading: boolean;
+  mode: Mode;
+}) {
   if (isLoading) return <SkeletonStack />;
-  const rows = data ?? [];
   if (rows.length === 0) {
     return <EmptyState Icon={Baby} title="No milestones logged yet" />;
   }
@@ -92,12 +118,18 @@ function MilestonesList({ childId, mode }: { childId: string; mode: Mode }) {
   );
 }
 
-function VaccinationsList({ childId, mode }: { childId: string; mode: Mode }) {
-  const { data, isLoading } = useVaccinations(childId);
-  if (isLoading) return <SkeletonStack />;
-  const completed = data ?? [];
-
+function VaccinationsList({
+  rows,
+  isLoading,
+  mode,
+}: {
+  rows: CompletedVaccination[];
+  isLoading: boolean;
+  mode: Mode;
+}) {
+  const completed = rows;
   const groups = useMemo(() => bucketEpiSchedule(completed), [completed]);
+  if (isLoading) return <SkeletonStack />;
 
   return (
     <View style={{ gap: 14 }}>

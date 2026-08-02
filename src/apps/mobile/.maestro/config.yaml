@@ -1,0 +1,19 @@
+# Maestro workspace config — Raising Atlantic mobile E2E smoke suite.
+#
+# Decision: ADR 0005 (docs/adr/0005-mobile-e2e-framework.md).
+# Flows run against a debug / dev-client build in MOCK mode (EXPO_PUBLIC_USE_API=false),
+# using synthetic fixture identities only — no real PII (POPIA).
+#
+# Run all flows in order:   maestro test src/apps/mobile/.maestro
+# Run the smoke subset:      maestro test src/apps/mobile/.maestro/flows --include-tags smoke
+#
+# These flows CANNOT be executed without a device/emulator; the CI job that runs them is
+# gated off by default (see .github/workflows/ci.yml → mobile-e2e).
+flows:
+  - "flows/*.yaml"
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - parent-core
+    - clinician-verify
+    - admin-triage

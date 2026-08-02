@@ -1,0 +1,44 @@
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import {
+  RequestWithAuth,
+  extractAccessToken,
+  resolveToken,
+} from './jwt-auth.guard';
+
+/**
+ * Strict authentication: rejects the request with 401 unless a valid access
+ * token is present (httpOnly cookie or Bearer header). Use on endpoints that
+ * require an authenticated session, e.g. GET /v1/auth/me.
+ */
+@Injectable()
+export class JwtVerifiedGuard implements CanActivate {
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest<RequestWithAuth>();
+    const token = extractAccessToken(request);
+    if (!token) {
+      throw new UnauthorizedException('Authentication required');
+    }
+    const payload = await resolveToken(
+      token,
+      this.jwtService,
+      this.configService,
+    );
+    if (!payload) {
+      throw new UnauthorizedException('Invalid or expired session');
+    }
+    request.user = payload;
+    return true;
+  }
+}

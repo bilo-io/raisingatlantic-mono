@@ -26,6 +26,22 @@ export class ClinicianProfile {
   @Column({ type: 'text', nullable: true })
   bio?: string;
 
+  // HPCSA (doctors) / SANC (nurses) registration numbers. Sensitive per POPIA —
+  // redacted in logs (see common/logging/redact-paths.ts) and flagged for
+  // field-level KMS encryption in Phase 5.3 before production.
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  hpcsaNumber?: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  sancNumber?: string;
+
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'verified', 'rejected'],
+    default: 'pending',
+  })
+  verificationStatus: 'pending' | 'verified' | 'rejected';
+
   @CreateDateColumn()
   createdAt: Date;
 

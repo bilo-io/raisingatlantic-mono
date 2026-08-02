@@ -1,56 +1,21 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { Child } from "@raising-atlantic/types";
+import type { Child, RecordSource } from "@raising-atlantic/types";
 import { Plus } from "lucide-react-native";
 import React, { useRef } from "react";
-import { useForm } from "react-hook-form";
 import { ScrollView, View } from "react-native";
-import { z } from "zod";
-import { BottomSheet, BottomSheetRef, Button, EmptyState, FormDateField, FormField, ListItem, Tabs, Text, toast } from "../ui";
-import { useGrowthRecordAdd, useChildRecordsAll } from "../../lib/api/hooks/adapter-hooks";
+import { Button, EmptyState, ListItem, Tabs, Text } from "../ui";
+import { useChildRecordsAll } from "../../lib/api/hooks/adapter-hooks";
 import { GrowthChart } from "./GrowthChart";
-
-const schema = z.object({
-  date: z.string().min(1, "Date is required"),
-  weight: z.string().optional(),
-  height: z.string().optional(),
-  headCircumference: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof schema>;
+import { GrowthEntrySheet, type GrowthEntrySheetHandle } from "./RecordEntrySheets";
 
 type Props = {
   child: Child;
+  source?: RecordSource;
 };
 
-export function GrowthTab({ child }: Props) {
+export function GrowthTab({ child, source }: Props) {
   const recordsQuery = useChildRecordsAll(child.id);
-  const addGrowth = useGrowthRecordAdd(child.id);
-  const sheetRef = useRef<BottomSheetRef>(null);
+  const sheetRef = useRef<GrowthEntrySheetHandle>(null);
   const [metric, setMetric] = React.useState<"weight-for-age" | "height-for-age">("weight-for-age");
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    mode: "onBlur",
-    defaultValues: { date: "", weight: "", height: "", headCircumference: "", notes: "" },
-  });
-
-  async function onSubmit(values: FormValues) {
-    try {
-      await addGrowth.mutateAsync({
-        date: values.date,
-        weight: values.weight || undefined,
-        height: values.height || undefined,
-        headCircumference: values.headCircumference || undefined,
-        notes: values.notes || undefined,
-      });
-      toast.success("Growth entry logged", { description: "Pending clinician review" });
-      form.reset({ date: "", weight: "", height: "", headCircumference: "", notes: "" });
-      sheetRef.current?.dismiss();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not save");
-    }
-  }
 
   const growth = (recordsQuery.data?.growth ?? []).slice().sort((a, b) => b.date.localeCompare(a.date));
 
@@ -67,7 +32,7 @@ export function GrowthTab({ child }: Props) {
       <GrowthChart records={growth} dateOfBirth={child.dateOfBirth} sex={child.gender as "male" | "female"} metric={metric} />
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <Text variant="bodyStrong">Entries</Text>
-        <Button label="Log entry" leftIcon={Plus} fullWidth={false} size="sm" onPress={() => sheetRef.current?.present()} />
+        <Button label="Log entry" leftIcon={Plus} fullWidth={false} size="sm" onPress={() => sheetRef.current?.open()} />
       </View>
       {growth.length === 0 ? (
         <EmptyState title="No growth entries yet" body="Log a weight or height measurement to start the chart." />
@@ -84,19 +49,7 @@ export function GrowthTab({ child }: Props) {
         </ScrollView>
       )}
 
-      <BottomSheet ref={sheetRef} snapPoints={["75%", "95%"]}>
-        <Text variant="heading" style={{ marginBottom: 12 }}>
-          Log growth entry
-        </Text>
-        <View style={{ gap: 12 }}>
-          <FormDateField name="date" control={form.control} label="Date" />
-          <FormField name="weight" control={form.control} label="Weight (kg)" keyboardType="decimal-pad" />
-          <FormField name="height" control={form.control} label="Height (cm)" keyboardType="decimal-pad" />
-          <FormField name="headCircumference" control={form.control} label="Head circumference (cm)" keyboardType="decimal-pad" />
-          <FormField name="notes" control={form.control} label="Notes" multiline />
-          <Button label="Save" onPress={form.handleSubmit(onSubmit)} loading={addGrowth.isPending} />
-        </View>
-      </BottomSheet>
+      <GrowthEntrySheet ref={sheetRef} childId={child.id} source={source} />
     </View>
   );
 }

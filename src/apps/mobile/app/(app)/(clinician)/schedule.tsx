@@ -1,11 +1,23 @@
-import type { Appointment } from "@raising-atlantic/types";
+import type { Appointment, UpdateAppointmentInput } from "@raising-atlantic/types";
 import { CalendarDays } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { useAuth } from "../../../auth/useAuth";
-import { Card, EmptyState, Screen, Tabs, Text } from "../../../components/ui";
+import {
+  Badge,
+  BottomSheet,
+  BottomSheetRef,
+  Button,
+  Card,
+  EmptyState,
+  Input,
+  KeyValueRow,
+  Screen,
+  Tabs,
+  Text,
+} from "../../../components/ui";
 import { useActivePractice } from "../../../context/ActivePracticeContext";
-import { useAppointments, useChild } from "../../../lib/api/hooks";
+import { useAppointments, useChild, useUpdateAppointment } from "../../../lib/api/hooks";
 
 type ScheduleView = "day" | "week";
 
@@ -17,6 +29,8 @@ export default function ScheduleScreen() {
   const { data = [], isLoading } = useAppointments();
   const [view, setView] = useState<ScheduleView>("day");
   const [day, setDay] = useState<Date>(startOfDay(new Date(NOW)));
+  const [selected, setSelected] = useState<Appointment | null>(null);
+  const visitSheetRef = useRef<BottomSheetRef>(null);
 
   const scoped = useMemo(() => {
     if (!user) return [] as Appointment[];
@@ -24,6 +38,11 @@ export default function ScheduleScreen() {
       (a) => a.clinicianId === user.id && (!practiceId || a.practiceId === practiceId),
     );
   }, [data, user, practiceId]);
+
+  function openVisit(appointment: Appointment) {
+    setSelected(appointment);
+    visitSheetRef.current?.present();
+  }
 
   return (
     <Screen scroll>
@@ -47,7 +66,7 @@ export default function ScheduleScreen() {
         {isLoading ? (
           <Text variant="muted">Loading schedule…</Text>
         ) : view === "day" ? (
-          <DayView day={day} appointments={scoped} />
+          <DayView day={day} appointments={scoped} onOpen={openVisit} />
         ) : (
           <WeekView
             anchor={day}
@@ -59,11 +78,21 @@ export default function ScheduleScreen() {
           />
         )}
       </View>
+
+      <VisitNoteSheet sheetRef={visitSheetRef} appointment={selected} />
     </Screen>
   );
 }
 
-function DayView({ day, appointments }: { day: Date; appointments: Appointment[] }) {
+function DayView({
+  day,
+  appointments,
+  onOpen,
+}: {
+  day: Date;
+  appointments: Appointment[];
+  onOpen: (appointment: Appointment) => void;
+}) {
   const dayKey = day.toISOString().slice(0, 10);
   const rows = appointments
     .filter((a) => a.scheduledAt.slice(0, 10) === dayKey)
@@ -75,7 +104,7 @@ function DayView({ day, appointments }: { day: Date; appointments: Appointment[]
       {rows.length === 0 ? (
         <EmptyState Icon={CalendarDays} title="No appointments" body="Nothing on the books for this day." />
       ) : (
-        rows.map((a) => <AppointmentCard key={a.id} appointment={a} />)
+        rows.map((a) => <AppointmentCard key={a.id} appointment={a} onOpen={onOpen} />)
       )}
     </View>
   );
@@ -119,23 +148,106 @@ function WeekView({
   );
 }
 
-function AppointmentCard({ appointment }: { appointment: Appointment }) {
+function AppointmentCard({
+  appointment,
+  onOpen,
+}: {
+  appointment: Appointment;
+  onOpen: (appointment: Appointment) => void;
+}) {
   const { data: child } = useChild(appointment.childId ?? undefined);
   return (
-    <Card>
-      <Text variant="bodyStrong">{formatTime(appointment.scheduledAt)}</Text>
-      <Text variant="muted" style={{ marginTop: 4 }}>
-        {child ? `${child.firstName} ${child.lastName}` : "Patient TBC"}
-      </Text>
-      {appointment.notes ? (
-        <Text variant="body" style={{ marginTop: 4 }}>
-          {appointment.notes}
+    <Pressable
+      onPress={() => onOpen(appointment)}
+      accessibilityRole="button"
+      accessibilityLabel={`Open visit note for ${child ? `${child.firstName} ${child.lastName}` : "patient"}`}
+      testID={`appointment-card-${appointment.id}`}
+    >
+      <Card>
+        <Text variant="bodyStrong">{formatTime(appointment.scheduledAt)}</Text>
+        <Text variant="muted" style={{ marginTop: 4 }}>
+          {child ? `${child.firstName} ${child.lastName}` : "Patient TBC"}
         </Text>
+        {appointment.notes ? (
+          <Text variant="body" style={{ marginTop: 4 }}>
+            {appointment.notes}
+          </Text>
+        ) : null}
+        <Text variant="caption" style={{ marginTop: 8 }}>
+          {appointment.status}
+        </Text>
+      </Card>
+    </Pressable>
+  );
+}
+
+// Record-of-visit entry (M2.4): patient summary + a visit note that writes back to the
+// appointment. Logging a note on a SCHEDULED visit marks it COMPLETED. Backed by the
+// appointments controller (PATCH) via useUpdateAppointment.
+function VisitNoteSheet({
+  sheetRef,
+  appointment,
+}: {
+  sheetRef: React.RefObject<BottomSheetRef | null>;
+  appointment: Appointment | null;
+}) {
+  const { data: child } = useChild(appointment?.childId ?? undefined);
+  const update = useUpdateAppointment();
+  const [note, setNote] = useState("");
+
+  useEffect(() => {
+    setNote(appointment?.notes ?? "");
+  }, [appointment?.id, appointment?.notes]);
+
+  function save() {
+    if (!appointment) return;
+    const patch: UpdateAppointmentInput = {
+      notes: note.trim() || undefined,
+      status: appointment.status === "SCHEDULED" ? "COMPLETED" : appointment.status,
+    };
+    update.mutate(
+      { id: appointment.id, patch },
+      { onSuccess: () => sheetRef.current?.dismiss() },
+    );
+  }
+
+  return (
+    <BottomSheet ref={sheetRef} snapPoints={["55%", "85%"]}>
+      {appointment ? (
+        <View style={{ gap: 12 }}>
+          <View>
+            <Text variant="heading">Visit note</Text>
+            <Text variant="muted" style={{ marginTop: 4 }}>
+              {child ? `${child.firstName} ${child.lastName}` : "Patient TBC"} · {formatTime(appointment.scheduledAt)}
+            </Text>
+          </View>
+          <View>
+            <KeyValueRow label="Status" value={appointment.status} />
+            {child ? (
+              <KeyValueRow
+                label="Date of birth"
+                value={new Date(child.dateOfBirth).toLocaleDateString()}
+              />
+            ) : null}
+          </View>
+          <Input
+            label="Record of visit"
+            placeholder="Summarise the visit — findings, actions taken, follow-up."
+            value={note}
+            onChangeText={setNote}
+            multiline
+            testID="visit-note-input"
+          />
+          <Button
+            label="Save visit note"
+            onPress={save}
+            loading={update.isPending}
+            testID="visit-note-save"
+          />
+          <Badge label="Clinician-logged · auto-verified" variant="muted" />
+        </View>
       ) : null}
-      <Text variant="caption" style={{ marginTop: 8 }}>
-        {appointment.status}
-      </Text>
-    </Card>
+    </BottomSheet>
   );
 }
 
