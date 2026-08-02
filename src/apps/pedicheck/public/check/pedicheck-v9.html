@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PediCheck — Paediatric Dosing</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --seafoam:#7FC9D9; --teal:#3F9FB8; --teal-deep:#1F6F8A;
+  --slate:#2B3A45; --cream:#FBF7F2; --cream2:#f4ede2;
+  --bg:#FBF7F2; --card:#fff; --border:#ece4d6; --border2:#e0e6ea;
+  --sub:#6b7a84; --text:#2B3A45; --fog:#f3f6f8;
+  --ok:#2d8a6d; --ok-bg:#e6f5ee; --warn:#c47f2b; --warn-bg:#fbf1e2;
+  --stop:#c0483d; --stop-bg:#fbeae8;
+}
+body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+header { background:var(--slate); padding:0 20px; position:relative; overflow:hidden; }
+header::before { content:''; position:absolute; width:220px;height:220px;
+  background:radial-gradient(circle,rgba(63,159,184,0.28) 0%,transparent 70%); top:-70px;right:-50px; }
+.header-inner { display:flex;align-items:center;justify-content:space-between;padding:15px 0 14px;position:relative;z-index:1; }
+.header-left { display:flex;align-items:center;gap:11px; }
+.wordmark { font-family:'DM Sans',sans-serif;font-size:21px;font-weight:700;letter-spacing:-0.3px;line-height:1; }
+.wordmark .pedi{color:#fff;} .wordmark .check{color:var(--seafoam);}
+.header-tag { font-size:8px;font-weight:600;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;margin-top:4px; }
+.preview-chip { font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--seafoam);border:1px solid rgba(127,201,217,0.4);border-radius:20px;padding:4px 10px; }
+.header-right { display:flex; align-items:center; gap:10px; }
+.home-link { font-size:11.5px;font-weight:600;color:var(--seafoam);text-decoration:none;opacity:0.85; }
+.home-link:hover { opacity:1; }
+.weight-hero { background:var(--card);padding:20px 20px 16px;border-bottom:1px solid var(--border); }
+.weight-label { font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--sub);margin-bottom:10px; }
+.weight-row { display:flex;align-items:center;gap:14px; }
+.weight-input-wrap { display:flex;align-items:baseline;gap:6px;background:var(--fog);border:2px solid var(--border2);border-radius:14px;padding:8px 14px;transition:.2s;flex:1;max-width:130px; }
+.weight-input-wrap input { font-size:28px; }
+.weight-row { display:flex;align-items:center;gap:8px;flex-wrap:wrap; }
+.weight-input-wrap:focus-within { border-color:var(--teal);background:#eef7fa; }
+.weight-input-wrap input { border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:32px;font-weight:300;color:var(--text);width:100%;outline:none;-moz-appearance:textfield;line-height:1; }
+.weight-input-wrap input::-webkit-outer-spin-button,.weight-input-wrap input::-webkit-inner-spin-button{-webkit-appearance:none;}
+.weight-kg { font-size:13px;font-weight:600;color:var(--sub);padding-bottom:3px; }
+.weight-confirm { opacity:0;transform:translateX(-6px);transition:.25s;font-size:12px;font-weight:700;color:var(--teal-deep);background:#eef7fa;border:1px solid rgba(63,159,184,0.3);border-radius:20px;padding:6px 14px;white-space:nowrap; }
+.weight-confirm.show { opacity:1;transform:translateX(0); }
+.tabs-wrap { position:relative; background:var(--card); border-bottom:1px solid var(--border); }
+.tabs-wrap::after {
+  content:''; position:absolute; top:0; right:0; bottom:0; width:36px;
+  background:linear-gradient(90deg, rgba(255,255,255,0) 0%, var(--card) 85%);
+  pointer-events:none; z-index:2;
+}
+.tabs-wrap::before {
+  content:'›'; position:absolute; top:50%; right:8px; transform:translateY(-55%);
+  font-size:20px; font-weight:700; color:var(--teal); z-index:3;
+  pointer-events:none; animation:nudge 1.6s ease-in-out infinite;
+}
+.tabs-wrap.scrolled-end::after,
+.tabs-wrap.scrolled-end::before { opacity:0; transition:opacity .2s; }
+@keyframes nudge { 0%,100%{transform:translateY(-55%) translateX(0);} 50%{transform:translateY(-55%) translateX(3px);} }
+.tabs { background:var(--card);display:flex;overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent; }
+.tabs::-webkit-scrollbar{height:3px;}
+.tabs::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.tab { padding:13px 16px;font-size:11px;font-weight:600;color:var(--sub);cursor:pointer;white-space:nowrap;border-bottom:2.5px solid transparent;transition:.18s; }
+.tab.active { color:var(--slate);border-bottom-color:var(--teal); }
+.content { padding:18px 14px 40px;max-width:580px;margin:0 auto; }
+.drug-card { background:var(--card);border-radius:20px;border:1px solid var(--border);overflow:hidden;box-shadow:0 4px 24px rgba(43,58,69,0.06);margin-bottom:14px; }
+.drug-band { height:5px; }
+.band-antipyretic{background:linear-gradient(90deg,var(--teal-deep),var(--teal));}
+.band-nsaid{background:linear-gradient(90deg,var(--teal),var(--seafoam));}
+.band-fenamate{background:linear-gradient(90deg,#4a7a8f,#7FC9D9);}
+.drug-header { padding:16px 20px 14px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--border); }
+.drug-name { font-family:'DM Sans',sans-serif;font-size:22px;font-weight:700;color:var(--slate);line-height:1; }
+.drug-sub { font-size:11px;color:var(--sub);margin-top:4px; }
+.drug-pill { font-size:9px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;padding:4px 10px;border-radius:20px;margin-left:10px;white-space:nowrap;margin-top:2px; }
+.pill-antipyretic{background:#e0f2f6;color:var(--teal-deep);}
+.pill-nsaid{background:#e8f5f9;color:#2d7d96;}
+.pill-fenamate{background:#eaf4f7;color:#4a7a8f;}
+.dose-hero { padding:20px 20px 0;display:flex;align-items:flex-end;gap:6px; }
+.dose-number { font-family:'DM Sans',sans-serif;font-size:64px;font-weight:700;color:var(--slate);line-height:1;letter-spacing:-2px; }
+.dose-unit-stack { padding-bottom:10px;display:flex;flex-direction:column;gap:2px; }
+.dose-unit { font-size:14px;font-weight:700;color:var(--teal); }
+.dose-per-kg { font-size:11px;color:var(--sub); }
+.stats-row { display:flex;padding:14px 20px;border-bottom:1px solid var(--border); }
+.stat { flex:1;padding-right:16px;border-right:1px solid var(--border);margin-right:16px; }
+.stat:last-child{border-right:none;margin-right:0;padding-right:0;}
+.stat-label { font-size:9px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--sub);margin-bottom:4px; }
+.stat-value { font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:var(--slate); }
+.products-section { padding:14px 20px 0; }
+.products-heading { font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--sub);margin-bottom:10px; }
+.product-item { display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--fog);border-radius:12px;border:1px solid var(--border2);margin-bottom:7px; }
+.p-name { font-size:13px;font-weight:600;color:var(--slate); }
+.p-conc { font-size:10px;color:var(--sub);margin-top:2px; }
+.p-vol { text-align:right;display:flex;flex-direction:column;align-items:flex-end; }
+.p-ml { font-family:'DM Sans',sans-serif;font-size:22px;font-weight:700;color:var(--teal);line-height:1; }
+.p-ml-unit { font-size:10px;color:var(--sub);margin-top:1px; }
+.supp-item { display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:linear-gradient(135deg,#eaf4f7,var(--fog));border-radius:12px;border:1px dashed var(--border2);margin-bottom:7px; }
+.supp-tag { font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--teal);margin-bottom:3px; }
+.supp-name-text { font-size:13px;font-weight:600;color:var(--slate); }
+.supp-strength-val { font-family:'DM Sans',sans-serif;font-size:22px;font-weight:700;color:var(--teal-deep); }
+.caution-bar { margin:14px 20px;background:var(--cream2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:11px;color:#7a6a52;line-height:1.55;display:flex;gap:8px;align-items:flex-start; }
+.caution-bar .ci{flex-shrink:0;margin-top:1px;font-size:13px;}
+.warn-bar { margin:0 0 8px;background:#eef7fa;border:1px solid var(--seafoam);border-radius:10px;padding:9px 12px;font-size:11px;color:var(--teal-deep);display:flex;gap:8px;align-items:flex-start;line-height:1.5; }
+.empty-block { padding:32px 20px;text-align:center; }
+.empty-prompt { width:48px;height:48px;border-radius:50%;background:#eef7fa;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:20px; }
+.empty-text { font-size:13px;color:var(--sub); }
+.log-dose-btn { margin:14px 20px 0; width:calc(100% - 40px); background:var(--teal); color:white; border:none; border-radius:12px; padding:13px; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.3px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:.15s; }
+.log-dose-btn:active { transform:scale(0.98); background:var(--teal-deep); }
+.log-dose-btn:disabled { background:#c8d2d6; cursor:not-allowed; }
+.sched-intro { background:linear-gradient(135deg,#eaf4f7,#f2f9fb); border:1px solid #d5e8ee; border-radius:16px; padding:16px 18px; margin-bottom:12px; }
+.sched-intro-title { font-size:14px;font-weight:700;color:var(--slate);margin-bottom:4px; }
+.sched-intro-sub { font-size:11px;color:var(--sub);line-height:1.55; }
+.status-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px 16px; margin-bottom:10px; }
+.status-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:12px; }
+.status-drug { font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;color:var(--slate); }
+.status-drug small { font-size:11px;font-weight:400;color:var(--sub); }
+.pips-row { display:flex;align-items:center;gap:8px;margin-bottom:12px; }
+.pips { display:flex;gap:5px; }
+.pip { width:22px;height:22px;border-radius:7px;background:var(--fog);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--sub); }
+.pip.used { background:var(--teal);border-color:var(--teal);color:white; }
+.pip.used.full { background:var(--stop);border-color:var(--stop); }
+.pips-label { font-size:10px;color:var(--sub);font-weight:600; }
+.pips-count { font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--slate);margin-left:auto; }
+.next-status { border-radius:12px; padding:12px 14px; display:flex;align-items:center;gap:10px; font-size:12px; line-height:1.4; margin-bottom:10px; }
+.next-status.ok { background:var(--ok-bg);color:var(--ok);border:1px solid #b6e0cc; }
+.next-status.wait { background:var(--warn-bg);color:var(--warn);border:1px solid #ecd3a8; }
+.next-status.stop { background:var(--stop-bg);color:var(--stop);border:1px solid #ecc0ba; }
+.next-status .ns-icon { font-size:16px;flex-shrink:0; }
+.next-status .ns-main { font-weight:700; }
+.next-status .ns-sub { font-weight:500;opacity:0.85;font-size:11px;margin-top:1px; }
+.hist-label { font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin:4px 0 8px; }
+.hist-item { display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--fog);border-radius:9px;margin-bottom:5px; }
+.hist-time { font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--slate); }
+.hist-ago { font-size:10px;color:var(--sub);margin-top:1px; }
+.hist-del { background:none;border:none;color:var(--sub);cursor:pointer;font-size:15px;padding:4px 8px;border-radius:6px; }
+.hist-del:active { background:#e8e0d2; }
+.hist-empty { font-size:11px;color:var(--sub);font-style:italic;padding:6px 0; }
+.combo-note { background:#e6f5ee;border:1px solid #b6e0cc;border-radius:12px; padding:11px 14px;font-size:11px;color:var(--ok);line-height:1.5; display:flex;gap:8px;align-items:flex-start;margin-bottom:12px; }
+.clear-log { width:100%;background:none;border:1px solid var(--border2);color:var(--sub); border-radius:10px;padding:10px;font-size:11px;font-weight:600;cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;margin-top:2px; }
+.clear-log:active { background:var(--fog); }
+.max-note { background:var(--warn-bg);border:1px solid #ecd3a8;border-radius:12px;padding:11px 14px;font-size:11px;color:var(--warn);line-height:1.5;display:flex;gap:8px;align-items:flex-start;margin-bottom:12px; }
+.layer-toggle { display:flex;background:var(--card);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px; }
+.layer-btn { flex:1;padding:12px 10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;color:var(--sub);cursor:pointer;border:none;background:transparent;transition:.2s; }
+.layer-btn.active { background:var(--slate);color:white; }
+.layer-btn:first-child{border-radius:12px 0 0 12px;} .layer-btn:last-child{border-radius:0 12px 12px 0;}
+.layer-intro { border-radius:16px;padding:16px 18px;margin-bottom:10px; }
+.layer-intro.standard { background:linear-gradient(135deg,#eaf4f7,#f2f9fb);border:1px solid #d5e8ee; }
+.layer-intro.acp { background:var(--slate); }
+.layer-intro-title { font-size:14px;font-weight:700;color:var(--slate);margin-bottom:4px; }
+.layer-intro.acp .layer-intro-title{color:white;}
+.layer-intro-sub { font-size:11px;color:var(--sub);line-height:1.55; }
+.layer-intro.acp .layer-intro-sub{color:rgba(255,255,255,0.5);}
+.p-card { background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start; }
+.p-card.acp { background:#f7fbfc;border-color:#d5e8ee; }
+.p-icon { width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0; }
+.p-title { font-size:13px;font-weight:700;color:var(--slate);margin-bottom:4px;line-height:1.3; }
+.p-body { font-size:11px;color:var(--sub);line-height:1.65; }
+.ra-footer { background:var(--slate);border-radius:16px;padding:16px 18px;display:flex;gap:12px;align-items:center;margin-top:6px; }
+.ra-footer-copy { font-size:10px;color:rgba(255,255,255,0.4);line-height:1.6; }
+.ra-footer-copy strong{color:rgba(255,255,255,0.75);font-weight:600;}
+</style>
+<style id="pc-gate-styles">
+  #pc-gate-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(31, 43, 51, 0.72);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: flex-end; justify-content: center;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 0;
+  }
+  @media (min-width: 560px) {
+    #pc-gate-overlay { align-items: center; padding: 20px; }
+  }
+  .pc-gate-card {
+    background: #FBF7F2;
+    width: 100%; max-width: 460px;
+    max-height: 92vh; overflow-y: auto;
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -8px 40px rgba(43,58,69,0.25);
+  }
+  @media (min-width: 560px) {
+    .pc-gate-card { border-radius: 24px; box-shadow: 0 20px 60px rgba(43,58,69,0.35); }
+  }
+  .pc-gate-head {
+    background: #2B3A45;
+    padding: 26px 26px 22px;
+    border-radius: 24px 24px 0 0;
+    position: relative; overflow: hidden;
+  }
+  .pc-gate-head::before {
+    content: ''; position: absolute; width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(63,159,184,0.32) 0%, transparent 70%);
+    top: -60px; right: -40px;
+  }
+  .pc-gate-brand { display: flex; align-items: center; gap: 10px; position: relative; z-index: 1; }
+  .pc-gate-wordmark { font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
+  .pc-gate-wordmark span { color: #7FC9D9; }
+  .pc-gate-title {
+    font-family: 'DM Sans', sans-serif; font-size: 21px; font-weight: 700;
+    color: #fff; margin-top: 14px; position: relative; z-index: 1;
+  }
+  .pc-gate-sub {
+    font-size: 12.5px; color: rgba(255,255,255,0.6); line-height: 1.55;
+    margin-top: 6px; position: relative; z-index: 1;
+  }
+  .pc-gate-body { padding: 22px 24px 24px; }
+  .pc-gate-notice {
+    font-size: 12px; line-height: 1.6; color: #6b7a84;
+    background: #eef7fa; border: 1px solid rgba(63,159,184,0.25);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 18px;
+  }
+  .pc-gate-check-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 13px 0; border-bottom: 1px solid #ece4d6;
+  }
+  .pc-gate-check-row:last-of-type { border-bottom: none; }
+  .pc-gate-check-row input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px;
+    border: 2px solid #c8d2d6; border-radius: 7px;
+    cursor: pointer; position: relative; transition: .15s;
+    background: #fff;
+  }
+  .pc-gate-check-row input[type="checkbox"]:checked {
+    background: #3F9FB8; border-color: #3F9FB8;
+  }
+  .pc-gate-check-row input[type="checkbox"]:checked::after {
+    content: ''; position: absolute; left: 6px; top: 2px;
+    width: 6px; height: 11px;
+    border: solid #fff; border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+  }
+  .pc-gate-check-row input[type="checkbox"]:focus-visible {
+    outline: 2px solid #1F6F8A; outline-offset: 2px;
+  }
+  .pc-gate-check-row label {
+    font-size: 13.5px; line-height: 1.5; color: #2B3A45; cursor: pointer;
+  }
+  .pc-gate-links { margin: 16px 0 4px; font-size: 12px; color: #6b7a84; }
+  .pc-gate-links a { color: #1F6F8A; font-weight: 600; text-decoration: none; }
+  .pc-gate-links a:hover { text-decoration: underline; }
+  .pc-gate-continue {
+    width: 100%; margin-top: 18px;
+    background: #c8d2d6; color: #fff; border: none; border-radius: 14px;
+    padding: 15px; font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.2px;
+    cursor: not-allowed; transition: .18s;
+  }
+  .pc-gate-continue.pc-gate-ready {
+    background: #3F9FB8; cursor: pointer;
+  }
+  .pc-gate-continue.pc-gate-ready:active { background: #1F6F8A; transform: scale(0.99); }
+  .pc-gate-emergency {
+    margin-top: 14px; font-size: 11.5px; line-height: 1.6; color: #8a5a2e;
+    background: #fbf1e2; border: 1px solid #ecd3a8; border-radius: 12px;
+    padding: 10px 13px;
+  }
+  body.pc-gate-locked { overflow: hidden; }
+</style>
+</head>
+<body>
+
+<div id="pc-gate-overlay">
+  <div class="pc-gate-card">
+    <div class="pc-gate-head">
+      <div class="pc-gate-brand">
+        <svg width="26" height="26" viewBox="0 0 40 40" fill="none">
+          <defs><linearGradient id="pcg" x1="20" y1="6" x2="20" y2="36" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#7FC9D9"/><stop offset="100%" stop-color="#1F6F8A"/>
+          </linearGradient></defs>
+          <path d="M20 35 C20 35 5 25 5 15.5 C5 10.8 8.8 7 13.5 7 C16.3 7 18.7 8.5 20 10.8 C21.3 8.5 23.7 7 26.5 7 C31.2 7 35 10.8 35 15.5 C35 25 20 35 20 35Z" fill="url(#pcg)"/>
+          <path d="M13.5 18.5 L18 23 L27 13.5" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <div class="pc-gate-wordmark">Pedi<span>Check</span></div>
+      </div>
+      <div class="pc-gate-title">Before you start</div>
+      <div class="pc-gate-sub">Please read and confirm the four points below. This takes about ten seconds and only appears once.</div>
+    </div>
+
+    <div class="pc-gate-body">
+      <div class="pc-gate-notice">
+        <strong>PediCheck is a guide, not a prescription.</strong> It supports — but does not replace — assessment by a qualified healthcare professional.
+      </div>
+
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c1">
+        <label for="pc-gate-c1">I understand PediCheck provides general guidance only, and does not give medical advice, diagnosis or treatment.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c2">
+        <label for="pc-gate-c2">I understand I must confirm every dose or decision against the product packaging and a healthcare professional.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c3">
+        <label for="pc-gate-c3">I understand PediCheck is not a substitute for consulting a doctor, and that I use it at my own risk.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c4">
+        <label for="pc-gate-c4">I confirm I am 18 or older and am the parent or legal guardian of the child, or am authorised to act for them.</label>
+      </div>
+
+      <div class="pc-gate-links">
+        Read the full <a href="/terms" target="_blank" rel="noopener">Terms of Use</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Notice</a>.
+      </div>
+
+      <button class="pc-gate-continue" id="pc-gate-continue-btn" disabled>Continue</button>
+
+      <div class="pc-gate-emergency">
+        If your child is very unwell, difficult to wake, struggling to breathe, or is under 3 months old with a fever — don't use this app. Call <strong>10177</strong> (ambulance) or <strong>112</strong> from a mobile, or go to your nearest emergency department now.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<header>
+  <div class="header-inner">
+    <div class="header-left">
+      <svg width="34" height="34" viewBox="0 0 40 40" fill="none">
+        <defs><linearGradient id="hg" x1="20" y1="6" x2="20" y2="36" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#7FC9D9"/><stop offset="100%" stop-color="#1F6F8A"/></linearGradient></defs>
+        <path d="M20 35 C20 35 5 25 5 15.5 C5 10.8 8.8 7 13.5 7 C16.3 7 18.7 8.5 20 10.8 C21.3 8.5 23.7 7 26.5 7 C31.2 7 35 10.8 35 15.5 C35 25 20 35 20 35Z" fill="url(#hg)"/>
+        <path d="M13.5 18.5 L18 23 L27 13.5" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <div>
+        <div class="wordmark"><span class="pedi">Pedi</span><span class="check">Check</span></div>
+        <div class="header-tag">Paediatric care, checked</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <a class="home-link" href="index.html">&larr; All tools</a>
+      <div class="preview-chip">Preview</div>
+    </div>
+  </div>
+</header>
+<div class="weight-hero">
+  <div class="weight-label">Child's weight</div>
+  <div class="weight-row">
+    <div class="weight-input-wrap">
+      <input type="number" id="weightInput" placeholder="—" min="3" max="60" step="0.5" oninput="onWeightChange()">
+      <span class="weight-kg">kg</span>
+    </div>
+  </div>
+</div>
+<div class="tabs-wrap" id="tabsWrap">
+<div class="tabs" id="tabsScroll">
+  <div class="tab active" onclick="switchTab('paracetamol',this)">Paracetamol</div>
+  <div class="tab" onclick="switchTab('ibuprofen',this)">Ibuprofen</div>
+  <div class="tab" onclick="switchTab('mefenamic',this)">Mefenamic Acid</div>
+  <div class="tab" onclick="switchTab('diclofenac',this)">Diclofenac</div>
+  <div class="tab" onclick="switchTab('schedule',this)">Log</div>
+  <div class="tab" onclick="switchTab('principles',this)">Fever Guide</div>
+</div>
+</div>
+<div class="content" id="mainContent"></div>
+<script>
+const DRUGS = {
+  paracetamol: {
+    name:"Paracetamol", trade:"Panado", sub:"Fever & pain relief",
+    pill:"Antipyretic", pillClass:"pill-antipyretic", band:"band-antipyretic",
+    doseRange:"10–15", dosePerKg:15, absoluteMax:1000, minWeight:3,
+    frequency:"Every 4–6 hrs", freqNote:"Max 4 doses / 24h",
+    minGapHrs:3.5, maxDaily:4, trackable:true,
+    caution:"Higher or more frequent dosing increases risk of liver toxicity.",
+    products:[
+      { name:"Drops", conc:100, concLabel:"100 mg / mL", unitVol:1 },
+      { name:"Syrup / Suspension (Panado)", conc:120, concLabel:"120 mg / 5 mL", unitVol:5 },
+    ],
+    suppLogic:(mg)=>{ if(mg<=150)return{note:"125 mg"}; if(mg<=325)return{note:"250 mg"}; return{note:"500 mg"}; },
+    suppName:"Paracetamol (Empaped / Pyracet)", ageNote:null,
+  },
+  ibuprofen: {
+    name:"Ibuprofen", trade:"Nurofen", sub:"Fever & pain relief",
+    pill:"NSAID", pillClass:"pill-nsaid", band:"band-nsaid",
+    doseRange:"5–10", dosePerKg:10, absoluteMax:400, minWeight:5,
+    frequency:"Every 6–8 hrs", freqNote:"Max 3 doses / 24h",
+    minGapHrs:5.5, maxDaily:3, trackable:true,
+    caution:"Use with caution if child is dehydrated, vomiting, or has kidney concerns.",
+    products:[
+      { name:"Ibuprofen (Nurofen for Children)", conc:100, concLabel:"100 mg / 5 mL", unitVol:5 },
+      { name:"Ibuprofen (Brufen Suspension)", conc:100, concLabel:"100 mg / 5 mL", unitVol:5 },
+    ],
+    suppLogic:null, ageNote:"Not for infants under 3 months",
+  },
+  mefenamic: {
+    name:"Mefenamic Acid", trade:"Ponstan", sub:"Pain ± fever — second-line",
+    pill:"Fenamate", pillClass:"pill-fenamate", band:"band-fenamate",
+    doseRange:"6.5", dosePerKg:6.5, absoluteMax:500, minWeight:10,
+    frequency:"Every 8 hrs", freqNote:"Max 3 doses / 24h",
+    minGapHrs:6, maxDaily:3, trackable:false,
+    caution:"Second-line agent — not routine fever care. Use deliberately for specific pain contexts.",
+    products:[ { name:"Mefenamic Acid (Ponstan Suspension)", conc:50, concLabel:"50 mg / 5 mL", unitVol:5 } ],
+    suppLogic:null, ageNote:"Generally from ~6 months — confirm per clinical context",
+  },
+  diclofenac: {
+    name:"Diclofenac", trade:"Panamor", sub:"Pain & inflammation",
+    pill:"NSAID", pillClass:"pill-nsaid", band:"band-nsaid",
+    doseRange:"~1", dosePerKg:1, absoluteMax:50, minWeight:8,
+    frequency:"Every 8–12 hrs", freqNote:"Max 3 doses / 24h",
+    minGapHrs:8, maxDaily:3, trackable:false,
+    caution:"Selective use — not routine fever care. Suppository route only in this weight range.",
+    products:[],
+    suppLogic:(mg,w)=>{ if(w<8||w>25)return null; if(mg<=15)return{note:"12.5 mg"}; return{note:"25 mg"}; },
+    suppName:"Diclofenac (Voltaren / Panamor)", ageNote:"⚠ Suppository (Voltaren 12.5 / 25 mg): weight range 8–25 kg only",
+  },
+};
+const STANDARD_CARDS = [
+  { icon:"⚖️", bg:"#eaf4f7", title:"Dose by weight — not age", body:"Use your child's weight in kg to guide dosing. Age-based estimates can be inaccurate." },
+  { icon:"👁️", bg:"#e6f3f0", title:"Treat the child, not the number", body:"Consider medication based on comfort, behaviour, and overall distress — not temperature alone." },
+  { icon:"💊", bg:"#f3f6f8", title:"Start with one medicine", body:"Paracetamol or ibuprofen are usually used individually. Many children respond well to one medicine." },
+  { icon:"🕐", bg:"#f6f0e6", title:"Spacing matters", body:"Give medicines at appropriate intervals. Avoid giving doses too close together." },
+  { icon:"📋", bg:"#f3f6f8", title:"Keep track of doses", body:"Note timing and amounts given. This helps avoid exceeding safe limits." },
+  { icon:"🚨", bg:"#fbeaea", title:"Know when to get help", body:"Seek medical care if your child is very unwell, difficult to wake, struggling to breathe, or under 3 months with fever." },
+  { icon:"⚠️", bg:"#f6f0e6", title:"Some medicines are not first-line for fever", body:"Mefenamic acid and diclofenac are typically used in more specific situations." },
+];
+const ACP_CARDS = [
+  { icon:"🌡️", bg:"#eaf4f7", title:"When fever is higher and distress is significant", body:"In some children, particularly with higher fevers, a single medicine may not provide sufficient relief." },
+  { icon:"🤝", bg:"#e6f3f0", title:"Initial combination may be considered", body:"A doctor may sometimes advise giving paracetamol and ibuprofen together initially to improve comfort more effectively." },
+  { icon:"💡", bg:"#eef4f0", title:"Why this approach is used", body:"Improving comfort early may reduce repeated dosing and help settle feeding, sleep, and behaviour." },
+  { icon:"➡️", bg:"#f3f6f8", title:"What happens next", body:"After initial control, medicines are usually continued individually with appropriate spacing." },
+  { icon:"🎯", bg:"#f6f0e6", title:"This approach is individualised", body:"Not all children need combination treatment. Response and clinical context guide decisions." },
+  { icon:"🛡️", bg:"#e6f3ee", title:"Safety remains essential", body:"Each medicine must still stay within its own safe dosing limits and correct timing intervals." },
+];
+let currentWeight=null, currentTab="paracetamol", principleLayer="standard";
+let doseLog = { paracetamol:[], ibuprofen:[] };
+
+function onWeightChange(){
+  const wv=parseFloat(document.getElementById("weightInput").value);
+  currentWeight=(wv>0&&wv<=80)?wv:null;
+  render();
+}
+function switchTab(tab,el){ currentTab=tab; document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); el.classList.add("active"); render(); }
+function switchLayer(l){ principleLayer=l; render(); }
+function logDose(drugKey){ doseLog[drugKey].push(Date.now()); doseLog[drugKey].sort((a,b)=>a-b); render(); }
+function deleteDose(drugKey, ts){ doseLog[drugKey]=doseLog[drugKey].filter(t=>t!==ts); render(); }
+function clearLog(){ doseLog={paracetamol:[],ibuprofen:[]}; render(); }
+function dosesIn24h(drugKey){ const cutoff=Date.now()-24*3600*1000; return doseLog[drugKey].filter(t=>t>=cutoff); }
+function doseStatus(drugKey){
+  const drug=DRUGS[drugKey];
+  const recent=dosesIn24h(drugKey);
+  const count=recent.length;
+  const atMax = count>=drug.maxDaily;
+  return { count, max:drug.maxDaily, atMax };
+}
+function fmtTime(ms){ const d=new Date(ms); let h=d.getHours(),m=d.getMinutes(); const ap=h>=12?"pm":"am"; h=h%12||12; return `${h}:${String(m).padStart(2,"0")}${ap}`; }
+function fmtDelta(ms){ if(ms<0)ms=0; const mins=Math.round(ms/60000); if(mins<60)return `${mins} min`; const h=Math.floor(mins/60),m=mins%60; return m? `${h}h ${m}m` : `${h}h`; }
+const WARN_SVG=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+function render(){
+  const c=document.getElementById("mainContent");
+  if(currentTab==="principles"){ c.innerHTML=renderPrinciples(); return; }
+  if(currentTab==="schedule"){ c.innerHTML=renderSchedule(); return; }
+  c.innerHTML=renderDrug(DRUGS[currentTab], currentTab);
+}
+function renderDrug(drug, key){
+  const w=currentWeight;
+  const headHtml=`<div class="drug-band ${drug.band}"></div><div class="drug-header"><div><div class="drug-name">${drug.name}</div><div class="drug-sub">${drug.sub}</div></div><span class="drug-pill ${drug.pillClass}">${drug.pill}</span></div>`;
+  if(!w) return `<div class="drug-card">${headHtml}<div class="empty-block"><div class="empty-prompt">⚖️</div><div class="empty-text">Enter weight above to calculate dose</div></div></div>`;
+  if(w<drug.minWeight) return `<div class="drug-card">${headHtml}<div class="empty-block"><div class="empty-prompt">🚫</div><div class="empty-text">Not indicated below ${drug.minWeight} kg</div></div></div>`;
+  const rawDose=w*drug.dosePerKg, dose=Math.min(rawDose,drug.absoluteMax), capped=rawDose>drug.absoluteMax;
+  let warns="";
+  if(drug.ageNote) warns+=`<div class="warn-bar">${WARN_SVG} ${drug.ageNote}</div>`;
+  if(capped) warns+=`<div class="warn-bar">${WARN_SVG} Dose capped at ${drug.absoluteMax} mg &nbsp;(calculated: ${rawDose.toFixed(0)} mg)</div>`;
+  const prods=drug.products.map(p=>{ const vol=((dose/p.conc)*p.unitVol).toFixed(1);
+    return `<div class="product-item"><div><div class="p-name">${p.name}</div><div class="p-conc">${p.concLabel}</div></div><div class="p-vol"><div class="p-ml">${vol}</div><div class="p-ml-unit">mL</div></div></div>`; }).join("");
+  let supp="";
+  if(drug.suppLogic){ const s=drug.suppLogic(dose,w); if(s) supp=`<div class="supp-item"><div><div class="supp-tag">Rectal</div><div class="supp-name-text">${drug.suppName} Suppository</div></div><div class="supp-strength-val">${s.note}</div></div>`; }
+  const hasProducts=drug.products.length>0||supp;
+  return `<div class="drug-card">${headHtml}
+    ${warns?`<div style="padding:14px 20px 0">${warns}</div>`:""}
+    <div class="dose-hero"><div class="dose-number">${dose.toFixed(0)}</div><div class="dose-unit-stack"><div class="dose-unit">mg</div><div class="dose-per-kg">${drug.doseRange} mg/kg</div></div></div>
+    <div class="stats-row"><div class="stat"><div class="stat-label">Frequency</div><div class="stat-value">${drug.frequency}</div></div><div class="stat"><div class="stat-label">Daily limit</div><div class="stat-value">${drug.freqNote}</div></div></div>
+    ${hasProducts?`<div class="products-section"><div class="products-heading">SA Products</div>${prods}${supp}</div>`:""}
+    <div class="caution-bar"><span class="ci">💬</span>${drug.caution}</div>
+  </div>`;
+}
+function renderSchedule(){
+  const keys=["paracetamol","ibuprofen"];
+  const cards=keys.map(key=>{
+    const drug=DRUGS[key];
+    const st=doseStatus(key);
+    const count=st.count;
+    let pips="";
+    for(let i=0;i<drug.maxDaily;i++){
+      const used=i<count;
+      const full=used&&st.atMax;
+      pips+=`<div class="pip ${used?'used':''} ${full?'full':''}">${used?'✓':''}</div>`;
+    }
+    const allDoses=[...doseLog[key]].sort((a,b)=>b-a);
+    let hist = allDoses.length
+      ? allDoses.map(ts=>`<div class="hist-item"><div><div class="hist-time">${fmtTime(ts)}</div><div class="hist-ago">${fmtDelta(Date.now()-ts)} ago</div></div><button class="hist-del" onclick="deleteDose('${key}',${ts})">✕</button></div>`).join("")
+      : `<div class="hist-empty">No doses logged yet.</div>`;
+    const maxNote = st.atMax
+      ? `<div class="max-note">💛 <div>You've logged all ${drug.maxDaily} doses of ${drug.name} for today. Check with your doctor before giving more.</div></div>`
+      : "";
+    return `<div class="status-card">
+      <div class="status-head"><div class="status-drug">${drug.name} <small>(${drug.trade})</small></div><div class="pips-count">${count}/${drug.maxDaily} today</div></div>
+      <div class="pips-row"><div class="pips">${pips}</div></div>
+      ${maxNote}
+      <button class="log-dose-btn" onclick="logDose('${key}')" style="margin:0 0 12px;width:100%">＋ Log a ${drug.name} dose</button>
+      <div class="hist-label">Doses given</div>${hist}
+    </div>`;
+  }).join("");
+  const anyDoses = doseLog.paracetamol.length||doseLog.ibuprofen.length;
+  return `
+    <div class="sched-intro"><div class="sched-intro-title">Dose Log</div><div class="sched-intro-sub">A simple record of what you've given today. Tap to log each dose of paracetamol or ibuprofen.</div></div>
+    ${cards}
+    ${anyDoses?`<button class="clear-log" onclick="clearLog()">Clear all logged doses</button>`:""}
+    <div class="ra-footer" style="margin-top:12px"><svg width="24" height="24" viewBox="0 0 40 40" fill="none"><defs><linearGradient id="sg" x1="20" y1="6" x2="20" y2="36" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#7FC9D9"/><stop offset="100%" stop-color="#1F6F8A"/></linearGradient></defs><path d="M20 35 C20 35 5 25 5 15.5 C5 10.8 8.8 7 13.5 7 C16.3 7 18.7 8.5 20 10.8 C21.3 8.5 23.7 7 26.5 7 C31.2 7 35 10.8 35 15.5 C35 25 20 35 20 35Z" fill="url(#sg)"/><path d="M13.5 18.5 L18 23 L27 13.5" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><div class="ra-footer-copy"><strong>PediCheck</strong> · A log to help you keep track.<br>If your child is unwell or you're unsure, contact your doctor.</div></div>`;
+}
+
+function renderPrinciples(){
+  const isAcp=principleLayer==="acp";
+  const cards=isAcp?ACP_CARDS:STANDARD_CARDS;
+  const intro=isAcp
+    ?`<div class="layer-intro acp"><div class="layer-intro-title">ACP Clinical Approach</div><div class="layer-intro-sub">This reflects how your doctor may individualise fever management based on your child's response.</div></div>`
+    :`<div class="layer-intro standard"><div class="layer-intro-title">Standard Fever Care</div><div class="layer-intro-sub">Conservative, SAHPRA-aligned guidance suitable for all children.</div></div>`;
+  const cardsHtml=cards.map(c=>`<div class="p-card ${isAcp?'acp':''}"><div class="p-icon" style="background:${c.bg}">${c.icon}</div><div><div class="p-title">${c.title}</div><div class="p-body">${c.body}</div></div></div>`).join("");
+  return `<div class="layer-toggle"><button class="layer-btn ${!isAcp?'active':''}" onclick="switchLayer('standard')">Standard Care</button><button class="layer-btn ${isAcp?'active':''}" onclick="switchLayer('acp')">ACP Approach</button></div>${intro}${cardsHtml}
+    <div class="ra-footer"><svg width="24" height="24" viewBox="0 0 40 40" fill="none"><defs><linearGradient id="fg" x1="20" y1="6" x2="20" y2="36" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#7FC9D9"/><stop offset="100%" stop-color="#1F6F8A"/></linearGradient></defs><path d="M20 35 C20 35 5 25 5 15.5 C5 10.8 8.8 7 13.5 7 C16.3 7 18.7 8.5 20 10.8 C21.3 8.5 23.7 7 26.5 7 C31.2 7 35 10.8 35 15.5 C35 25 20 35 20 35Z" fill="url(#fg)"/><path d="M13.5 18.5 L18 23 L27 13.5" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><div class="ra-footer-copy"><strong>PediCheck</strong> · A Raising Atlantic tool<br>For guidance specific to your child, consult your paediatrician.</div></div>`;
+}
+render();
+
+// Hide scroll-hint arrow when tabs are scrolled to the end
+(function(){
+  const scroll=document.getElementById("tabsScroll");
+  const wrap=document.getElementById("tabsWrap");
+  function update(){
+    const atEnd = scroll.scrollLeft + scroll.clientWidth >= scroll.scrollWidth - 4;
+    wrap.classList.toggle('scrolled-end', atEnd);
+  }
+  scroll.addEventListener("scroll", update);
+  window.addEventListener("resize", update);
+  update();
+})();
+</script>
+<script>
+(function () {
+  // Bump this on any material change to the Terms — every user gets re-gated.
+  var CONSENT_VERSION = "1.0";
+  var STORAGE_KEY = "pedicheck_consent";
+
+  var overlay = document.getElementById("pc-gate-overlay");
+  var boxes = ["pc-gate-c1", "pc-gate-c2", "pc-gate-c3", "pc-gate-c4"].map(function (id) {
+    return document.getElementById(id);
+  });
+  var continueBtn = document.getElementById("pc-gate-continue-btn");
+
+  function alreadyConsented() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      var record = JSON.parse(raw);
+      return record.version === CONSENT_VERSION && record.accepted === true;
+    } catch (e) {
+      return false; // corrupt/blocked storage -> fail safe, show the gate
+    }
+  }
+
+  function recordAcceptance() {
+    var record = {
+      accepted: true,
+      version: CONSENT_VERSION,
+      timestamp: new Date().toISOString()
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
+    } catch (e) {
+      // localStorage unavailable (private browsing, storage disabled, etc.)
+      // Gate will simply reappear next load — acceptable degradation.
+    }
+    // TODO once there's a backend: also send `record` (plus a user/device
+    // identifier) to a server endpoint here, so acceptance can be proven
+    // later — see the caveat note at the top of this file.
+  }
+
+  function updateContinueState() {
+    var allChecked = boxes.every(function (b) { return b.checked; });
+    continueBtn.disabled = !allChecked;
+    continueBtn.classList.toggle("pc-gate-ready", allChecked);
+  }
+
+  function hideGate() {
+    overlay.style.display = "none";
+    document.body.classList.remove("pc-gate-locked");
+  }
+
+  function showGate() {
+    overlay.style.display = "flex";
+    document.body.classList.add("pc-gate-locked");
+    boxes[0].focus();
+  }
+
+  boxes.forEach(function (b) { b.addEventListener("change", updateContinueState); });
+
+  continueBtn.addEventListener("click", function () {
+    if (continueBtn.disabled) return;
+    recordAcceptance();
+    hideGate();
+  });
+
+  if (alreadyConsented()) {
+    hideGate();
+  } else {
+    showGate();
+  }
+})();
+</script>
+
+</body>
+</html>

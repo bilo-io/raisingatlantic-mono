@@ -21,7 +21,7 @@ const PLANS: Plan[] = [
     name: 'PediCheck',
     tag: 'Calm, paediatrician-built guidance for every fever, bump and 2am worry.',
     currency: 'R',
-    amount: '199',
+    amount: '149',
     per: '/ month',
     wasNote: 'Your first 60 days are free, no card required.',
     features: [

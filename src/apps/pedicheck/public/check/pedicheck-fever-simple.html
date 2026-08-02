@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PediCheck — Fever Check (Simple)</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --seafoam:#7FC9D9; --teal:#3F9FB8; --teal-deep:#1F6F8A;
+    --slate:#2B3A45; --cream:#FBF7F2; --cream2:#f4ede2;
+    --bg:#FBF7F2; --card:#fff; --border:#ece4d6; --border2:#e0e6ea;
+    --sub:#6b7a84; --text:#2B3A45; --fog:#f3f6f8;
+    --ok:#2d8a6d; --ok-bg:#e6f5ee; --warn:#c47f2b; --warn-bg:#fbf1e2;
+    --stop:#c0483d; --stop-bg:#fbeae8;
+    --concern:#7B5EA7; --concern-bg:#f1ecf7;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:0;
+  }
+  .phone{
+    width:100%;
+    max-width:460px;
+    min-height:100vh;
+    background:var(--bg);
+    position:relative;
+    padding-bottom:40px;
+  }
+  header{
+    background:var(--slate);
+    color:var(--cream);
+    padding:26px 22px 22px;
+    border-bottom-left-radius:28px;
+    border-bottom-right-radius:28px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::before{
+    content:'';
+    position:absolute;
+    width:200px;height:200px;
+    background:radial-gradient(circle,rgba(63,159,184,0.32) 0%,transparent 70%);
+    top:-60px;right:-40px;
+  }
+  .eyebrow{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--seafoam);
+    margin-bottom:8px;
+    position:relative;
+    z-index:1;
+  }
+  h1{
+    font-family:'DM Sans',sans-serif;
+    font-size:23px;
+    font-weight:700;
+    margin:0 0 6px;
+    line-height:1.2;
+    color:#fff;
+    position:relative;
+    z-index:1;
+  }
+  .sub{
+    font-size:13px;
+    color:rgba(255,255,255,0.62);
+    line-height:1.5;
+    margin:0;
+    position:relative;
+    z-index:1;
+  }
+  .pulse{
+    width:100%;
+    height:30px;
+    margin-top:14px;
+    position:relative;
+    z-index:1;
+  }
+  .pulse path{
+    fill:none;
+    stroke:var(--seafoam);
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-dasharray:240;
+    stroke-dashoffset:240;
+    animation:draw 2.6s ease-in-out infinite;
+  }
+  @keyframes draw{
+    0%{stroke-dashoffset:240;}
+    50%{stroke-dashoffset:0;}
+    100%{stroke-dashoffset:-240;}
+  }
+  main{padding:20px 16px 0;}
+  .progress{
+    display:flex;
+    gap:6px;
+    margin-bottom:18px;
+  }
+  .progress div{
+    height:4px;
+    flex:1;
+    border-radius:4px;
+    background:var(--border2);
+  }
+  .progress div.done{background:var(--teal);}
+  .card{
+    background:var(--card);
+    border-radius:20px;
+    padding:22px 20px;
+    box-shadow:0 4px 24px rgba(43,58,69,0.06);
+    border:1px solid var(--border);
+  }
+  .tag{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    opacity:0.85;
+    margin-bottom:10px;
+    display:block;
+  }
+  .question{
+    font-family:'DM Sans',sans-serif;
+    font-size:18px;
+    font-weight:700;
+    line-height:1.35;
+    margin:0 0 6px;
+    color:var(--slate);
+  }
+  .hint{
+    font-size:13px;
+    color:var(--sub);
+    line-height:1.55;
+    margin:0 0 18px;
+  }
+  .opt{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:var(--fog);
+    border:1.5px solid var(--border2);
+    border-radius:12px;
+    padding:14px 16px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    color:var(--slate);
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease, transform .08s ease;
+  }
+  .opt:hover{border-color:var(--teal);background:#eef7fa;}
+  .opt:active{transform:scale(0.98);}
+  .back{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:none;
+    border:none;
+    color:var(--teal-deep);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    padding:14px 2px 0;
+    cursor:pointer;
+    opacity:0.8;
+  }
+  .result{
+    border-radius:20px;
+    padding:24px 20px 20px;
+    color:var(--slate);
+  }
+  .result.red{background:var(--stop-bg); border:1.5px solid var(--stop);}
+  .result.amber{background:var(--warn-bg); border:1.5px solid var(--warn);}
+  .result.green{background:var(--ok-bg); border:1.5px solid var(--ok);}
+  .result.concern{background:var(--concern-bg); border:1.5px solid var(--concern);}
+  .result-badge{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:5px 12px;
+    border-radius:100px;
+    color:#fff;
+    margin-bottom:14px;
+  }
+  .red .result-badge{background:var(--stop);}
+  .amber .result-badge{background:var(--warn);}
+  .green .result-badge{background:var(--ok);}
+  .concern .result-badge{background:var(--concern);}
+  .result h2{
+    font-family:'DM Sans',sans-serif;
+    font-size:20px;
+    font-weight:700;
+    margin:0 0 10px;
+    line-height:1.3;
+    color:var(--slate);
+  }
+  .result p{
+    font-size:14px;
+    line-height:1.6;
+    margin:0 0 14px;
+    color:var(--text);
+  }
+  .result ul{
+    margin:0 0 16px;
+    padding-left:18px;
+  }
+  .result li{
+    font-size:13.5px;
+    line-height:1.6;
+    margin-bottom:6px;
+    color:var(--text);
+  }
+  .restart{
+    width:100%;
+    background:var(--teal);
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    padding:14px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    margin-top:6px;
+  }
+  .restart:active{background:var(--teal-deep);}
+  .evidence{
+    margin-top:22px;
+    padding:16px 18px;
+    border-radius:14px;
+    background:var(--fog);
+  }
+  .evidence-title{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    margin-bottom:8px;
+  }
+  .evidence p{
+    font-size:12px;
+    line-height:1.6;
+    color:var(--sub);
+    margin:0 0 6px;
+  }
+  .disclaimer{
+    text-align:center;
+    font-size:11px;
+    color:var(--sub);
+    line-height:1.5;
+    padding:18px 24px 0;
+  }
+  .considerations{
+    margin-top:4px;
+    padding:16px 18px;
+    border-radius:14px;
+    background:var(--fog);
+    border:1px dashed var(--border2);
+  }
+  .considerations-title{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--sub);
+    margin-bottom:8px;
+  }
+  .considerations ul{
+    margin:0;
+    padding-left:18px;
+  }
+  .considerations li{
+    font-size:13px;
+    line-height:1.55;
+    margin-bottom:6px;
+    color:var(--text);
+  }
+  .why{
+    background:var(--fog);
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:12.5px;
+    line-height:1.55;
+    color:var(--sub);
+    margin-top:14px;
+  }
+  .why b{color:var(--slate);}
+  .safety-net{
+    background:var(--card);
+    border:1.5px solid var(--border2);
+    border-radius:14px;
+    padding:16px 18px;
+    margin-top:16px;
+    font-size:13px;
+    line-height:1.55;
+  }
+  .safety-net b{display:block; margin-bottom:8px; font-size:13px; color:var(--slate);}
+  .safety-net ul{margin:0; padding-left:18px;}
+  .home-care{
+    background:var(--card);
+    border:1.5px solid var(--border2);
+    border-radius:14px;
+    padding:16px 18px;
+    margin-top:14px;
+    font-size:13px;
+    line-height:1.55;
+  }
+  .home-care .label{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    margin-bottom:8px;
+  }
+  .home-care ul{margin:0; padding-left:18px;}
+  .home-care li{margin-bottom:6px;}
+  .dosing-btn{
+    display:block;
+    width:100%;
+    margin-top:12px;
+    padding:12px;
+    background:none;
+    border:1.5px dashed var(--teal);
+    border-radius:12px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    color:var(--teal-deep);
+    cursor:pointer;
+    text-align:center;
+  }
+  .dosing-note{
+    display:none;
+    margin-top:10px;
+    padding:12px 14px;
+    background:#eef7fa;
+    border-radius:10px;
+    font-size:12.5px;
+    line-height:1.5;
+    color:var(--sub);
+  }
+  .precheck-note{
+    background:#eef7fa;
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:13px;
+    line-height:1.55;
+    color:var(--text);
+    margin-bottom:18px;
+  }
+  .precheck-note b{display:block; margin-bottom:4px; color:var(--slate);}
+  .why{
+    background:var(--fog);
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:12.5px;
+    line-height:1.55;
+    color:var(--sub);
+    margin-top:14px;
+  }
+  .why b{color:var(--slate);}
+  .safety-net{
+    background:var(--card);
+    border:1.5px solid var(--border2);
+    border-radius:14px;
+    padding:16px 18px;
+    margin-top:16px;
+    font-size:13px;
+    line-height:1.55;
+  }
+  .safety-net b{display:block; margin-bottom:8px; font-size:13px; color:var(--slate);}
+  .safety-net ul{margin:0; padding-left:18px;}
+  .home-care{
+    background:var(--card);
+    border:1.5px solid var(--border2);
+    border-radius:14px;
+    padding:16px 18px;
+    margin-top:14px;
+    font-size:13px;
+    line-height:1.55;
+  }
+  .home-care .label{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    margin-bottom:8px;
+  }
+  .home-care ul{margin:0; padding-left:18px;}
+  .home-care li{margin-bottom:6px;}
+  .dosing-btn{
+    display:block;
+    width:100%;
+    margin-top:12px;
+    padding:12px;
+    background:none;
+    border:1.5px dashed var(--teal);
+    border-radius:12px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    color:var(--teal-deep);
+    cursor:pointer;
+    text-align:center;
+  }
+  .dosing-note{
+    display:none;
+    margin-top:10px;
+    padding:12px 14px;
+    background:#eef7fa;
+    border-radius:10px;
+    font-size:12.5px;
+    line-height:1.5;
+    color:var(--sub);
+  }
+  .precheck-note{
+    background:#eef7fa;
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:13px;
+    line-height:1.55;
+    color:var(--text);
+    margin-bottom:18px;
+  }
+  .precheck-note b{display:block; margin-bottom:4px; color:var(--slate);}
+
+  .home-link{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:11.5px; font-weight:600; color:var(--seafoam);
+    text-decoration:none; margin-bottom:12px; position:relative; z-index:1;
+    opacity:0.85;
+  }
+  .home-link:hover{ opacity:1; }
+
+</style>
+<style id="pc-gate-styles">
+  #pc-gate-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(31, 43, 51, 0.72);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: flex-end; justify-content: center;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 0;
+  }
+  @media (min-width: 560px) {
+    #pc-gate-overlay { align-items: center; padding: 20px; }
+  }
+  .pc-gate-card {
+    background: #FBF7F2;
+    width: 100%; max-width: 460px;
+    max-height: 92vh; overflow-y: auto;
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -8px 40px rgba(43,58,69,0.25);
+  }
+  @media (min-width: 560px) {
+    .pc-gate-card { border-radius: 24px; box-shadow: 0 20px 60px rgba(43,58,69,0.35); }
+  }
+  .pc-gate-head {
+    background: #2B3A45;
+    padding: 26px 26px 22px;
+    border-radius: 24px 24px 0 0;
+    position: relative; overflow: hidden;
+  }
+  .pc-gate-head::before {
+    content: ''; position: absolute; width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(63,159,184,0.32) 0%, transparent 70%);
+    top: -60px; right: -40px;
+  }
+  .pc-gate-brand { display: flex; align-items: center; gap: 10px; position: relative; z-index: 1; }
+  .pc-gate-wordmark { font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
+  .pc-gate-wordmark span { color: #7FC9D9; }
+  .pc-gate-title {
+    font-family: 'DM Sans', sans-serif; font-size: 21px; font-weight: 700;
+    color: #fff; margin-top: 14px; position: relative; z-index: 1;
+  }
+  .pc-gate-sub {
+    font-size: 12.5px; color: rgba(255,255,255,0.6); line-height: 1.55;
+    margin-top: 6px; position: relative; z-index: 1;
+  }
+  .pc-gate-body { padding: 22px 24px 24px; }
+  .pc-gate-notice {
+    font-size: 12px; line-height: 1.6; color: #6b7a84;
+    background: #eef7fa; border: 1px solid rgba(63,159,184,0.25);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 18px;
+  }
+  .pc-gate-check-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 13px 0; border-bottom: 1px solid #ece4d6;
+  }
+  .pc-gate-check-row:last-of-type { border-bottom: none; }
+  .pc-gate-check-row input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px;
+    border: 2px solid #c8d2d6; border-radius: 7px;
+    cursor: pointer; position: relative; transition: .15s;
+    background: #fff;
+  }
+  .pc-gate-check-row input[type="checkbox"]:checked {
+    background: #3F9FB8; border-color: #3F9FB8;
+  }
+  .pc-gate-check-row input[type="checkbox"]:checked::after {
+    content: ''; position: absolute; left: 6px; top: 2px;
+    width: 6px; height: 11px;
+    border: solid #fff; border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+  }
+  .pc-gate-check-row input[type="checkbox"]:focus-visible {
+    outline: 2px solid #1F6F8A; outline-offset: 2px;
+  }
+  .pc-gate-check-row label {
+    font-size: 13.5px; line-height: 1.5; color: #2B3A45; cursor: pointer;
+  }
+  .pc-gate-links { margin: 16px 0 4px; font-size: 12px; color: #6b7a84; }
+  .pc-gate-links a { color: #1F6F8A; font-weight: 600; text-decoration: none; }
+  .pc-gate-links a:hover { text-decoration: underline; }
+  .pc-gate-continue {
+    width: 100%; margin-top: 18px;
+    background: #c8d2d6; color: #fff; border: none; border-radius: 14px;
+    padding: 15px; font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.2px;
+    cursor: not-allowed; transition: .18s;
+  }
+  .pc-gate-continue.pc-gate-ready {
+    background: #3F9FB8; cursor: pointer;
+  }
+  .pc-gate-continue.pc-gate-ready:active { background: #1F6F8A; transform: scale(0.99); }
+  .pc-gate-emergency {
+    margin-top: 14px; font-size: 11.5px; line-height: 1.6; color: #8a5a2e;
+    background: #fbf1e2; border: 1px solid #ecd3a8; border-radius: 12px;
+    padding: 10px 13px;
+  }
+  body.pc-gate-locked { overflow: hidden; }
+</style>
+</head>
+<body>
+
+<div id="pc-gate-overlay">
+  <div class="pc-gate-card">
+    <div class="pc-gate-head">
+      <div class="pc-gate-brand">
+        <svg width="26" height="26" viewBox="0 0 40 40" fill="none">
+          <defs><linearGradient id="pcg" x1="20" y1="6" x2="20" y2="36" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#7FC9D9"/><stop offset="100%" stop-color="#1F6F8A"/>
+          </linearGradient></defs>
+          <path d="M20 35 C20 35 5 25 5 15.5 C5 10.8 8.8 7 13.5 7 C16.3 7 18.7 8.5 20 10.8 C21.3 8.5 23.7 7 26.5 7 C31.2 7 35 10.8 35 15.5 C35 25 20 35 20 35Z" fill="url(#pcg)"/>
+          <path d="M13.5 18.5 L18 23 L27 13.5" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <div class="pc-gate-wordmark">Pedi<span>Check</span></div>
+      </div>
+      <div class="pc-gate-title">Before you start</div>
+      <div class="pc-gate-sub">Please read and confirm the four points below. This takes about ten seconds and only appears once.</div>
+    </div>
+
+    <div class="pc-gate-body">
+      <div class="pc-gate-notice">
+        <strong>PediCheck is a guide, not a prescription.</strong> It supports — but does not replace — assessment by a qualified healthcare professional.
+      </div>
+
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c1">
+        <label for="pc-gate-c1">I understand PediCheck provides general guidance only, and does not give medical advice, diagnosis or treatment.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c2">
+        <label for="pc-gate-c2">I understand I must confirm every dose or decision against the product packaging and a healthcare professional.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c3">
+        <label for="pc-gate-c3">I understand PediCheck is not a substitute for consulting a doctor, and that I use it at my own risk.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c4">
+        <label for="pc-gate-c4">I confirm I am 18 or older and am the parent or legal guardian of the child, or am authorised to act for them.</label>
+      </div>
+
+      <div class="pc-gate-links">
+        Read the full <a href="/terms" target="_blank" rel="noopener">Terms of Use</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Notice</a>.
+      </div>
+
+      <button class="pc-gate-continue" id="pc-gate-continue-btn" disabled>Continue</button>
+
+      <div class="pc-gate-emergency">
+        If your child is very unwell, difficult to wake, struggling to breathe, or is under 3 months old with a fever — don't use this app. Call <strong>10177</strong> (ambulance) or <strong>112</strong> from a mobile, or go to your nearest emergency department now.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="phone">
+  <header>
+    <a class="home-link" href="index.html">&larr; All tools</a>
+    <div class="eyebrow">PediCheck &middot; Symptom Check</div>
+    <h1>Fever Check</h1>
+    <p class="sub">Quick guidance for a feverish child, adjusted for age &mdash; not a diagnosis.</p>
+    <svg class="pulse" viewBox="0 0 300 34" preserveAspectRatio="none">
+      <path d="M0 17 H100 L112 4 L124 30 L136 17 H160 L172 8 L182 26 L192 17 H300"/>
+    </svg>
+  </header>
+
+  <main>
+    <div class="progress" id="progress"></div>
+    <div id="quiz"></div>
+    <div class="disclaimer" id="disclaimer">PediCheck is a guidance tool, not a substitute for medical advice. If you are ever unsure, contact a doctor or emergency services.</div>
+  </main>
+</div>
+
+<script>
+const steps = {
+  intro: {
+    tag: 'Before you start', question: 'One thing to know before you begin',
+    hint: 'A high fever can make a child seem more unwell than they are. If you can, it helps to give paracetamol or ibuprofen and reassess in 1\u20132 hours once the fever has come down: a child who perks up, plays, and interacts normally is a genuinely reassuring sign. What matters far less is the number on the thermometer \u2014 whether it comes down easily doesn\u2019t rule serious illness in or out on its own. What matters more is whether your child\u2019s colour, alertness, and behaviour actually improve once the fever is treated. A child who stays flat, floppy, or unwell-looking even once the fever is down is the more concerning pattern.',
+    options: [
+      { label: 'Got it \u2014 start the check', action: ()=> 'q0_age' },
+    ]
+  },
+  q0_age: {
+    tag: 'Before we start', question: 'How old is your child?',
+    hint: 'This changes which questions matter most.',
+    options: [
+      { label: 'Under 3 months', action: (s)=>{ s.under3m = true; return 'r_under3m'; } },
+      { label: '3 months to 12 months', action: (s)=>{ s.under3m = false; s.isUnder12mo = true; return 'q1_breathing'; } },
+      { label: 'Over 12 months', action: (s)=>{ s.under3m = false; s.isUnder12mo = false; return 'q1_breathing'; } },
+    ]
+  },
+
+  // STEP 1 — RED override
+  q1_breathing: {
+    tag: 'Step 1 · Danger check', question: 'Is your child struggling to breathe?',
+    hint: 'Fast breathing, pulling in under the ribs, or grunting.',
+    options: [
+      { label: 'Yes', action: ()=> 'r_red_breathing' },
+      { label: 'No', action: ()=> 'q2_colour' },
+    ]
+  },
+  q2_colour: {
+    tag: 'Step 1 · Danger check', question: 'How does your child\u2019s skin colour look?',
+    hint: 'This distinction matters: simple paleness is common with any fever, but a blotchy/mottled or blue-grey look, or cold hands, feet, or trunk, points to poor circulation and needs urgent assessment.',
+    options: [
+      { label: 'Normal colour', action: (s)=> 'q3_floppy' },
+      { label: 'A bit paler than usual, but skin is warm and normal texture', action: (s)=>{ s.pallorAmber = true; return 'q3_floppy'; } },
+      { label: 'Pale with a blotchy/mottled or blue-grey look, or cold hands, feet, or trunk', action: (s)=> 'r_red_colour' },
+    ]
+  },
+  q3_floppy: {
+    tag: 'Step 1 · Danger check', question: 'Is your child very floppy, very sleepy, or not responding properly?',
+    hint: 'Hard to wake, or not reacting to you as expected. If you\u2019ve given a fever reducer, it helps to judge this once it\u2019s had a chance to bring the temperature down (around 1\u20132 hours) \u2014 perking up and responding normally is reassuring, but staying floppy or unresponsive even once the fever is lower is more concerning.',
+    options: [
+      { label: 'Yes', action: ()=> 'r_red_floppy' },
+      { label: 'No', action: ()=> 'q4_rash' },
+    ]
+  },
+  q4_rash: {
+    tag: 'Step 1 · Danger check', question: 'Does your child have a rash that does NOT fade when pressed?',
+    hint: 'Try the glass test: press a clear glass against the rash. If it\u2019s still visible, that\u2019s a red flag.',
+    options: [
+      { label: 'Yes', action: ()=> 'r_red_rash' },
+      { label: 'No', action: ()=> 'q5_seizure' },
+    ]
+  },
+  q5_seizure: {
+    tag: 'Step 1 · Danger check', question: 'Is your child having a seizure right now, or did they just have one?',
+    hint: '',
+    options: [
+      { label: 'Yes', action: ()=> 'r_red_seizure' },
+      { label: 'No', action: ()=> 'q6_drinking' },
+    ]
+  },
+
+  // STEP 2 — early risk, most common signs first
+  q6_drinking: {
+    tag: 'Step 2 · Early risk', question: 'Is your child drinking much less than usual, or not drinking at all?',
+    hint: 'It\u2019s common for children to drink less during a fever spike, and this often improves once the temperature comes down. Refusing fluids even once the fever is treated and lower is the more concerning pattern to watch for.',
+    options: [
+      { label: 'Yes', action: ()=> 'q7_urine' },
+      { label: 'No', action: ()=> 'q8_behaviour' },
+    ]
+  },
+  q7_urine: {
+    tag: 'Step 2 · Early risk', question: 'Has your child passed little or no urine recently?',
+    hint: 'For example, no wet nappy or no urine in around 8 hours.',
+    options: [
+      { label: 'Yes', action: ()=> 'r_amber_dehydration' },
+      { label: 'No', action: ()=> 'q8_behaviour' },
+    ]
+  },
+  q8_behaviour: {
+    tag: 'Step 2 · Early risk', question: 'Is your child unusually flat, hard to console, or very unlike their normal self?',
+    hint: 'Not just more clingy or sleepy than usual \u2014 that\u2019s common with any fever. This means a marked change from how they normally are. If you\u2019ve recently given paracetamol or ibuprofen, it\u2019s worth reassessing once it\u2019s brought the fever down: perking up is a good sign, but staying flat and unlike themselves even then is the more worrying pattern.',
+    options: [
+      { label: 'Yes', action: ()=> 'r_amber_behaviour' },
+      { label: 'No', action: ()=> 'q9_breathing_fast' },
+    ]
+  },
+  q9_breathing_fast: {
+    tag: 'Step 2 · Early risk', question: 'Is your child breathing faster than normal, but not struggling?',
+    hint: 'A fever on its own commonly speeds up breathing a little, and this usually settles once the fever comes down. Breathing that stays fast even once the fever is lower is the more concerning pattern \u2014 and if it ever looks like a struggle, treat that as the danger-check answer instead.',
+    options: [
+      { label: 'Yes', action: ()=> 'r_amber_breathing' },
+      { label: 'No', action: ()=> 'q10_duration' },
+    ]
+  },
+  q10_duration: {
+    tag: 'Step 2 · Early risk', question: 'How long has the fever lasted, and is it improving?',
+    hint: 'Most viral fevers last up to about 72 hours and trend downward as they resolve. Fever that\u2019s still climbing or not improving after 72 hours raises the chance of a bacterial cause, and fever lasting 5 days or more without a clear source needs its own check.',
+    options: [
+      { label: 'Less than 48 hours', action: ()=> 'q11_immunocompromised' },
+      { label: '48\u201372 hours, and trending down', action: ()=> 'q11_immunocompromised' },
+      { label: 'More than 72 hours, not improving', action: ()=> 'r_amber_duration' },
+      { label: '5 days or more, with no clear cause', action: ()=> 'r_amber_duration_kd' },
+    ]
+  },
+
+  // STEP 3 — risk factors, asked last before the final catch-all
+  q11_immunocompromised: {
+    tag: 'Step 3 · Risk factors', question: 'Does your child have a condition that weakens their immune system?',
+    hint: 'For example: currently having chemotherapy, sickle cell disease, no spleen (asplenia), or a central line/port.',
+    options: [
+      { label: 'Yes', action: ()=> 'r_red_immunocompromised' },
+      { label: 'No', action: ()=> 'q12_malaria_travel' },
+    ]
+  },
+  q12_malaria_travel: {
+    tag: 'Step 3 · Risk factors', question: 'Has your child travelled to a malaria-risk area in the last 12 months?',
+    hint: 'Malaria can cause serious illness and needs to be ruled out quickly if there\u2019s been relevant travel.',
+    options: [
+      { label: 'Yes', action: ()=> 'r_amber_malaria' },
+      { label: 'No', action: ()=> 'q13_tick_bite' },
+    ]
+  },
+  q13_tick_bite: {
+    tag: 'Step 3 · Risk factors', question: 'Has your child had a known tick bite, or a rash where a tick was attached, in the last few weeks?',
+    hint: 'Including a spreading, bullseye-shaped rash around a bite.',
+    options: [
+      { label: 'Yes', action: ()=> 'r_amber_tick' },
+      { label: 'No', action: ()=> 'q14_gut_instinct' },
+    ]
+  },
+  q14_gut_instinct: {
+    tag: 'Trust your instincts', question: 'Regardless of your answers so far \u2014 does something feel wrong to you about your child?',
+    hint: 'Parents often notice subtle changes before anything shows up on a checklist. This counts on its own.',
+    options: [
+      { label: 'Yes', action: ()=> 'r_parent_concern' },
+      { label: 'No', action: (s)=> s.pallorAmber ? 'r_amber_pallor' : 'r_green' },
+    ]
+  },
+};
+
+const RED_SAFETY_NET = `
+  <div class="safety-net">
+    <b>Come back or seek help urgently if your child develops:</b>
+    <ul>
+      <li>Breathing becomes difficult</li>
+      <li>They become floppy or hard to wake</li>
+      <li>A non-blanching rash appears</li>
+      <li>They stop drinking or passing urine</li>
+      <li>You feel something is seriously wrong</li>
+    </ul>
+  </div>
+`;
+
+const HOME_CARE_ITEMS = `
+  <li>Offer fluids regularly \u2014 breast milk, formula, water, or oral rehydration solution</li>
+  <li>Dress lightly \u2014 remove layers if they feel hot</li>
+  <li>Keep the room cool and comfortable</li>
+  <li>Rest as much as possible</li>
+  <li>Monitor temperature every 4\u20136 hours</li>
+  <li>Do not use cold baths or alcohol rubs</li>
+`;
+
+function homeCareBlock(kind){
+  const label = kind === 'green' ? 'What to do right now' : 'What to do while you wait for the doctor';
+  return `
+    <div class="home-care">
+      <div class="label">${label}</div>
+      <ul>${HOME_CARE_ITEMS}</ul>
+    </div>
+  `;
+}
+
+const DOSING_BLOCK = `
+  <button class="dosing-btn" onclick="document.getElementById('dosingNote').style.display = document.getElementById('dosingNote').style.display === 'block' ? 'none' : 'block';">Get the dosing chart \u2192</button>
+  <div class="dosing-note" id="dosingNote">Dosing chart coming soon. In the meantime, use the weight-based dosing table printed on the paracetamol or ibuprofen packaging, or check with your pharmacist \u2014 dosing is by weight, not age. A child who perks up, plays, and interacts once the fever comes down is a reassuring sign \u2014 if they stay unwell-looking despite the fever being lower, that\u2019s more concerning, not less.</div>
+`;
+
+const results = {
+  r_under3m: {
+    cls: 'red', badge: 'Red \u00b7 get help now',
+    title: 'Get medical help now',
+    body: [
+      'Any fever in a baby under 3 months old needs same-day assessment by a doctor, even if your baby otherwise seems well.',
+    ],
+    why: 'Babies under 3 months can become seriously unwell quickly, and a fever at this age is treated as a red flag on its own, in line with NICE, WHO, and standard paediatric emergency guidance.',
+    safetyNet: true,
+  },
+  r_red_breathing: {
+    cls: 'red', badge: 'Red \u00b7 get help now',
+    title: 'Get medical help now',
+    body: ['Breathing difficulty in a feverish child needs urgent in-person assessment. Please seek urgent care now.'],
+    why: 'Struggling to breathe is one of the clearest signs of serious illness in a child and is treated as an immediate red flag.',
+    safetyNet: true,
+  },
+  r_red_colour: {
+    cls: 'red', badge: 'Red \u00b7 get help now',
+    title: 'Get medical help now',
+    body: ['A blotchy/mottled or blue-grey look, or cold hands, feet, or trunk, needs urgent in-person assessment.'],
+    why: 'Mottled, ashen, or blue-tinged skin, along with cold peripheries, points to poor blood circulation and is a recognised sepsis red flag \u2014 more specific and more urgent than simple paleness on its own.',
+    safetyNet: true,
+  },
+  r_red_floppy: {
+    cls: 'red', badge: 'Red \u00b7 get help now',
+    title: 'Get medical help now',
+    body: ['A child who is very floppy, very sleepy, or not responding properly needs urgent in-person assessment.'],
+    why: 'Reduced consciousness or responsiveness is a core red flag for serious infection.',
+    safetyNet: true,
+  },
+  r_red_rash: {
+    cls: 'red', badge: 'Red \u00b7 get help now',
+    title: 'Get medical help now',
+    body: ['A rash that does not fade under pressure needs urgent in-person assessment, even if your child otherwise seems well.'],
+    why: 'A non-blanching rash is a late but critical sign that is never ignored, regardless of how well the child otherwise looks.',
+    safetyNet: true,
+  },
+  r_red_seizure: {
+    cls: 'red', badge: 'Red \u00b7 get help now',
+    title: 'Get medical help now',
+    body: ['A seizure happening now, or one that has just happened, needs urgent in-person assessment.'],
+    why: 'Seizures with fever need clinical assessment to rule out more serious causes, particularly on a first occurrence.',
+    safetyNet: true,
+  },
+  r_red_immunocompromised: {
+    cls: 'red', badge: 'Red \u00b7 get help now',
+    title: 'Get medical help now',
+    body: ['Any fever in a child with a weakened immune system needs urgent same-day assessment, regardless of other symptoms.'],
+    why: 'Immunocompromised children \u2014 for example on chemotherapy, or with sickle cell disease, asplenia, or a central line \u2014 can deteriorate quickly from infections that would be mild in other children, so any fever is treated as urgent by default.',
+    safetyNet: true,
+  },
+  r_amber_malaria: {
+    cls: 'amber', badge: 'Amber \u00b7 same-day review',
+    title: 'Arrange a same-day medical review',
+    body: ['Recent travel to a malaria-risk area together with a fever needs to be assessed today so malaria can be tested for and ruled out.'],
+    why: 'Malaria can progress quickly and needs prompt testing. If any Step 1 danger signs are also present, treat this as more urgent and seek help now instead.',
+    safetyNet: true, homeCare: 'amber', showDosing: true,
+  },
+  r_amber_tick: {
+    cls: 'amber', badge: 'Amber \u00b7 same-day review',
+    title: 'Arrange a same-day medical review',
+    body: ['A known tick bite together with a fever should be reviewed by a doctor today.'],
+    why: 'Tick bites can transmit infections that need specific treatment, and early review helps catch these before they progress.',
+    safetyNet: true, homeCare: 'amber', showDosing: true,
+  },
+  r_amber_dehydration: {
+    cls: 'amber', badge: 'Amber \u00b7 same-day review',
+    title: 'Arrange a same-day medical review',
+    body: ['Reduced drinking together with little or no urine can point to early dehydration. Your child should be seen by a doctor today.'],
+    why: 'Reduced fluid intake plus reduced urine output is an early, reliable marker of dehydration risk.',
+    safetyNet: true, homeCare: 'amber', showDosing: true,
+  },
+  r_amber_behaviour: {
+    cls: 'amber', badge: 'Amber \u00b7 same-day review',
+    title: 'Arrange a same-day medical review',
+    body: ['Your child seems unusually flat, hard to console, or very unlike themselves. This should be checked by a doctor today.'],
+    why: 'This is different from the normal clinginess or sleepiness that comes with almost any fever \u2014 a marked change in your child\u2019s usual behaviour and responsiveness is a more specific sign of concern.',
+    safetyNet: true, homeCare: 'amber', showDosing: true,
+  },
+  r_parent_concern: {
+    cls: 'concern', badge: 'Parental concern \u00b7 same-day review',
+    title: 'Trust your instincts \u2014 arrange a same-day review',
+    body: ['No specific checklist item was triggered, but your own sense that something is wrong is real information. Please get your child checked today.'],
+    why: 'Parents often notice early changes that don\u2019t fit neatly into a checklist. This is treated as a legitimate reason on its own to seek review, separate from the other flags above.',
+    safetyNet: true, homeCare: 'amber', showDosing: true,
+  },
+  r_amber_breathing: {
+    cls: 'amber', badge: 'Amber \u00b7 same-day review',
+    title: 'Arrange a same-day medical review',
+    body: ['Faster breathing than normal, without visible struggle, still warrants a same-day check by a doctor.'],
+    why: 'Mildly increased breathing rate can be an early sign that needs monitoring before it progresses.',
+    safetyNet: true, homeCare: 'amber', showDosing: true,
+  },
+  r_amber_duration: {
+    cls: 'amber', badge: 'Amber \u00b7 same-day review',
+    title: 'Arrange a same-day medical review',
+    body: ['The fever has gone on past 72 hours without improving. This should be reviewed by a doctor today.'],
+    why: 'Most viral fevers settle within about 72 hours. A fever that continues climbing or shows no improvement beyond that point raises the chance of a bacterial infection that needs identifying.',
+    safetyNet: true, homeCare: 'amber', showDosing: true,
+  },
+  r_amber_duration_kd: {
+    cls: 'amber', badge: 'Amber \u00b7 same-day review',
+    title: 'Arrange a same-day medical review',
+    body: ['A fever lasting 5 days or more without a clear cause should be checked by a doctor today.'],
+    why: 'A prolonged fever like this needs review to look for a bacterial source, and also to check for Kawasaki disease, which can present with fever lasting 5 days or longer alongside signs like rash, red eyes, cracked lips or red tongue, swollen hands or feet, or swollen neck glands \u2014 worth mentioning to the doctor even if only some are present.',
+    safetyNet: true, homeCare: 'amber', showDosing: true,
+  },
+  r_amber_pallor: {
+    cls: 'amber', badge: 'Amber \u00b7 same-day review',
+    title: 'Arrange a same-day medical review',
+    body: ['Your child looking paler than usual \u2014 with warm, normally textured skin \u2014 is common with fever, but is still worth a same-day check.'],
+    why: 'Reported paleness on its own is a lower-level signal than mottled, ashen, or blue-tinged skin, but NICE guidance still places it in the group that needs review rather than home care alone.',
+    safetyNet: true, homeCare: 'amber', showDosing: true,
+  },
+  r_green: {
+    cls: 'green', badge: 'Green \u00b7 home care',
+    title: 'Home care is likely fine',
+    body: [
+      'Your child does not show any of the warning signs above right now. You can usually manage this fever at home with fluids, rest, and appropriate fever relief.',
+    ],
+    why: 'No red or amber flags were present at this check. This can change, so keep watching for the signs below.',
+    safetyNet: true, homeCare: 'green', showDosing: true,
+  },
+};
+
+let state = {};
+let history = ['intro'];
+let lastStateSnapshots = [];
+
+const quiz = document.getElementById('quiz');
+const progress = document.getElementById('progress');
+const totalDepth = 12;
+
+function currentDepth(){
+  return Math.min(history.length, totalDepth);
+}
+
+function render(){
+  const id = history[history.length - 1];
+
+  if (id.startsWith('r_')) {
+    renderResult(id);
+    return;
+  }
+
+  const step = steps[id];
+  const depth = currentDepth();
+  progress.innerHTML = Array.from({length: totalDepth}, (_, i) =>
+    `<div class="${i < depth ? 'done' : ''}"></div>`
+  ).join('');
+
+  quiz.innerHTML = `
+    <div class="card">
+      <span class="tag">${step.tag}</span>
+      <p class="question">${step.question}</p>
+      <p class="hint">${step.hint}</p>
+      ${step.options.map((o, i) => `<button class="opt" onclick="choose(${i})">${o.label}</button>`).join('')}
+    </div>
+    ${history.length > 1 ? '<button class="back" onclick="goBack()">\u2190 Back</button>' : ''}
+  `;
+}
+
+function renderResult(id){
+  const r = results[id];
+  progress.innerHTML = Array.from({length: totalDepth}, () => `<div class="done"></div>`).join('');
+
+  quiz.innerHTML = `
+    <div class="result ${r.cls}">
+      <div class="result-badge">${r.badge}</div>
+      <h2>${r.title}</h2>
+      ${r.body.map(p => `<p>${p}</p>`).join('')}
+      ${r.homeCare ? homeCareBlock(r.homeCare) : ''}
+      ${r.showDosing ? DOSING_BLOCK : ''}
+      <div class="why"><b>Why:</b> ${r.why}</div>
+      ${r.safetyNet ? RED_SAFETY_NET : ''}
+      <button class="restart" onclick="restart()">Start again</button>
+    </div>
+  `;
+}
+
+function choose(i){
+  const id = history[history.length - 1];
+  const step = steps[id];
+  lastStateSnapshots.push(JSON.parse(JSON.stringify(state)));
+  const next = step.options[i].action(state);
+  history.push(next);
+  render();
+}
+
+function goBack(){
+  if (history.length <= 1) return;
+  history.pop();
+  if (lastStateSnapshots.length) state = lastStateSnapshots.pop();
+  render();
+}
+
+function restart(){
+  state = {};
+  history = ['intro'];
+  lastStateSnapshots = [];
+  render();
+}
+
+render();
+</script>
+<script>
+(function () {
+  // Bump this on any material change to the Terms — every user gets re-gated.
+  var CONSENT_VERSION = "1.0";
+  var STORAGE_KEY = "pedicheck_consent";
+
+  var overlay = document.getElementById("pc-gate-overlay");
+  var boxes = ["pc-gate-c1", "pc-gate-c2", "pc-gate-c3", "pc-gate-c4"].map(function (id) {
+    return document.getElementById(id);
+  });
+  var continueBtn = document.getElementById("pc-gate-continue-btn");
+
+  function alreadyConsented() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      var record = JSON.parse(raw);
+      return record.version === CONSENT_VERSION && record.accepted === true;
+    } catch (e) {
+      return false; // corrupt/blocked storage -> fail safe, show the gate
+    }
+  }
+
+  function recordAcceptance() {
+    var record = {
+      accepted: true,
+      version: CONSENT_VERSION,
+      timestamp: new Date().toISOString()
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
+    } catch (e) {
+      // localStorage unavailable (private browsing, storage disabled, etc.)
+      // Gate will simply reappear next load — acceptable degradation.
+    }
+    // TODO once there's a backend: also send `record` (plus a user/device
+    // identifier) to a server endpoint here, so acceptance can be proven
+    // later — see the caveat note at the top of this file.
+  }
+
+  function updateContinueState() {
+    var allChecked = boxes.every(function (b) { return b.checked; });
+    continueBtn.disabled = !allChecked;
+    continueBtn.classList.toggle("pc-gate-ready", allChecked);
+  }
+
+  function hideGate() {
+    overlay.style.display = "none";
+    document.body.classList.remove("pc-gate-locked");
+  }
+
+  function showGate() {
+    overlay.style.display = "flex";
+    document.body.classList.add("pc-gate-locked");
+    boxes[0].focus();
+  }
+
+  boxes.forEach(function (b) { b.addEventListener("change", updateContinueState); });
+
+  continueBtn.addEventListener("click", function () {
+    if (continueBtn.disabled) return;
+    recordAcceptance();
+    hideGate();
+  });
+
+  if (alreadyConsented()) {
+    hideGate();
+  } else {
+    showGate();
+  }
+})();
+</script>
+
+</body>
+</html>

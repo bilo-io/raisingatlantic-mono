@@ -34,12 +34,29 @@ import {
 /**
  * Every Google Font testable on /settings, self-hosted via next/font.
  * `variable` names must match `src/lib/font-catalog.ts`. The defaults
- * (Poppins for headline + body, Nunito for the wordmark) preload;
- * the rest use `preload: false` so browsers only fetch them when a
- * font is actually rendered (e.g. picked on the settings page).
+ * (Nunito for headline + wordmark, DM Sans for body) preload; the rest
+ * use `preload: false` so browsers only fetch them when a font is
+ * actually rendered (e.g. picked on the settings page).
  */
 
 // --- current defaults ---
+
+const nunito = Nunito({
+  subsets: ['latin'],
+  variable: '--font-nunito',
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  display: 'swap',
+});
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+});
+
+// --- former defaults, still selectable on /settings ---
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -47,30 +64,13 @@ const poppins = Poppins({
   weight: ['300', '400', '500', '600', '700'],
   style: ['normal', 'italic'],
   display: 'swap',
+  preload: false,
 });
-
-const nunito = Nunito({
-  subsets: ['latin'],
-  variable: '--font-nunito',
-  weight: ['600', '700', '800', '900'],
-  display: 'swap',
-});
-
-// --- former defaults, still selectable on /settings ---
 
 const fraunces = Fraunces({
   subsets: ['latin'],
   variable: '--font-fraunces',
   weight: ['300', '400', '500', '600'],
-  style: ['normal', 'italic'],
-  display: 'swap',
-  preload: false,
-});
-
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  variable: '--font-dm-sans',
-  weight: ['400', '500', '600', '700'],
   style: ['normal', 'italic'],
   display: 'swap',
   preload: false,

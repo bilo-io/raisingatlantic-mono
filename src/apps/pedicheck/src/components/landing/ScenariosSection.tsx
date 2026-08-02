@@ -19,25 +19,27 @@ export function ScenariosSection() {
           {/* Scenario 1 */}
           <div className="scenario">
             <p className="sc-quote">
-              &ldquo;My 18-month-old has a fever of 39.2°C.&rdquo;
+              &ldquo;My 18-month-old has a fever of 38.4°C and is drinking and
+              playing normally.&rdquo;
             </p>
             <div className="sc-phone">
               <PhoneMockup time="23:47" step="Result">
-                <span className="result-badge blue">
+                <span className="result-badge safe">
                   <span className="dot" />
-                  Monitor at home
+                  Green · home care
                 </span>
-                <h4 className="r-title">A fever she can fight tonight.</h4>
+                <h4 className="r-title">Home care is likely fine.</h4>
                 <p className="r-body">
-                  39.2°C is a real fever, but with no red flags and good
-                  hydration, this looks like her body doing its job.
+                  Your child does not show any of the warning signs above right
+                  now. You can usually manage this fever at home with fluids,
+                  rest, and appropriate fever relief.
                 </p>
-                <div className="watchbox">
-                  <div className="wlabel">Watch for tonight</div>
+                <div className="watchbox safe">
+                  <div className="wlabel">Come back or seek help if</div>
                   <ul>
-                    <li>Drowsy or hard to wake</li>
-                    <li>Refusing all fluids</li>
-                    <li>A rash that doesn&apos;t fade</li>
+                    <li>Breathing becomes difficult</li>
+                    <li>They become floppy or hard to wake</li>
+                    <li>A non-blanching rash appears</li>
                   </ul>
                 </div>
               </PhoneMockup>
@@ -47,25 +49,27 @@ export function ScenariosSection() {
           {/* Scenario 2 */}
           <div className="scenario">
             <p className="sc-quote">
-              &ldquo;She&apos;s been vomiting since dinner.&rdquo;
+              &ldquo;She&apos;s unusually flat and hard to console, even though
+              her fever isn&apos;t that high.&rdquo;
             </p>
             <div className="sc-phone">
               <PhoneMockup time="22:18" step="Result">
-                <span className="result-badge blue">
+                <span className="result-badge caution">
                   <span className="dot" />
-                  Manage at home
+                  Amber · same-day review
                 </span>
-                <h4 className="r-title">Hydration is the focus.</h4>
+                <h4 className="r-title">Arrange a same-day medical review.</h4>
                 <p className="r-body">
-                  No green vomit, no severe pain, still keeping small sips down.
-                  Likely a viral tummy bug she&apos;ll ride out.
+                  Your child seems unusually flat, hard to console, or very
+                  unlike themselves. This is different from normal fever
+                  clinginess, and should be checked by a doctor today.
                 </p>
-                <div className="watchbox">
-                  <div className="wlabel">Start with</div>
+                <div className="watchbox caution">
+                  <div className="wlabel">Come back or seek help if</div>
                   <ul>
-                    <li>5–10ml oral rehydration solution every 15 min</li>
-                    <li>No solid food for now</li>
-                    <li>Recheck every 30 min</li>
+                    <li>Breathing becomes difficult</li>
+                    <li>They become floppy or hard to wake</li>
+                    <li>They stop drinking or passing urine</li>
                   </ul>
                 </div>
               </PhoneMockup>
@@ -75,28 +79,27 @@ export function ScenariosSection() {
           {/* Scenario 3 */}
           <div className="scenario">
             <p className="sc-quote">
-              &ldquo;He fell off the bed and hit his head.&rdquo;
+              &ldquo;There&apos;s a rash that doesn&apos;t fade when I press a
+              glass on it.&rdquo;
             </p>
             <div className="sc-phone">
               <PhoneMockup time="01:13" step="Result">
                 <span className="result-badge terra">
                   <span className="dot" />
-                  See a doctor now
+                  Red · get help now
                 </span>
-                <h4 className="r-title">
-                  This head bump needs eyes tonight.
-                </h4>
+                <h4 className="r-title">Get medical help now.</h4>
                 <p className="r-body">
-                  He vomited twice and is hard to settle since the fall. After a
-                  head injury, that combination isn&apos;t safe to wait on until
-                  morning.
+                  A rash that does not fade under pressure needs urgent
+                  in-person assessment, even if your child otherwise seems
+                  well.
                 </p>
                 <div className="watchbox terra">
-                  <div className="wlabel">Your nearest after-hours line</div>
+                  <div className="wlabel">Do this now</div>
                   <ul>
-                    <li>Tap to see options near you</li>
+                    <li>Nearest emergency room on your route</li>
+                    <li>Or call 10177 if you can&apos;t move safely</li>
                     <li>Direct WhatsApp to your paed</li>
-                    <li>Closest ER on your route</li>
                   </ul>
                 </div>
               </PhoneMockup>
