@@ -9,6 +9,9 @@ export function Nav() {
           <a href="/features" className="nav-link">
             Features
           </a>
+          <a href="/check/index.html" className="nav-link">
+            Try the tools
+          </a>
           <a href="/#waitlist" className="btn">
             Join the waitlist
           </a>

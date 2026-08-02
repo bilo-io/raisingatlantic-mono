@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PediCheck — Head Bump Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --seafoam:#7FC9D9; --teal:#3F9FB8; --teal-deep:#1F6F8A;
+    --slate:#2B3A45; --cream:#FBF7F2; --cream2:#f4ede2;
+    --bg:#FBF7F2; --card:#fff; --border:#ece4d6; --border2:#e0e6ea;
+    --sub:#6b7a84; --text:#2B3A45; --fog:#f3f6f8;
+    --ok:#2d8a6d; --ok-bg:#e6f5ee; --warn:#c47f2b; --warn-bg:#fbf1e2;
+    --stop:#c0483d; --stop-bg:#fbeae8;
+    --concern:#7B5EA7; --concern-bg:#f1ecf7;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:0;
+  }
+  .phone{
+    width:100%;
+    max-width:460px;
+    min-height:100vh;
+    background:var(--bg);
+    position:relative;
+    padding-bottom:40px;
+  }
+  header{
+    background:var(--slate);
+    color:var(--cream);
+    padding:26px 22px 22px;
+    border-bottom-left-radius:28px;
+    border-bottom-right-radius:28px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::before{
+    content:'';
+    position:absolute;
+    width:200px;height:200px;
+    background:radial-gradient(circle,rgba(63,159,184,0.32) 0%,transparent 70%);
+    top:-60px;right:-40px;
+  }
+  .eyebrow{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--seafoam);
+    margin-bottom:8px;
+    position:relative;
+    z-index:1;
+  }
+  h1{
+    font-family:'DM Sans',sans-serif;
+    font-size:23px;
+    font-weight:700;
+    margin:0 0 6px;
+    line-height:1.2;
+    color:#fff;
+    position:relative;
+    z-index:1;
+  }
+  .sub{
+    font-size:13px;
+    color:rgba(255,255,255,0.62);
+    line-height:1.5;
+    margin:0;
+    position:relative;
+    z-index:1;
+  }
+  .pulse{
+    width:100%;
+    height:30px;
+    margin-top:14px;
+    position:relative;
+    z-index:1;
+  }
+  .pulse path{
+    fill:none;
+    stroke:var(--seafoam);
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-dasharray:240;
+    stroke-dashoffset:240;
+    animation:draw 2.6s ease-in-out infinite;
+  }
+  @keyframes draw{
+    0%{stroke-dashoffset:240;}
+    50%{stroke-dashoffset:0;}
+    100%{stroke-dashoffset:-240;}
+  }
+  main{padding:20px 16px 0;}
+  .progress{
+    display:flex;
+    gap:6px;
+    margin-bottom:18px;
+  }
+  .progress div{
+    height:4px;
+    flex:1;
+    border-radius:4px;
+    background:var(--border2);
+  }
+  .progress div.done{background:var(--teal);}
+  .card{
+    background:var(--card);
+    border-radius:20px;
+    padding:22px 20px;
+    box-shadow:0 4px 24px rgba(43,58,69,0.06);
+    border:1px solid var(--border);
+  }
+  .tag{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    opacity:0.85;
+    margin-bottom:10px;
+    display:block;
+  }
+  .question{
+    font-family:'DM Sans',sans-serif;
+    font-size:18px;
+    font-weight:700;
+    line-height:1.35;
+    margin:0 0 6px;
+    color:var(--slate);
+  }
+  .hint{
+    font-size:13px;
+    color:var(--sub);
+    line-height:1.55;
+    margin:0 0 18px;
+  }
+  .opt{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:var(--fog);
+    border:1.5px solid var(--border2);
+    border-radius:12px;
+    padding:14px 16px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    color:var(--slate);
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease, transform .08s ease;
+  }
+  .opt:hover{border-color:var(--teal);background:#eef7fa;}
+  .opt:active{transform:scale(0.98);}
+  .back{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:none;
+    border:none;
+    color:var(--teal-deep);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    padding:14px 2px 0;
+    cursor:pointer;
+    opacity:0.8;
+  }
+  .result{
+    border-radius:20px;
+    padding:24px 20px 20px;
+    color:var(--slate);
+  }
+  .result.red{background:var(--stop-bg); border:1.5px solid var(--stop);}
+  .result.amber{background:var(--warn-bg); border:1.5px solid var(--warn);}
+  .result.green{background:var(--ok-bg); border:1.5px solid var(--ok);}
+  .result.concern{background:var(--concern-bg); border:1.5px solid var(--concern);}
+  .result-badge{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:5px 12px;
+    border-radius:100px;
+    color:#fff;
+    margin-bottom:14px;
+  }
+  .red .result-badge{background:var(--stop);}
+  .amber .result-badge{background:var(--warn);}
+  .green .result-badge{background:var(--ok);}
+  .concern .result-badge{background:var(--concern);}
+  .result h2{
+    font-family:'DM Sans',sans-serif;
+    font-size:20px;
+    font-weight:700;
+    margin:0 0 10px;
+    line-height:1.3;
+    color:var(--slate);
+  }
+  .result p{
+    font-size:14px;
+    line-height:1.6;
+    margin:0 0 14px;
+    color:var(--text);
+  }
+  .result ul{
+    margin:0 0 16px;
+    padding-left:18px;
+  }
+  .result li{
+    font-size:13.5px;
+    line-height:1.6;
+    margin-bottom:6px;
+    color:var(--text);
+  }
+  .restart{
+    width:100%;
+    background:var(--teal);
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    padding:14px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    margin-top:6px;
+  }
+  .restart:active{background:var(--teal-deep);}
+  .evidence{
+    margin-top:22px;
+    padding:16px 18px;
+    border-radius:14px;
+    background:var(--fog);
+  }
+  .evidence-title{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    margin-bottom:8px;
+  }
+  .evidence p{
+    font-size:12px;
+    line-height:1.6;
+    color:var(--sub);
+    margin:0 0 6px;
+  }
+  .disclaimer{
+    text-align:center;
+    font-size:11px;
+    color:var(--sub);
+    line-height:1.5;
+    padding:18px 24px 0;
+  }
+  .considerations{
+    margin-top:4px;
+    padding:16px 18px;
+    border-radius:14px;
+    background:var(--fog);
+    border:1px dashed var(--border2);
+  }
+  .considerations-title{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--sub);
+    margin-bottom:8px;
+  }
+  .considerations ul{
+    margin:0;
+    padding-left:18px;
+  }
+  .considerations li{
+    font-size:13px;
+    line-height:1.55;
+    margin-bottom:6px;
+    color:var(--text);
+  }
+  .why{
+    background:var(--fog);
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:12.5px;
+    line-height:1.55;
+    color:var(--sub);
+    margin-top:14px;
+  }
+  .why b{color:var(--slate);}
+  .safety-net{
+    background:var(--card);
+    border:1.5px solid var(--border2);
+    border-radius:14px;
+    padding:16px 18px;
+    margin-top:16px;
+    font-size:13px;
+    line-height:1.55;
+  }
+  .safety-net b{display:block; margin-bottom:8px; font-size:13px; color:var(--slate);}
+  .safety-net ul{margin:0; padding-left:18px;}
+  .home-care{
+    background:var(--card);
+    border:1.5px solid var(--border2);
+    border-radius:14px;
+    padding:16px 18px;
+    margin-top:14px;
+    font-size:13px;
+    line-height:1.55;
+  }
+  .home-care .label{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    margin-bottom:8px;
+  }
+  .home-care ul{margin:0; padding-left:18px;}
+  .home-care li{margin-bottom:6px;}
+  .dosing-btn{
+    display:block;
+    width:100%;
+    margin-top:12px;
+    padding:12px;
+    background:none;
+    border:1.5px dashed var(--teal);
+    border-radius:12px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    color:var(--teal-deep);
+    cursor:pointer;
+    text-align:center;
+  }
+  .dosing-note{
+    display:none;
+    margin-top:10px;
+    padding:12px 14px;
+    background:#eef7fa;
+    border-radius:10px;
+    font-size:12.5px;
+    line-height:1.5;
+    color:var(--sub);
+  }
+  .precheck-note{
+    background:#eef7fa;
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:13px;
+    line-height:1.55;
+    color:var(--text);
+    margin-bottom:18px;
+  }
+  .precheck-note b{display:block; margin-bottom:4px; color:var(--slate);}
+
+  .home-link{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:11.5px; font-weight:600; color:var(--seafoam);
+    text-decoration:none; margin-bottom:12px; position:relative; z-index:1;
+    opacity:0.85;
+  }
+  .home-link:hover{ opacity:1; }
+
+</style>
+<style id="pc-gate-styles">
+  #pc-gate-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(31, 43, 51, 0.72);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: flex-end; justify-content: center;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 0;
+  }
+  @media (min-width: 560px) {
+    #pc-gate-overlay { align-items: center; padding: 20px; }
+  }
+  .pc-gate-card {
+    background: #FBF7F2;
+    width: 100%; max-width: 460px;
+    max-height: 92vh; overflow-y: auto;
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -8px 40px rgba(43,58,69,0.25);
+  }
+  @media (min-width: 560px) {
+    .pc-gate-card { border-radius: 24px; box-shadow: 0 20px 60px rgba(43,58,69,0.35); }
+  }
+  .pc-gate-head {
+    background: #2B3A45;
+    padding: 26px 26px 22px;
+    border-radius: 24px 24px 0 0;
+    position: relative; overflow: hidden;
+  }
+  .pc-gate-head::before {
+    content: ''; position: absolute; width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(63,159,184,0.32) 0%, transparent 70%);
+    top: -60px; right: -40px;
+  }
+  .pc-gate-brand { display: flex; align-items: center; gap: 10px; position: relative; z-index: 1; }
+  .pc-gate-wordmark { font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
+  .pc-gate-wordmark span { color: #7FC9D9; }
+  .pc-gate-title {
+    font-family: 'DM Sans', sans-serif; font-size: 21px; font-weight: 700;
+    color: #fff; margin-top: 14px; position: relative; z-index: 1;
+  }
+  .pc-gate-sub {
+    font-size: 12.5px; color: rgba(255,255,255,0.6); line-height: 1.55;
+    margin-top: 6px; position: relative; z-index: 1;
+  }
+  .pc-gate-body { padding: 22px 24px 24px; }
+  .pc-gate-notice {
+    font-size: 12px; line-height: 1.6; color: #6b7a84;
+    background: #eef7fa; border: 1px solid rgba(63,159,184,0.25);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 18px;
+  }
+  .pc-gate-check-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 13px 0; border-bottom: 1px solid #ece4d6;
+  }
+  .pc-gate-check-row:last-of-type { border-bottom: none; }
+  .pc-gate-check-row input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px;
+    border: 2px solid #c8d2d6; border-radius: 7px;
+    cursor: pointer; position: relative; transition: .15s;
+    background: #fff;
+  }
+  .pc-gate-check-row input[type="checkbox"]:checked {
+    background: #3F9FB8; border-color: #3F9FB8;
+  }
+  .pc-gate-check-row input[type="checkbox"]:checked::after {
+    content: ''; position: absolute; left: 6px; top: 2px;
+    width: 6px; height: 11px;
+    border: solid #fff; border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+  }
+  .pc-gate-check-row input[type="checkbox"]:focus-visible {
+    outline: 2px solid #1F6F8A; outline-offset: 2px;
+  }
+  .pc-gate-check-row label {
+    font-size: 13.5px; line-height: 1.5; color: #2B3A45; cursor: pointer;
+  }
+  .pc-gate-links { margin: 16px 0 4px; font-size: 12px; color: #6b7a84; }
+  .pc-gate-links a { color: #1F6F8A; font-weight: 600; text-decoration: none; }
+  .pc-gate-links a:hover { text-decoration: underline; }
+  .pc-gate-continue {
+    width: 100%; margin-top: 18px;
+    background: #c8d2d6; color: #fff; border: none; border-radius: 14px;
+    padding: 15px; font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.2px;
+    cursor: not-allowed; transition: .18s;
+  }
+  .pc-gate-continue.pc-gate-ready {
+    background: #3F9FB8; cursor: pointer;
+  }
+  .pc-gate-continue.pc-gate-ready:active { background: #1F6F8A; transform: scale(0.99); }
+  .pc-gate-emergency {
+    margin-top: 14px; font-size: 11.5px; line-height: 1.6; color: #8a5a2e;
+    background: #fbf1e2; border: 1px solid #ecd3a8; border-radius: 12px;
+    padding: 10px 13px;
+  }
+  body.pc-gate-locked { overflow: hidden; }
+</style>
+</head>
+<body>
+
+<div id="pc-gate-overlay">
+  <div class="pc-gate-card">
+    <div class="pc-gate-head">
+      <div class="pc-gate-brand">
+        <svg width="26" height="26" viewBox="0 0 40 40" fill="none">
+          <defs><linearGradient id="pcg" x1="20" y1="6" x2="20" y2="36" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#7FC9D9"/><stop offset="100%" stop-color="#1F6F8A"/>
+          </linearGradient></defs>
+          <path d="M20 35 C20 35 5 25 5 15.5 C5 10.8 8.8 7 13.5 7 C16.3 7 18.7 8.5 20 10.8 C21.3 8.5 23.7 7 26.5 7 C31.2 7 35 10.8 35 15.5 C35 25 20 35 20 35Z" fill="url(#pcg)"/>
+          <path d="M13.5 18.5 L18 23 L27 13.5" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <div class="pc-gate-wordmark">Pedi<span>Check</span></div>
+      </div>
+      <div class="pc-gate-title">Before you start</div>
+      <div class="pc-gate-sub">Please read and confirm the four points below. This takes about ten seconds and only appears once.</div>
+    </div>
+
+    <div class="pc-gate-body">
+      <div class="pc-gate-notice">
+        <strong>PediCheck is a guide, not a prescription.</strong> It supports — but does not replace — assessment by a qualified healthcare professional.
+      </div>
+
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c1">
+        <label for="pc-gate-c1">I understand PediCheck provides general guidance only, and does not give medical advice, diagnosis or treatment.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c2">
+        <label for="pc-gate-c2">I understand I must confirm every dose or decision against the product packaging and a healthcare professional.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c3">
+        <label for="pc-gate-c3">I understand PediCheck is not a substitute for consulting a doctor, and that I use it at my own risk.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c4">
+        <label for="pc-gate-c4">I confirm I am 18 or older and am the parent or legal guardian of the child, or am authorised to act for them.</label>
+      </div>
+
+      <div class="pc-gate-links">
+        Read the full <a href="/terms" target="_blank" rel="noopener">Terms of Use</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Notice</a>.
+      </div>
+
+      <button class="pc-gate-continue" id="pc-gate-continue-btn" disabled>Continue</button>
+
+      <div class="pc-gate-emergency">
+        If your child is very unwell, difficult to wake, struggling to breathe, or is under 3 months old with a fever — don't use this app. Call <strong>10177</strong> (ambulance) or <strong>112</strong> from a mobile, or go to your nearest emergency department now.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="phone">
+  <header>
+    <a class="home-link" href="index.html">&larr; All tools</a>
+    <div class="eyebrow">PediCheck · Symptom Check</div>
+    <h1>My child bumped their head</h1>
+    <p class="sub">A few quick questions, adjusted for your child's age, to work out what to do next — based on the PECARN and NICE head injury guidelines.</p>
+    <svg class="pulse" viewBox="0 0 300 34" preserveAspectRatio="none">
+      <path d="M0 17 H100 L112 4 L124 30 L136 17 H160 L172 8 L182 26 L192 17 H300"/>
+    </svg>
+  </header>
+
+  <main>
+    <div class="progress" id="progress"></div>
+    <div id="quiz"></div>
+    <div class="disclaimer" id="disclaimer">This tool supports, but doesn't replace, your own judgement. If you're ever unsure, trust your instinct and seek care.</div>
+  </main>
+</div>
+
+<script>
+const steps = [
+  {
+    id: 'q1',
+    tag: 'Step 1 of 5',
+    question: "How old is your child?",
+    hint: "Infants are harder to read for symptoms like headache or dizziness, so the questions ahead adjust for age.",
+    options: [
+      { label: "Under 12 months", next: 'q2_infant' },
+      { label: "12 months or older", next: 'q2_child' }
+    ]
+  },
+  {
+    id: 'q2_infant',
+    tag: 'Step 2 of 5',
+    question: "Is your baby alert and responding normally right now?",
+    hint: "Can they open their eyes, focus on you, and respond to your voice or touch as usual?",
+    options: [
+      { label: "No — hard to rouse, or not responding normally", next: 'RED_CONSCIOUSNESS' },
+      { label: "Yes, alert and responding", next: 'q3_infant' }
+    ]
+  },
+  {
+    id: 'q3_infant',
+    tag: 'Step 3 of 5',
+    question: "Did they go limp or unresponsive at any point after the fall?",
+    hint: "Even a few seconds counts. Include it if you're not certain.",
+    options: [
+      { label: "Yes, for longer than about a minute, or it's ongoing", next: 'RED_LOC_LONG' },
+      { label: "Yes, briefly, then they came round", next: 'AMBER_LOC_BRIEF' },
+      { label: "No loss of consciousness", next: 'q4_infant' }
+    ]
+  },
+  {
+    id: 'q4_infant',
+    tag: 'Step 4 of 5',
+    question: "Any of these since the fall?",
+    hint: "A seizure, vomiting 3 or more times, a bulging or tense soft spot, breathing pauses, blood or clear fluid from the ear or nose, or your baby becoming increasingly floppy or hard to wake.",
+    options: [
+      { label: "Yes, one or more of these", next: 'RED_SEVERE_SIGNS' },
+      { label: "No, none of these", next: 'q5_infant' }
+    ]
+  },
+  {
+    id: 'q5_infant',
+    tag: 'Step 5 of 5',
+    question: "Any of these milder signs?",
+    hint: "Any vomiting at all, a bump, bruise or swelling on the back or side of the head (not the forehead), a fall from a height or onto a hard surface, or your baby seeming fussier or harder to settle than usual.",
+    options: [
+      { label: "Yes, one or more of these", next: 'AMBER_MODERATE_SIGNS' },
+      { label: "No, none of these", next: 'GREEN' }
+    ]
+  },
+  {
+    id: 'q2_child',
+    tag: 'Step 2 of 5',
+    question: "Is your child conscious and responding normally right now?",
+    hint: "Can they open their eyes, look at you, and respond to their name or a question?",
+    options: [
+      { label: "No — they're difficult to wake, or not responding normally", next: 'RED_CONSCIOUSNESS' },
+      { label: "Yes, they're awake and responding", next: 'q3_child' }
+    ]
+  },
+  {
+    id: 'q3_child',
+    tag: 'Step 3 of 5',
+    question: "Did they lose consciousness (go limp / unresponsive) at any point?",
+    hint: "Even a few seconds counts. Include it if you're not certain.",
+    options: [
+      { label: "Yes, for longer than about a minute, or it's ongoing", next: 'RED_LOC_LONG' },
+      { label: "Yes, briefly (a few seconds), then they came round", next: 'AMBER_LOC_BRIEF' },
+      { label: "No loss of consciousness", next: 'q4_child' }
+    ]
+  },
+  {
+    id: 'q4_child',
+    tag: 'Step 4 of 5',
+    question: "Any of these since the fall?",
+    hint: "A seizure or fits, repeated vomiting, a severe or worsening headache, clear fluid or blood from the ear or nose, or trouble with vision, balance, speech or using a limb.",
+    options: [
+      { label: "Yes, one or more of these", next: 'RED_SEVERE_SIGNS' },
+      { label: "No, none of these", next: 'q5_child' }
+    ]
+  },
+  {
+    id: 'q5_child',
+    tag: 'Step 5 of 5',
+    question: "Any of these milder signs?",
+    hint: "Vomited once or twice, seems drowsier or more irritable than usual, a large or swelling bruise (especially not on the forehead), can't remember the fall, or a high-energy fall (from height, off a bike, or hit by something moving fast).",
+    options: [
+      { label: "Yes, one or more of these", next: 'AMBER_MODERATE_SIGNS' },
+      { label: "No, none of these", next: 'GREEN' }
+    ]
+  }
+];
+
+const results = {
+  RED_CONSCIOUSNESS: {
+    level: 'red',
+    badge: 'Call emergency services now',
+    title: "Get emergency help immediately",
+    body: "A child who isn't responding normally needs urgent assessment. Call your local emergency number now and keep your child lying on their side if they're vomiting or drowsy.",
+    points: ["Don't give food, drink, or pain medication until they've been seen", "If they stop breathing or become unresponsive, begin CPR if trained", "Note the time of the fall and what happened — you'll be asked"]
+  },
+  RED_LOC_LONG: {
+    level: 'red',
+    badge: 'Go to the emergency department now',
+    title: "This needs emergency assessment today",
+    body: "Loss of consciousness longer than about a minute is a marker of a more significant injury and needs urgent evaluation, usually including a same-day exam and possibly a CT scan.",
+    points: ["Go directly to your nearest emergency department", "Keep your child still and supported on the way", "Bring a clear account of how long they were unresponsive"]
+  },
+  RED_SEVERE_SIGNS: {
+    level: 'red',
+    badge: 'Go to the emergency department now',
+    title: "One or more high-risk signs are present",
+    body: "Seizures, repeated vomiting, a worsening headache, fluid from the ear or nose, a bulging soft spot, or new weakness/vision/speech changes are all reasons for urgent in-person assessment.",
+    points: ["Go directly to your nearest emergency department", "Don't give food or drink in case a scan or procedure is needed", "Keep track of how many times they've vomited and when symptoms started"]
+  },
+  AMBER_LOC_BRIEF: {
+    level: 'amber',
+    badge: 'See a doctor today',
+    title: "A same-day check-up is the safer call",
+    body: "A brief loss of consciousness that resolves is common and usually turns out fine, but current guidelines recommend an in-person review the same day to rule out anything needing further attention.",
+    points: ["Have them seen by a doctor or emergency department today, even if they now seem fine", "Watch for any of the more serious signs developing on the way", "It's fine for them to rest or sleep once they've been assessed"]
+  },
+  AMBER_MODERATE_SIGNS: {
+    level: 'amber',
+    badge: 'See a doctor today',
+    title: "Worth a same-day check-up",
+    body: "None of these signs on their own are usually an emergency, but together they're the pattern doctors use to decide who benefits from a closer look — sometimes with a period of observation, sometimes with a scan.",
+    points: ["Arrange a same-day medical review", "Keep a note of vomiting episodes, mood, and how the bruise changes", "Normal sleep is fine once they've been checked — you don't need to wake them through the night unless a doctor advises it"]
+  },
+  AMBER_INFANT: {
+    level: 'amber',
+    badge: 'Get checked today, to be safe',
+    title: "Best to get a doctor's opinion today",
+    body: "Under 12 months old, it's much harder to pick up on subtler symptoms like headache or dizziness, so guidelines lean toward an in-person check even after a fall that looks minor.",
+    points: ["A same-day GP or clinic visit is reasonable — this doesn't need to be an ambulance call unless other red-flag signs appear", "Watch feeding, alertness, and soft-spot appearance over the next 24 hours", "Seek urgent care if anything from the earlier questions develops"]
+  },
+  GREEN: {
+    level: 'green',
+    badge: 'Safe to watch at home',
+    title: "Home observation should be fine",
+    body: "Based on what you've shared, this looks like a low-risk bump. Most children in this category recover with no complications and don't need a scan or emergency visit.",
+    points: ["Watch them closely for the next 24–48 hours for any new symptoms from the earlier questions", "Normal activity and sleep are fine — no need for scheduled wake-ups overnight", "A cold compress can ease swelling; paracetamol can be used for discomfort if needed", "Trust your instinct — if anything changes or feels wrong, get them checked"]
+  }
+};
+
+let history = ['q1'];
+
+function render(){
+  const stepIdx = steps.findIndex(s => s.id === history[history.length-1]);
+  const quiz = document.getElementById('quiz');
+  const progress = document.getElementById('progress');
+
+  if (stepIdx === -1) {
+    // it's a result
+    const r = results[history[history.length-1]];
+    progress.innerHTML = '';
+    quiz.innerHTML = `
+      <div class="result ${r.level}">
+        <span class="result-badge">${r.badge}</span>
+        <h2>${r.title}</h2>
+        <p>${r.body}</p>
+        <ul>${r.points.map(p => `<li>${p}</li>`).join('')}</ul>
+      </div>
+      <div class="evidence">
+        <div class="evidence-title">Where this comes from</div>
+        <p>Question flow is informed by the PECARN paediatric head injury prediction rule (Kuppermann et al., 2009) and the NICE head injury guideline (NG232). The under-12-month split follows NICE's use of age under 1 year as its own risk marker, and PECARN's separate decision rule for children under 2, where a non-frontal scalp swelling or bruise carries more weight than it does in an older, verbal child.</p>
+        <p>South Africa doesn't publish its own paediatric mild head injury decision rule — local practice, including at Cape Town's Red Cross Children's Hospital, applies these international rules within the South African Triage Scale (SATS), the physiology-and-discriminator triage system used in SA emergency centres and by Western Cape EMS. Given more limited same-day CT access in the public sector, the emphasis stays on careful observation and clear safety-netting rather than reflexive imaging.</p>
+      </div>
+      <button class="restart" onclick="restart()">Start over</button>
+    `;
+    document.getElementById('disclaimer').style.display = 'block';
+    return;
+  }
+
+  const step = steps[stepIdx];
+  const totalDepth = 5;
+  const currentDepth = history.length;
+  progress.innerHTML = Array.from({length: totalDepth}, (_, i) => `<div class="${i < currentDepth ? 'done' : ''}"></div>`).join('');
+  quiz.innerHTML = `
+    <div class="card">
+      <span class="tag">${step.tag}</span>
+      <p class="question">${step.question}</p>
+      <p class="hint">${step.hint}</p>
+      ${step.options.map((o,i) => `<button class="opt" onclick="choose('${o.next}')">${o.label}</button>`).join('')}
+    </div>
+    ${history.length > 1 ? '<button class="back" onclick="goBack()">← Back</button>' : ''}
+  `;
+}
+
+function choose(next){
+  history.push(next);
+  render();
+}
+function goBack(){
+  history.pop();
+  render();
+}
+function restart(){
+  history = ['q1'];
+  render();
+}
+
+render();
+</script>
+<script>
+(function () {
+  // Bump this on any material change to the Terms — every user gets re-gated.
+  var CONSENT_VERSION = "1.0";
+  var STORAGE_KEY = "pedicheck_consent";
+
+  var overlay = document.getElementById("pc-gate-overlay");
+  var boxes = ["pc-gate-c1", "pc-gate-c2", "pc-gate-c3", "pc-gate-c4"].map(function (id) {
+    return document.getElementById(id);
+  });
+  var continueBtn = document.getElementById("pc-gate-continue-btn");
+
+  function alreadyConsented() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      var record = JSON.parse(raw);
+      return record.version === CONSENT_VERSION && record.accepted === true;
+    } catch (e) {
+      return false; // corrupt/blocked storage -> fail safe, show the gate
+    }
+  }
+
+  function recordAcceptance() {
+    var record = {
+      accepted: true,
+      version: CONSENT_VERSION,
+      timestamp: new Date().toISOString()
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
+    } catch (e) {
+      // localStorage unavailable (private browsing, storage disabled, etc.)
+      // Gate will simply reappear next load — acceptable degradation.
+    }
+    // TODO once there's a backend: also send `record` (plus a user/device
+    // identifier) to a server endpoint here, so acceptance can be proven
+    // later — see the caveat note at the top of this file.
+  }
+
+  function updateContinueState() {
+    var allChecked = boxes.every(function (b) { return b.checked; });
+    continueBtn.disabled = !allChecked;
+    continueBtn.classList.toggle("pc-gate-ready", allChecked);
+  }
+
+  function hideGate() {
+    overlay.style.display = "none";
+    document.body.classList.remove("pc-gate-locked");
+  }
+
+  function showGate() {
+    overlay.style.display = "flex";
+    document.body.classList.add("pc-gate-locked");
+    boxes[0].focus();
+  }
+
+  boxes.forEach(function (b) { b.addEventListener("change", updateContinueState); });
+
+  continueBtn.addEventListener("click", function () {
+    if (continueBtn.disabled) return;
+    recordAcceptance();
+    hideGate();
+  });
+
+  if (alreadyConsented()) {
+    hideGate();
+  } else {
+    showGate();
+  }
+})();
+</script>
+
+</body>
+</html>
