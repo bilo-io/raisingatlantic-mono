@@ -223,7 +223,7 @@ jobs:
 
       - name: Notify Slack
         if: always()
-        uses: slackapi/slack-github-action@v1
+        uses: slackapi/slack-github-action@v3
         with:
           payload: |
             {
@@ -304,7 +304,7 @@ jobs:
 
       - name: Notify Slack
         if: always()
-        uses: slackapi/slack-github-action@v1
+        uses: slackapi/slack-github-action@v3
         with:
           payload: |
             {
@@ -444,7 +444,7 @@ jobs:
 
       - name: Notify Slack
         if: always()
-        uses: slackapi/slack-github-action@v1
+        uses: slackapi/slack-github-action@v3
         with:
           payload: |
             {
