@@ -142,7 +142,7 @@ jobs:
         continue-on-error: true
 
       - name: Setup Infracost
-        uses: infracost/actions/setup@v3
+        uses: infracost/actions/setup@v4
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
         # TODO(OPS): register at infracost.io and add INFRACOST_API_KEY to GitHub Secrets
