@@ -56,6 +56,10 @@ Every waitlist or contact submission adds one row here. Columns:
 **Nothing is shown back on the website from this tab — it's purely your private
 list.** You just read it in the sheet (e.g. to export emails for an announcement).
 
+📧 **The team is also emailed at dev@raisingatlantic.com whenever a new lead
+comes in** (waitlist or contact form), so you don't have to keep checking the
+sheet. Check spam if you don't see it.
+
 ### 2. `Features` tab — the feature-request board
 
 Every "suggest a feature" submission adds one row here. Columns:
