@@ -34,18 +34,17 @@ import {
 /**
  * Every Google Font testable on /settings, self-hosted via next/font.
  * `variable` names must match `src/lib/font-catalog.ts`. The defaults
- * (Fraunces, DM Sans, Nunito) keep their original config and preload;
- * the rest use `preload: false` so browsers only fetch them when a
- * font is actually rendered (e.g. picked on the settings page).
+ * (Nunito for headline + wordmark, DM Sans for body) preload; the rest
+ * use `preload: false` so browsers only fetch them when a font is
+ * actually rendered (e.g. picked on the settings page).
  */
 
-// --- current defaults (unchanged from the original layout.tsx config) ---
+// --- current defaults ---
 
-const fraunces = Fraunces({
+const nunito = Nunito({
   subsets: ['latin'],
-  variable: '--font-fraunces',
-  weight: ['300', '400', '500', '600'],
-  style: ['normal', 'italic'],
+  variable: '--font-nunito',
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
   display: 'swap',
 });
 
@@ -57,11 +56,24 @@ const dmSans = DM_Sans({
   display: 'swap',
 });
 
-const nunito = Nunito({
+// --- former defaults, still selectable on /settings ---
+
+const poppins = Poppins({
   subsets: ['latin'],
-  variable: '--font-nunito',
-  weight: ['600', '700', '800', '900'],
+  variable: '--font-poppins',
+  weight: ['300', '400', '500', '600', '700'],
+  style: ['normal', 'italic'],
   display: 'swap',
+  preload: false,
+});
+
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-fraunces',
+  weight: ['300', '400', '500', '600'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+  preload: false,
 });
 
 // --- serif candidates (italic included: the hero headline uses <em>) ---
@@ -152,14 +164,6 @@ const newsreader = Newsreader({
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-  preload: false,
-});
-
-const poppins = Poppins({
-  subsets: ['latin'],
-  variable: '--font-poppins',
   weight: ['400', '500', '600', '700'],
   display: 'swap',
   preload: false,

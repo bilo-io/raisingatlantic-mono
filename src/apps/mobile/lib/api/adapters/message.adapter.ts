@@ -1,19 +1,13 @@
+import type { Conversation, Message } from "@raising-atlantic/types";
+import { api } from "../client";
 import { useApi } from "../data-source";
-import {
-  conversationsFixture,
-  type FixtureConversation,
-  type FixtureMessage,
-  messagesFixture,
-} from "../fixtures/messages";
+import { conversationsFixture, messagesFixture } from "../fixtures/messages";
 
-// NOTE: messages backend does not exist yet (MOBILE.md §M1.4 — Tier 3 / deferred).
-// Real-API branches throw deliberately so any accidental EXPO_PUBLIC_USE_API=true call
-// surfaces fast instead of silently returning empty data.
-const BACKEND_MISSING =
-  "Messages backend not available — see docs/GO_LIVE/MOBILE.md §M1.4";
-
-export async function listConversations(): Promise<FixtureConversation[]> {
-  if (useApi()) throw new Error(BACKEND_MISSING);
+export async function listConversations(): Promise<Conversation[]> {
+  if (useApi()) {
+    const res = await api.get<Conversation[]>("/conversations");
+    return res.data;
+  }
   return conversationsFixture
     .slice()
     .sort((a, b) => b.lastMessageAt.localeCompare(a.lastMessageAt));
@@ -21,8 +15,13 @@ export async function listConversations(): Promise<FixtureConversation[]> {
 
 export async function listConversationMessages(
   conversationId: string,
-): Promise<FixtureMessage[]> {
-  if (useApi()) throw new Error(BACKEND_MISSING);
+): Promise<Message[]> {
+  if (useApi()) {
+    const res = await api.get<Message[]>(
+      `/conversations/${conversationId}/messages`,
+    );
+    return res.data;
+  }
   return messagesFixture
     .filter((m) => m.conversationId === conversationId)
     .sort((a, b) => a.sentAt.localeCompare(b.sentAt));
@@ -32,8 +31,15 @@ export async function sendMessage(
   conversationId: string,
   senderId: string,
   body: string,
-): Promise<FixtureMessage> {
-  if (useApi()) throw new Error(BACKEND_MISSING);
+): Promise<Message> {
+  if (useApi()) {
+    // The server derives the sender from the auth token — never send senderId.
+    const res = await api.post<Message>(
+      `/conversations/${conversationId}/messages`,
+      { body },
+    );
+    return res.data;
+  }
   return {
     id: `msg-${Date.now()}`,
     conversationId,

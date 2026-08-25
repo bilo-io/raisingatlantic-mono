@@ -9,7 +9,7 @@
 **Phase involvement:**
 
 - [Phase M0: Foundations](#phase-m0-foundations): `DEV 100%` ✅
-- [Phase M1: Parent Flow](#phase-m1-parent-flow): `DEV 100%`
+- [Phase M1: Parent Flow](#phase-m1-parent-flow): `DEV 100%` ✅ *(26/26 — §M1.4 messaging backend landed; real-time WebSocket delivery remains Tier 3)*
 - [Phase M2: Clinician Flow](#phase-m2-clinician-flow): `DEV 100%` ✅ *(21/21 — G-VER-02 verification decision endpoints and ClinicianProfile HPCSA/SANC fields shipped, see [MOBILE_PHASE_M2_TODO.md](MOBILE_PHASE_M2_TODO.md))*
 - [Phase M3: Admin Flow](#phase-m3-admin-flow): `DEV 100%`
 - [Phase M4: Polish & Platform UX](#phase-m4-polish--platform-ux): `DEV 100%` ✅ *(23/24 — real-auth cutover landed; only §M4.5 source-map upload remains, deferred to §M5.1, see [MOBILE_PHASE_M4_TODO.md](MOBILE_PHASE_M4_TODO.md))*
@@ -165,7 +165,7 @@ Conversation list + thread view. **Polling first (15s interval), WebSocket later
 - [x] [messages.tsx](../../src/apps/mobile/app/(app)/(parent)/messages.tsx) — list of conversations
 - [x] Thread view at `messages/[conversationId].tsx`
 - [x] React Query `refetchInterval: 15000` for the open thread, `30000` for the list
-- [ ] Backend endpoints required — coordinate with [DEV.md §2.2](DEV.md#22-account-security-hardening) if not present yet (likely a Tier 3 blocker) — **deferred (no API module yet; mobile ships fixture adapter)**
+- [x] Backend endpoints required — coordinate with [DEV.md §2.2](DEV.md#22-account-security-hardening) — **done: NestJS `messages` module at [src/apps/api/src/messages/](../../src/apps/api/src/messages/) serving `/v1/conversations` (participant-scoped, `JwtVerifiedGuard`); mobile adapter now calls the real API. Real-time WebSocket delivery remains Tier 3.**
 
 #### M1.5 Dashboard
 Currently shows a generic role greeting via [DashboardHome.tsx](../../src/apps/mobile/components/DashboardHome.tsx). Replace placeholder cards with real summary data.

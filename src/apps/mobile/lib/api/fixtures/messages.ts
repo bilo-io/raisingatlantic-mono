@@ -1,21 +1,10 @@
+import type { Conversation, Message } from "@raising-atlantic/types";
 import { fixtureClinicianId, fixtureParentId } from "./users";
 
-export type FixtureMessage = {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  body: string;
-  sentAt: string;
-};
-
-export type FixtureConversation = {
-  id: string;
-  participantIds: string[];
-  participantName: string;
-  participantRole: "clinician" | "admin" | "parent";
-  lastMessageAt: string;
-  unreadCount: number;
-};
+// Canonical shapes live in @raising-atlantic/types; these aliases keep existing
+// imports working without redefining the domain types inline (see MOBILE.md §M0.1).
+export type FixtureMessage = Message;
+export type FixtureConversation = Conversation;
 
 const NOW_TS = Date.now();
 const minutesAgo = (m: number) => new Date(NOW_TS - m * 60_000).toISOString();

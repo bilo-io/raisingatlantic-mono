@@ -31,6 +31,12 @@ import {
 } from './children/children.model';
 import { Report } from './reports/reports.model';
 import { Appointment } from './appointments/appointments.model';
+import { MessagesModule } from './messages/messages.module';
+import {
+  Conversation,
+  ConversationParticipant,
+  Message,
+} from './messages/messages.model';
 import { MasterDataModule } from './master-data/master-data.module';
 import { VerificationsModule } from './verifications/verifications.module';
 import { ReportsModule } from './reports/reports.module';
@@ -109,6 +115,9 @@ import { MetricsModule } from './metrics/metrics.module';
           MedicalCondition,
           Report,
           Appointment,
+          Conversation,
+          ConversationParticipant,
+          Message,
           BlogPost,
           SystemLog,
         ];
@@ -148,6 +157,7 @@ import { MetricsModule } from './metrics/metrics.module';
     ChildrenModule,
     ReportsModule,
     AppointmentsModule,
+    MessagesModule,
     MasterDataModule,
     VerificationsModule,
     BlogModule,

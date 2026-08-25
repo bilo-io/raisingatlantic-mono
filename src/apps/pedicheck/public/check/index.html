@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PediCheck — Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --seafoam:#7FC9D9; --teal:#3F9FB8; --teal-deep:#1F6F8A;
+    --slate:#2B3A45; --cream:#FBF7F2; --cream2:#f4ede2;
+    --bg:#FBF7F2; --card:#fff; --border:#ece4d6; --border2:#e0e6ea;
+    --sub:#6b7a84; --text:#2B3A45; --fog:#f3f6f8;
+    --ok:#2d8a6d; --ok-bg:#e6f5ee; --warn:#c47f2b; --warn-bg:#fbf1e2;
+    --stop:#c0483d; --stop-bg:#fbeae8; --concern:#7B5EA7; --concern-bg:#f1ecf7;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    min-height:100vh; display:flex; justify-content:center;
+  }
+  .phone{ width:100%; max-width:460px; min-height:100vh; background:var(--bg); position:relative; padding-bottom:40px; }
+  header{
+    background:var(--slate); color:var(--cream);
+    padding:30px 22px 26px;
+    border-bottom-left-radius:28px; border-bottom-right-radius:28px;
+    position:relative; overflow:hidden;
+  }
+  header::before{
+    content:''; position:absolute; width:220px; height:220px;
+    background:radial-gradient(circle,rgba(63,159,184,0.32) 0%,transparent 70%);
+    top:-70px; right:-50px;
+  }
+  .brand{ display:flex; align-items:center; gap:12px; position:relative; z-index:1; }
+  .wordmark{ font-family:'DM Sans',sans-serif; font-size:22px; font-weight:700; }
+  .wordmark .pedi{ color:#fff; }
+  .wordmark .check{ color:var(--seafoam); }
+  .header-tag{ font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px; }
+  .header-sub{ font-size:13.5px; color:rgba(255,255,255,0.68); line-height:1.55; margin-top:16px; position:relative; z-index:1; }
+
+  main{ padding:22px 16px 0; }
+  .section-label{
+    font-size:10.5px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase;
+    color:var(--sub); margin:0 0 12px 4px;
+  }
+  .tool-card{
+    display:flex; align-items:center; gap:14px;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:18px; padding:16px 16px;
+    margin-bottom:12px; text-decoration:none; color:inherit;
+    box-shadow:0 4px 20px rgba(43,58,69,0.05);
+    transition:transform .1s ease, border-color .15s ease;
+  }
+  .tool-card:active{ transform:scale(0.98); }
+  .tool-card:hover{ border-color:var(--teal); }
+  .tool-icon{
+    flex-shrink:0; width:46px; height:46px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:21px;
+  }
+  .tool-icon.dose{ background:var(--concern-bg); }
+  .tool-icon.fever{ background:var(--stop-bg); }
+  .tool-icon.cough{ background:var(--warn-bg); }
+  .tool-icon.head{ background:#eef7fa; }
+  .tool-icon.tummy{ background:var(--ok-bg); }
+  .tool-name{ font-family:'DM Sans',sans-serif; font-size:15.5px; font-weight:700; color:var(--slate); margin-bottom:3px; }
+  .tool-desc{ font-size:12.5px; color:var(--sub); line-height:1.4; }
+  .tool-arrow{ margin-left:auto; color:var(--sub); font-size:16px; flex-shrink:0; }
+
+  .disclaimer{
+    text-align:center; font-size:11px; color:var(--sub);
+    line-height:1.6; padding:22px 24px 4px;
+  }
+  .disclaimer a{ color:var(--teal-deep); font-weight:600; text-decoration:none; }
+  .emergency-note{
+    margin:18px 16px 0; font-size:11.5px; line-height:1.6; color:#8a5a2e;
+    background:#fbf1e2; border:1px solid #ecd3a8; border-radius:12px; padding:12px 14px;
+  }
+</style>
+<style id="pc-gate-styles">
+  #pc-gate-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(31, 43, 51, 0.72);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: flex-end; justify-content: center;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 0;
+  }
+  @media (min-width: 560px) {
+    #pc-gate-overlay { align-items: center; padding: 20px; }
+  }
+  .pc-gate-card {
+    background: #FBF7F2;
+    width: 100%; max-width: 460px;
+    max-height: 92vh; overflow-y: auto;
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -8px 40px rgba(43,58,69,0.25);
+  }
+  @media (min-width: 560px) {
+    .pc-gate-card { border-radius: 24px; box-shadow: 0 20px 60px rgba(43,58,69,0.35); }
+  }
+  .pc-gate-head {
+    background: #2B3A45;
+    padding: 26px 26px 22px;
+    border-radius: 24px 24px 0 0;
+    position: relative; overflow: hidden;
+  }
+  .pc-gate-head::before {
+    content: ''; position: absolute; width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(63,159,184,0.32) 0%, transparent 70%);
+    top: -60px; right: -40px;
+  }
+  .pc-gate-brand { display: flex; align-items: center; gap: 10px; position: relative; z-index: 1; }
+  .pc-gate-wordmark { font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
+  .pc-gate-wordmark span { color: #7FC9D9; }
+  .pc-gate-title {
+    font-family: 'DM Sans', sans-serif; font-size: 21px; font-weight: 700;
+    color: #fff; margin-top: 14px; position: relative; z-index: 1;
+  }
+  .pc-gate-sub {
+    font-size: 12.5px; color: rgba(255,255,255,0.6); line-height: 1.55;
+    margin-top: 6px; position: relative; z-index: 1;
+  }
+  .pc-gate-body { padding: 22px 24px 24px; }
+  .pc-gate-notice {
+    font-size: 12px; line-height: 1.6; color: #6b7a84;
+    background: #eef7fa; border: 1px solid rgba(63,159,184,0.25);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 18px;
+  }
+  .pc-gate-check-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 13px 0; border-bottom: 1px solid #ece4d6;
+  }
+  .pc-gate-check-row:last-of-type { border-bottom: none; }
+  .pc-gate-check-row input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px;
+    border: 2px solid #c8d2d6; border-radius: 7px;
+    cursor: pointer; position: relative; transition: .15s;
+    background: #fff;
+  }
+  .pc-gate-check-row input[type="checkbox"]:checked {
+    background: #3F9FB8; border-color: #3F9FB8;
+  }
+  .pc-gate-check-row input[type="checkbox"]:checked::after {
+    content: ''; position: absolute; left: 6px; top: 2px;
+    width: 6px; height: 11px;
+    border: solid #fff; border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+  }
+  .pc-gate-check-row input[type="checkbox"]:focus-visible {
+    outline: 2px solid #1F6F8A; outline-offset: 2px;
+  }
+  .pc-gate-check-row label {
+    font-size: 13.5px; line-height: 1.5; color: #2B3A45; cursor: pointer;
+  }
+  .pc-gate-links { margin: 16px 0 4px; font-size: 12px; color: #6b7a84; }
+  .pc-gate-links a { color: #1F6F8A; font-weight: 600; text-decoration: none; }
+  .pc-gate-links a:hover { text-decoration: underline; }
+  .pc-gate-continue {
+    width: 100%; margin-top: 18px;
+    background: #c8d2d6; color: #fff; border: none; border-radius: 14px;
+    padding: 15px; font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.2px;
+    cursor: not-allowed; transition: .18s;
+  }
+  .pc-gate-continue.pc-gate-ready {
+    background: #3F9FB8; cursor: pointer;
+  }
+  .pc-gate-continue.pc-gate-ready:active { background: #1F6F8A; transform: scale(0.99); }
+  .pc-gate-emergency {
+    margin-top: 14px; font-size: 11.5px; line-height: 1.6; color: #8a5a2e;
+    background: #fbf1e2; border: 1px solid #ecd3a8; border-radius: 12px;
+    padding: 10px 13px;
+  }
+  body.pc-gate-locked { overflow: hidden; }
+</style>
+</head>
+<body>
+
+<div id="pc-gate-overlay">
+  <div class="pc-gate-card">
+    <div class="pc-gate-head">
+      <div class="pc-gate-brand">
+        <svg width="26" height="26" viewBox="0 0 40 40" fill="none">
+          <defs><linearGradient id="pcg" x1="20" y1="6" x2="20" y2="36" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#7FC9D9"/><stop offset="100%" stop-color="#1F6F8A"/>
+          </linearGradient></defs>
+          <path d="M20 35 C20 35 5 25 5 15.5 C5 10.8 8.8 7 13.5 7 C16.3 7 18.7 8.5 20 10.8 C21.3 8.5 23.7 7 26.5 7 C31.2 7 35 10.8 35 15.5 C35 25 20 35 20 35Z" fill="url(#pcg)"/>
+          <path d="M13.5 18.5 L18 23 L27 13.5" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <div class="pc-gate-wordmark">Pedi<span>Check</span></div>
+      </div>
+      <div class="pc-gate-title">Before you start</div>
+      <div class="pc-gate-sub">Please read and confirm the four points below. This takes about ten seconds and only appears once.</div>
+    </div>
+
+    <div class="pc-gate-body">
+      <div class="pc-gate-notice">
+        <strong>PediCheck is a guide, not a prescription.</strong> It supports — but does not replace — assessment by a qualified healthcare professional.
+      </div>
+
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c1">
+        <label for="pc-gate-c1">I understand PediCheck provides general guidance only, and does not give medical advice, diagnosis or treatment.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c2">
+        <label for="pc-gate-c2">I understand I must confirm every dose or decision against the product packaging and a healthcare professional.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c3">
+        <label for="pc-gate-c3">I understand PediCheck is not a substitute for consulting a doctor, and that I use it at my own risk.</label>
+      </div>
+      <div class="pc-gate-check-row">
+        <input type="checkbox" id="pc-gate-c4">
+        <label for="pc-gate-c4">I confirm I am 18 or older and am the parent or legal guardian of the child, or am authorised to act for them.</label>
+      </div>
+
+      <div class="pc-gate-links">
+        Read the full <a href="/terms" target="_blank" rel="noopener">Terms of Use</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Notice</a>.
+      </div>
+
+      <button class="pc-gate-continue" id="pc-gate-continue-btn" disabled>Continue</button>
+
+      <div class="pc-gate-emergency">
+        If your child is very unwell, difficult to wake, struggling to breathe, or is under 3 months old with a fever — don't use this app. Call <strong>10177</strong> (ambulance) or <strong>112</strong> from a mobile, or go to your nearest emergency department now.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="phone">
+  <header>
+    <div class="brand">
+      <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+        <defs><linearGradient id="hg" x1="20" y1="6" x2="20" y2="36" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#7FC9D9"/><stop offset="100%" stop-color="#1F6F8A"/></linearGradient></defs>
+        <path d="M20 35 C20 35 5 25 5 15.5 C5 10.8 8.8 7 13.5 7 C16.3 7 18.7 8.5 20 10.8 C21.3 8.5 23.7 7 26.5 7 C31.2 7 35 10.8 35 15.5 C35 25 20 35 20 35Z" fill="url(#hg)"/>
+        <path d="M13.5 18.5 L18 23 L27 13.5" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <div>
+        <div class="wordmark"><span class="pedi">Pedi</span><span class="check">Check</span></div>
+        <div class="header-tag">Paediatric guidance, checked</div>
+      </div>
+    </div>
+    <div class="header-sub">Quick, evidence-based guidance for common childhood symptoms, plus a paediatric dosing calculator. Pick a tool to get started.</div>
+  </header>
+
+  <main>
+    <div class="section-label">Symptom checkers</div>
+
+    <a class="tool-card" href="pedicheck-fever-simple.html">
+      <div class="tool-icon fever">🌡️</div>
+      <div>
+        <div class="tool-name">Fever Check</div>
+        <div class="tool-desc">Quick guidance for a feverish child</div>
+      </div>
+      <div class="tool-arrow">›</div>
+    </a>
+
+    <a class="tool-card" href="pedicheck-cough-breathing.html">
+      <div class="tool-icon cough">🫁</div>
+      <div>
+        <div class="tool-name">Cough &amp; Breathing Check</div>
+        <div class="tool-desc">For cough, fast or laboured breathing</div>
+      </div>
+      <div class="tool-arrow">›</div>
+    </a>
+
+    <a class="tool-card" href="pedicheck-head-bump.html">
+      <div class="tool-icon head">🤕</div>
+      <div>
+        <div class="tool-name">Head Bump Check</div>
+        <div class="tool-desc">After a knock or fall to the head</div>
+      </div>
+      <div class="tool-arrow">›</div>
+    </a>
+
+    <a class="tool-card" href="pedicheck-tummy-pain.html">
+      <div class="tool-icon tummy">🤰</div>
+      <div>
+        <div class="tool-name">Tummy Pain Check</div>
+        <div class="tool-desc">For abdominal pain and discomfort</div>
+      </div>
+      <div class="tool-arrow">›</div>
+    </a>
+
+    <div class="section-label" style="margin-top:22px;">Calculator</div>
+
+    <a class="tool-card" href="pedicheck-v9.html">
+      <div class="tool-icon dose">💊</div>
+      <div>
+        <div class="tool-name">Paediatric Dosing</div>
+        <div class="tool-desc">Weight-based medicine dosing guide</div>
+      </div>
+      <div class="tool-arrow">›</div>
+    </a>
+
+    <div class="emergency-note">
+      If your child is very unwell, difficult to wake, struggling to breathe, or is under 3 months old with a fever — don't use these tools. Call <strong>10177</strong> (ambulance) or <strong>112</strong> from a mobile, or go to your nearest emergency department now.
+    </div>
+
+    <div class="disclaimer">
+      PediCheck is a guidance tool, not a substitute for medical advice.<br>
+      Read our <a href="/terms">Terms of Use</a> and <a href="/privacy">Privacy Notice</a>.
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  // Bump this on any material change to the Terms — every user gets re-gated.
+  var CONSENT_VERSION = "1.0";
+  var STORAGE_KEY = "pedicheck_consent";
+
+  var overlay = document.getElementById("pc-gate-overlay");
+  var boxes = ["pc-gate-c1", "pc-gate-c2", "pc-gate-c3", "pc-gate-c4"].map(function (id) {
+    return document.getElementById(id);
+  });
+  var continueBtn = document.getElementById("pc-gate-continue-btn");
+
+  function alreadyConsented() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      var record = JSON.parse(raw);
+      return record.version === CONSENT_VERSION && record.accepted === true;
+    } catch (e) {
+      return false; // corrupt/blocked storage -> fail safe, show the gate
+    }
+  }
+
+  function recordAcceptance() {
+    var record = {
+      accepted: true,
+      version: CONSENT_VERSION,
+      timestamp: new Date().toISOString()
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
+    } catch (e) {
+      // localStorage unavailable (private browsing, storage disabled, etc.)
+      // Gate will simply reappear next load — acceptable degradation.
+    }
+    // TODO once there's a backend: also send `record` (plus a user/device
+    // identifier) to a server endpoint here, so acceptance can be proven
+    // later — see the caveat note at the top of this file.
+  }
+
+  function updateContinueState() {
+    var allChecked = boxes.every(function (b) { return b.checked; });
+    continueBtn.disabled = !allChecked;
+    continueBtn.classList.toggle("pc-gate-ready", allChecked);
+  }
+
+  function hideGate() {
+    overlay.style.display = "none";
+    document.body.classList.remove("pc-gate-locked");
+  }
+
+  function showGate() {
+    overlay.style.display = "flex";
+    document.body.classList.add("pc-gate-locked");
+    boxes[0].focus();
+  }
+
+  boxes.forEach(function (b) { b.addEventListener("change", updateContinueState); });
+
+  continueBtn.addEventListener("click", function () {
+    if (continueBtn.disabled) return;
+    recordAcceptance();
+    hideGate();
+  });
+
+  if (alreadyConsented()) {
+    hideGate();
+  } else {
+    showGate();
+  }
+})();
+</script>
+
+</body>
+</html>
