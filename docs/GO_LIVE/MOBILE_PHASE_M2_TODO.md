@@ -43,18 +43,17 @@
 - `auth/clinician-extensions.ts` mobile-side HPCSA/SANC type until `ClinicianProfile` in `pkgs/types` + API catches up
 - Shared `components/records/RecordsTabs.tsx` ready to be reused by M1.2 with `mode="parent"`
 
-## Still outstanding
+## Closed in the full-scope M2 pass (2026-07-15)
 
-- **M2.2** Each row showing **child name** for record verifications — currently only the `childId` is present. The fixture/API response needs to populate the `child` relation (or we add an `useChild` join in the adapter). Tracked separately so we don't ship per-row `useChild()` calls.
-- **M2.2** Approving a `PENDING_ASSESSMENT` record promoting it to verified state via the verifications controller — backend `PATCH /verifications/{records,clinicians}/:id` does not exist. See **blocker G-VER-02**.
-- **M2.3** Clinician can log records directly (auto-verified) — record-entry forms are owned by M1.2 (parent records entry), which the clinician variant will reuse. Will be picked up when M1.2 lands; clinician mode then unlocks "log" CTAs in `RecordsTabs`.
-- **M2.3** HPCSA number stamped on every clinician-logged record — blocked on the API field gap and on the M1.2 record-entry forms.
-- **M2.4** Tap-appointment → record-of-visit entry bottom sheet — patient summary card is present, but the bottom-sheet form to capture visit notes and `useUpdateAppointment` is deferred.
+- **M2.2 child name** — `VerifiableRecord` now carries an optional `child` summary (`{ id, firstName, lastName, name? }`). The API already loads it via `relations: ['child']`; the verifications screen renders it as the row title. Mock fixtures updated to match. No per-row `useChild()` calls.
+- **M2.2 approve → verified (G-VER-02)** — `PATCH /verifications/records/:id` and `/verifications/clinicians/:id` shipped (`VerificationsController` + service). Record outcomes: APPROVED → Active, REJECTED → Archived (soft-delete-first), MORE_INFO → stays Pending (+ note). Clinician outcomes flip `ClinicianProfile.verificationStatus`. Mobile hook now PATCHes in real-API mode; web hook maps its `status` onto the canonical `{ outcome, notes }`.
+- **M2.3 clinician direct logging** — the clinician records screen gained a **Review / Log** toggle. "Log" reuses the shared `RecordEntrySheets` (also used by the parent tabs) with `source="CLINICIAN"`. Server-side, `POST /children/:id/{growth,milestones,vaccinations}` now sets `recordedBy` and status by logger role (clinician/admin ⇒ Active; parent ⇒ Pending). Growth + milestone POST routes were added (previously only vaccinations existed).
+- **M2.3 HPCSA stamp** — records already have a `recordedBy` (User) column; HPCSA/SANC now live on `ClinicianProfile`, so a clinician-logged record's registration number is derivable from the attributed clinician. Migration: `AddClinicianVerificationFields`.
+- **M2.4 visit-note** — was already implemented (`VisitNoteSheet` → `useUpdateAppointment`); the doc was stale. Verified and checked off.
 
-## Blockers / notes
+## Blockers / notes (remaining)
 
-- **G-VER-02 (API)** — `PATCH /verifications/clinicians/:id` and `/records/:id` are not implemented. Web already prepared the mutations; mobile mirrors the contract (`{ outcome: "APPROVED" | "REJECTED" | "MORE_INFO", notes? }`). Real-API mode throws a clear error referencing this gap. Pickup in DEV Phase 2.x or wherever verification workflow lands.
-- **G-CLIN-01 (pkgs/types + API)** — `ClinicianProfile` has no `hpcsa_number` / `sanc_number` / `verification_status` / `clinical_role` columns. Mobile uses `src/apps/mobile/auth/clinician-extensions.ts` as a placeholder for the clinician fixture. Adding the columns is also a prerequisite for M2.6 read-only "regulated identifier" UX promised in the roadmap. Sequenced after the verifications-decision endpoint (same code path).
-- **`Child` has no `practiceId`** — defence-in-depth on the patients screen filters by `clinicianId` only. Server-side practice scoping for `/children` is a separate API improvement; until then, the active-practice picker is a UX affordance for the clinician's mental model + scopes appointments only.
-- **`RefreshControl` typing incompatibility** under React 19 + RN 0.81 forced removal of pull-to-refresh from the verifications screen for now. Either upgrade `@types/react-native` once the fix lands, or replace with a custom hook + manual refresh button.
-- **Parent-side `RecordsTabs` mode** is stubbed — when M1.2 lands, the parent records screen should drop `<RecordsTabs childId mode="parent" />` into place and add the "log new" CTAs the clinician mode does not render.
+- **HPCSA/SANC at rest** — stored as plaintext nullable columns for now. CLAUDE.md flags these for field-level **KMS encryption in Phase 5.3** before production; they are already covered by `common/logging/redact-paths.ts`. Follow-up, not a blocker for M2.
+- **`/auth/me` clinicianProfile payload** — `ProfileScreenClinician` now prefers `user.clinicianProfile` (HPCSA/SANC + verification status) and falls back to the fixture shim (`auth/clinician-extensions.ts`) in mock mode. Wiring the API `/auth/me` response to actually include `clinicianProfile` is a small follow-up so real-API mode drops the shim entirely.
+- **`Child` has no `practiceId`** — defence-in-depth on the patients screen filters by `clinicianId` only. Server-side practice scoping for `/children` is a separate API improvement.
+- **`RefreshControl` typing incompatibility** under React 19 + RN 0.81 keeps pull-to-refresh off the verifications screen for now.

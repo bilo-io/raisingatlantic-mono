@@ -21,6 +21,7 @@
 - [Phase 12: Pre-Launch Testing](#phase-12-pre-launch-testing): `DEV 50%`
 - [Phase 13: Launch & Marketing](#phase-13-launch--marketing): `DEV 10%`
 - [Phase 14: Post-Launch Operations](#phase-14-post-launch-operations): `DEV 20%`
+- [Phase 15: Mobile Feature Parity](#phase-15-mobile-feature-parity): `DEV 80%`
 
 ---
 
@@ -54,7 +55,7 @@ Not strictly blocking, but embarrassing or risky if they slip past week 4 of bei
 
 - [ ] **Public status page** at `status.raisingatlantic.com` ([§7.4](#74-uptime--slos))
 - [ ] **DSAR + right-to-erasure self-service endpoint** wired into the dashboard ([§4.2](#42-consent--data-subject-rights))
-- [ ] **SLOs defined** with error budgets, baseline 99.5% availability / p95 < 500ms ([§7.4](#74-uptime--slos))
+- [x] **SLOs defined** with error budgets, baseline 99.5% availability / p95 < 500ms ([§7.4](#74-uptime--slos))
 - [ ] **Cypress smoke suite gating prod deploys**, Postman contract tests on staging nightly ([§12.1](#121-automated-coverage))
 
 **`MARKETING` + `DESIGN` + `DEV`: branded customer touchpoints**
@@ -129,7 +130,7 @@ On the radar but not load-bearing for the SA launch. Re-evaluate at the 6-month 
 
 ---
 
-## Phases 0 to 14
+## Phases 0 to 15
 
 Each section below corresponds to a numbered phase in the [source document](../GO_LIVE.md). Phases without a `DEV` share are marked N/A with a back-link.
 
@@ -343,7 +344,7 @@ Right now there's a JWT auth guard but the registration / password-reset / MFA s
 #### 2.1 Auth Provider Decision
 Building auth from scratch for a regulated product is a long, thankless job. Buy it.
 
-- [ ] Decide: build our own NestJS auth (current direction) vs. **[Firebase Auth](https://firebase.google.com/docs/auth) / [Identity Platform](https://cloud.google.com/identity-platform)** vs. **[Auth0](https://auth0.com) / [Clerk](https://clerk.com) / [Stytch](https://stytch.com) / [Supabase Auth](https://supabase.com/auth)**
+- [x] Decide: build our own NestJS auth (current direction) vs. **[Firebase Auth](https://firebase.google.com/docs/auth) / [Identity Platform](https://cloud.google.com/identity-platform)** vs. **[Auth0](https://auth0.com) / [Clerk](https://clerk.com) / [Stytch](https://stytch.com) / [Supabase Auth](https://supabase.com/auth)** — **decided: build-your-own NestJS JWT** (Firebase needs GCP, deferred). Google SSO added via `google-auth-library` ID-token verification, env-gated.
 - [ ] Recommendation: **Firebase Auth / GCP Identity Platform**: same ecosystem as the rest of the infra, supports MFA, SAML, OIDC, magic links, and works on web + mobile out of the box
 - [ ] If Firebase: integrate via [Admin SDK](https://firebase.google.com/docs/admin/setup) on the NestJS side, validate ID tokens in `JwtAuthGuard`
 
@@ -354,11 +355,11 @@ The user-facing controls that prevent account takeover.
 - [ ] Password reset flow (magic-link or token-based), wired through [`nodemailer`](https://nodemailer.com) or [SendGrid](https://sendgrid.com)
 - [ ] Mandatory MFA for `CLINICIAN`, `ADMIN`, `SUPER_ADMIN` roles (TOTP or SMS)
 - [ ] Optional MFA for `PARENT` (encouraged but not blocking)
-- [ ] Rate-limit login attempts (already have [`@nestjs/throttler`](https://docs.nestjs.com/security/rate-limiting), apply per-IP + per-account)
+- [x] Rate-limit login attempts (already have [`@nestjs/throttler`](https://docs.nestjs.com/security/rate-limiting), apply per-IP + per-account) — `@Throttle(5/60s)` on login + google
 - [ ] Account lockout after N failed attempts with admin unlock path
-- [ ] Session management: short-lived access tokens (15min) + refresh tokens with rotation
+- [/] Session management: short-lived access tokens (15min) + refresh tokens with rotation — access token (httpOnly cookie) done; **refresh-token rotation deferred**
 - [ ] Logout-everywhere endpoint that invalidates all refresh tokens
-- [ ] Audit log of every login, logout, password change, role change → `SystemLog`
+- [/] Audit log of every login, logout, password change, role change → `SystemLog` — login/logout/register done; password/role-change events deferred
 
 #### 2.3 Clinician Verification Workflow
 The [HPCSA](https://www.hpcsa.co.za) / [SANC](https://www.sanc.co.za) verification today is a manual admin form. Make it harder to spoof.
@@ -468,10 +469,10 @@ The "user-facing" side of POPIA.
 - [ ] Granular consent capture at signup (separate toggles for processing, marketing, third-party sharing)
 - [ ] Consent versioning, if we change the privacy policy, re-prompt
 - [ ] **Parental consent** flow: parent must consent on behalf of child under 18
-- [ ] Self-service Data Subject Access Request (DSAR) endpoint, export all personal data as JSON + PDF
-- [ ] Right to erasure ("delete my account"), soft delete with 30-day grace + hard delete after retention expiry
+- [x] Self-service Data Subject Access Request (DSAR) endpoint, export all personal data as JSON + PDF — `GET /v1/privacy/export` + `/export/pdf`, JWT-scoped to the caller
+- [/] Right to erasure ("delete my account"), soft delete with 30-day grace + hard delete after retention expiry — `POST /v1/privacy/erasure` soft-deletes (sets `deletionRequestedAt`, archives children, ends session); scheduled hard-delete job deferred
 - [ ] Right to rectification, users can correct their own data
-- [ ] Data portability, machine-readable export
+- [x] Data portability, machine-readable export — JSON export
 
 #### 4.3 Cross-Border Transfers
 POPIA Section 72 restricts sending personal information outside South Africa.
@@ -607,7 +608,7 @@ Knowing the system is healthy without grepping logs.
 - [x] OpenTelemetry SDK wired through `core/telemetry` (interfaces already exist, concrete impls need finishing)
 - [x] [Cloud Trace](https://cloud.google.com/trace) for distributed traces across web → API → DB
 - [x] Cloud Monitoring dashboards for: API p50/p95/p99 latency, error rate, DB connection pool, queue depth
-- [/] Custom business metrics: signups/day, verifications pending, vaccinations due
+- [x] Custom business metrics: signups/day, verifications pending, vaccinations due
 
 #### 7.3 Error Tracking
 Knowing when things break before users tell us.
@@ -622,8 +623,8 @@ External-perspective monitoring.
 
 - [x] Synthetic uptime checks every 60s (Cloud Monitoring or [BetterStack](https://betterstack.com))
 - [/] Public status page (`status.raisingatlantic.com`) via BetterStack / [Statuspage](https://www.atlassian.com/software/statuspage) / [Instatus](https://instatus.com)
-- [ ] Define SLOs (e.g. 99.5% monthly availability, p95 latency < 500ms) and error budgets
-- [/] On-call rotation, even with a single on-call engineer, define who gets paged and how ([PagerDuty](https://www.pagerduty.com) / [OpsGenie](https://www.atlassian.com/software/opsgenie) / BetterStack)
+- [x] Define SLOs (e.g. 99.5% monthly availability, p95 latency < 500ms) and error budgets
+- [x] On-call rotation, even with a single on-call engineer, define who gets paged and how ([PagerDuty](https://www.pagerduty.com) / [OpsGenie](https://www.atlassian.com/software/opsgenie) / BetterStack)
 
 ---
 
@@ -806,7 +807,7 @@ Things that should "just work" but bite if neglected.
 The final shake-out before real parents and clinicians.
 
 #### 12.1 Automated Coverage
-- [/] Unit test coverage > 70% on API business logic (verifications, EPI scheduling, growth percentile calc) — baseline 66.55% lines / 53.70% functions / 46.25% branches (PR #7, 2026-05-24); floor enforced in CI at lines/statements 65, functions 50, branches 45; gap to 70% closes once growth-percentile + EPI-scheduling specs are added
+- [/] Unit test coverage > 70% on API business logic (verifications, EPI scheduling, growth percentile calc) — **EPI scheduling + growth-curve logic now covered at 100% in the newly test-wired `pkgs/clinical` package** (age-gate bucketing, SD-band ordering invariants, milestone integrity; 37 specs; `moon run clinical:test`), and `verifications.service` now asserts per-type queue-depth metrics + empty-queue case. Remaining to close: API-**global** lines/statements to 70% is blocked on a pre-existing controller-spec regression from the phase-2 auth merge (`JwtAuthGuard` now requires `JwtService`/`ConfigService`, so ~10 controller specs fail TestingModule DI until the guard is overridden). See PHASE_12_TODO.md.
 - [x] Cypress smoke suite on every prod deploy
 - [x] Postman contract tests run nightly against staging
 - [ ] Mobile E2E ([Detox](https://wix.github.io/Detox/) or [Maestro](https://maestro.mobile.dev)) on critical flows: signup, add child, log growth
@@ -814,13 +815,13 @@ The final shake-out before real parents and clinicians.
 #### 12.2 Manual / Exploratory
 - [ ] Internal alpha, the team + 2-3 friendly testers for 2 weeks
 - [ ] Clinical accuracy review by a registered paediatrician (EPI schedule, milestone wording, growth chart correctness)
-- [ ] Accessibility audit ([axe-core](https://github.com/dequelabs/axe-core) + manual keyboard nav + screen reader on dashboard)
+- [ ] Accessibility audit ([axe-core](https://github.com/dequelabs/axe-core) + manual keyboard nav + screen reader on dashboard) — automated axe-core slice wired into Cypress (public marketing/legal pages + parent/clinician/admin dashboards, gating on critical/serious violations); manual keyboard-nav + screen-reader pass still outstanding
 - [ ] Multi-language QA (i18n is wired, verify Afrikaans + Zulu translations are actually correct)
 - [ ] Mobile device matrix, at minimum: iPhone 13, Pixel 7, mid-range Android (Samsung A-series)
 
 #### 12.3 Performance & Load
 - [x] [Lighthouse](https://developer.chrome.com/docs/lighthouse) score > 90 on landing page
-- [ ] API load test ([k6](https://k6.io) or [Artillery](https://www.artillery.io)) against staging, 100 concurrent users, sustained 5min
+- [ ] API load test ([k6](https://k6.io) or [Artillery](https://www.artillery.io)) against staging, 100 concurrent users, sustained 5min — script complete in `tests/k6/staging-load.js` (health + EPI/milestone/growth reads at 100 VUs / 5-min hold, p95<500ms / err<1%; `moon run tests:load`); awaits a run against live staging
 - [ ] DB slow-query log review, every query > 100ms gets an index review
 - [ ] Cold-start benchmarks on Cloud Run (set min-instances if needed)
 
@@ -841,9 +842,9 @@ The final shake-out before real parents and clinicians.
 The "tell people about it" phase. Cheap to defer, expensive to skip entirely.
 
 - [ ] Final landing page copy and SEO (`about`, `pricing`, `contact`, `blog` already scaffolded)
-- [ ] [Open Graph](https://ogp.me) + [Twitter card](https://developer.x.com/en/docs/twitter-for-websites/cards/overview/abouts-cards) metadata on every public route
-- [ ] Sitemap + robots.txt + [Google Search Console](https://search.google.com/search-console) verification
-- [ ] Analytics: **[Plausible](https://plausible.io)** or **PostHog** (POPIA-friendlier than [GA4](https://marketingplatform.google.com/about/analytics/)), avoid GA4 unless we have a clean DPA story
+- [x] [Open Graph](https://ogp.me) + [Twitter card](https://developer.x.com/en/docs/twitter-for-websites/cards/overview/abouts-cards) metadata on every public route
+- [x] Sitemap + robots.txt + [Google Search Console](https://search.google.com/search-console) verification
+- [x] Analytics: **[Plausible](https://plausible.io)** or **PostHog** (POPIA-friendlier than [GA4](https://marketingplatform.google.com/about/analytics/)), avoid GA4 unless we have a clean DPA story
 - [ ] Launch announcement channels: [LinkedIn](https://www.linkedin.com), paediatric-association mailing lists, parenting groups
 - [ ] Press kit (logo, screenshots, founder bio, one-pager) hosted on the marketing site
 - [ ] Pricing-page CTA → Stripe Checkout (live)
@@ -880,6 +881,85 @@ What "running" the business actually looks like once real users are in.
 
 ---
 
+> Source: [Phase 14: Post-Launch Operations](../GO_LIVE.md#phase-14-post-launch-operations)
+
+### Phase 15: Mobile Feature Parity
+
+**Roles:** `DEV 80%` · `PRODUCT 10%` · `DESIGN 10%` *(`DEV` builds the screens, hooks, and integrations; `PRODUCT` signs off on which flows are mobile-essential vs web-only; `DESIGN` adapts existing web patterns to React Native primitives)*
+
+The Expo app is fully scaffolded but **17 of 18 screens still render `ComingSoon` or placeholder cards**. Auth is fixture-only (`signInAs(role)`). [Phase 10: Mobile App Release](#phase-10-mobile-app-release) submits the binary; this phase makes sure there is a real product behind the icon. Admin tooling stays web-only by design (see §15.7 in [GO_LIVE.md](../GO_LIVE.md#157-explicitly-out-of-scope-web-only)).
+
+#### 15.1 Starting State
+
+| Layer | Status | Notes |
+| --- | --- | --- |
+| Routing, theme, Axios, React Query | ✅ | Scaffold is solid |
+| Auth context | ⚠️ Fixture only | `signInAs(role)` loads hard-coded user |
+| Token storage | ⚠️ `AsyncStorage` | Must move to `expo-secure-store` |
+| Domain hooks (`children`, `reports`, …) | ❌ | None ported from web |
+| Parent screens (5 of 6) | ❌ | `ComingSoon` placeholder |
+| Clinician screens (4 of 5) | ❌ | `ComingSoon` placeholder |
+| Push notifications, biometrics, offline cache | ❌ | Not yet integrated |
+
+#### 15.2 Mobile Auth & Session
+- [ ] Replace fixture `signInAs` with real `POST /v1/auth/login` (mirror web client)
+- [ ] Move JWT to **[expo-secure-store](https://docs.expo.dev/versions/latest/sdk/securestore/)** — non-negotiable under POPIA for special personal info
+- [ ] Biometric unlock via **[expo-local-authentication](https://docs.expo.dev/versions/latest/sdk/local-authentication/)**; fall back to password
+- [ ] Refresh-token rotation parity with web ([§2](#phase-2-authentication--identity))
+- [ ] "Sign out everywhere" surfaced from device-list endpoint ([§5.4](#54-operational-security))
+- [ ] Force-upgrade gate on deprecated client version, blocking "update required" screen with store deep link
+
+#### 15.3 Parent Core Flows
+- [ ] **Children** (`(parent)/children.tsx`): list, add, edit, soft-delete (archive-before-erase)
+- [ ] **Growth records**: log height/weight, WHO percentile chart, scrollable history
+- [ ] **Milestones**: browse catalogue by age band, log with optional photo + note
+- [ ] **Vaccinations**: EPI-SA schedule per child, mark dose administered, due / overdue / upcoming
+- [ ] **Triage tools**: fever guide, head injury, dose calculator, home care — **offline-first static content**
+- [ ] **Directory**: read-only browse of clinicians + practices (`usePublicClinicians` / `usePublicPractices`)
+- [ ] **Messages**: read-only notification inbox backed by §15.6 push history
+
+#### 15.4 Clinician Core Flows
+- [ ] **Patients** (`(clinician)/patients.tsx`): tenant + practice-scoped list, search, open summary
+- [ ] **Patient summary**: read-only growth + milestone + vaccination history (mirrors parent records views, no mutation)
+- [ ] **Verifications**: list `PENDING_ASSESSMENT`, approve / reject with note via `useDecideRecordVerification`
+- [ ] **Schedule**: today's appointments, read-only; push reminders depend on [§8.3](#83-push-notifications-mobile)
+- [ ] Tenant-scoping verified end-to-end — cross-tenant data access is a critical security boundary
+
+#### 15.5 Shared Data Layer
+- [ ] Mirror domain hooks from web (`children`, `reports`, `verifications`, `directory`, `master-data`) into `src/apps/mobile/lib/api/hooks/`
+- [ ] Share query-key conventions across web + mobile
+- [ ] React Query persistence via [`@tanstack/react-query-persist-client`](https://tanstack.com/query/latest/docs/framework/react/plugins/persistQueryClient) + AsyncStorage for offline reads
+- [ ] Optimistic mutations with rollback for log-growth / log-vaccination (flaky-network resilience)
+- [ ] Global offline banner + per-screen empty-states distinguish "no data" from "no network"
+- [ ] Error boundary parity with web (`FeatureErrorBoundary`, `RouteError`)
+- [ ] EAS-build env flag equivalent to `NEXT_PUBLIC_USE_API` for demo / store-review builds; production defaults to live API
+
+#### 15.6 Mobile-First Capabilities
+- [ ] **[Expo Push Notifications](https://docs.expo.dev/push-notifications/overview/)** end-to-end (depends on [§8.3](#83-push-notifications-mobile)): EPI due, record verification, appointment reminder — **quiet hours respected**
+- [ ] Deep linking from notifications into child / record (`expo-router` config + APNs / FCM payload schema documented)
+- [ ] **Camera** (`expo-camera`): photograph vaccination card, attach to record. GCS signed-URL upload, no PII in filename / metadata
+- [ ] **Document scan**: HPCSA / SANC card capture for clinician verification ([§2.3](#23-clinician-verification-workflow)) — on-device until explicit submit
+- [ ] **App-state lock**: re-prompt biometric on background-return after N minutes (POPIA reasonableness, configurable per role)
+- [ ] **Sentry-mobile** with PII scrubbing on breadcrumbs ([§7.3](#73-error-tracking))
+
+#### 15.7 Explicitly Out of Scope (web-only)
+- ❌ Admin console: user management, system logs, system settings, tenant management — **admin route group stays scaffolded but is not fleshed out**
+- ❌ Blog editor (SUPER_ADMIN content workflow)
+- ❌ Stripe Customer Portal billing UI — deep-link to web `/dashboard/account/billing`
+- ❌ Bulk CSV export / DSAR file download — handled via the web flow ([§4.2](#42-consent--data-subject-rights))
+- ❌ Multi-pane clinician verification with attached evidence — desktop only; mobile is approve / reject only
+
+#### 15.8 Definition of Done
+- [ ] No `ComingSoon` in `(parent)` or `(clinician)` route groups
+- [ ] TestFlight + Internal Track builds demoable end-to-end on parent + clinician primary flows
+- [ ] Detox / Maestro E2E ([§12.1](#121-automated-coverage)) covers: signup → add child → log growth → log vaccination → push reminder → clinician approval
+- [ ] Production builds use the real `/v1/` API by default; no fixture data path active
+- [ ] Sentry crash-free sessions > 99% on internal testing for 7 days
+- [ ] Tenant boundary verified manually + via Postman (clinician cannot see other-tenant patients)
+- [ ] Phase 10 (store submission) can proceed honestly: every Apple / Google data-safety form question has a truthful answer because the features actually exist
+
+---
+
 > **End of phase walkthrough.** For the consolidated launch-day checklist, jump back to the [TL;DR: Phased Action Plan](#tldr-phased-action-plan) at the top of this document.
 
-> Source: [Phase 14: Post-Launch Operations](../GO_LIVE.md#phase-14-post-launch-operations)
+> Source: [Phase 15: Mobile Feature Parity](../GO_LIVE.md#phase-15-mobile-feature-parity)

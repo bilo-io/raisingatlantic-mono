@@ -19,8 +19,16 @@
 
 ## Still outstanding
 
-- **§M0.4 — API dev environment must accept the fixture token.** The current API guard (`src/apps/api/src/common/guards/jwt-auth.guard.ts`) returns `true` without validating the signature, so the unsigned fixture token is accepted today. As soon as DEV.md §2 lands real verification, the dev environment will need to either trust the unsigned `alg: none` header or accept a configurable dev signing key. Coordinate before the API auth work merges.
-- **§M0.5 — React Query devtools / Reactotron wiring.** Neither tool ships first-party Expo/Hermes support; both require a dev-client native module change. Deferred to a small follow-up so the M0 PR stays focused on the data layer. Consider the Expo dev-plugin `@dev-plugins/react-query` once it stabilises for SDK 54+.
+None — M0 complete.
+
+## Update (2026-07-01)
+
+- **§M0.4 — DONE.** Real JWT verification landed in DEV.md §2 (Phase 2). The API guards now accept the
+  mobile `alg: none` fixture token via a dev-only `decodeFixtureToken` path, double-gated by
+  `NODE_ENV !== 'production'` **and** `ALLOW_FIXTURE_AUTH === 'true'` (see
+  `src/apps/api/src/common/guards/jwt-auth.guard.ts` + `fixture-auth.guard.spec.ts`). Hard-blocked in prod.
+- **§M0.5 — DONE.** Wired `@dev-plugins/react-query` (`useReactQueryDevTools` in `app/_layout.tsx`) — the
+  RN-appropriate devtools; `@tanstack/react-query-devtools` is DOM-only. Inert outside an Expo dev client.
 
 ## Blockers / notes
 

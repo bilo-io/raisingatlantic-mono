@@ -8,6 +8,7 @@ type Props = {
   Icon?: LucideIcon;
   onPress?: () => void;
   accessibilityLabel?: string;
+  testID?: string;
   style?: ViewStyle;
   size?: number;
 };
@@ -16,6 +17,7 @@ export function FAB({
   Icon = Plus,
   onPress,
   accessibilityLabel = "Add",
+  testID,
   style,
   size = 56,
 }: Props) {
@@ -25,6 +27,7 @@ export function FAB({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      testID={testID}
       style={({ pressed }) => [
         {
           position: "absolute",

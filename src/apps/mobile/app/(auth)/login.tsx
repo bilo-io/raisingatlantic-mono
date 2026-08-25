@@ -6,6 +6,7 @@ import { Role } from "../../auth/types";
 import { Branding } from "../../components/Branding";
 import { GradientBlob, GradientBlobBottom } from "../../components/GradientBlob";
 import { Button, Card, Input, Screen, Separator, Text } from "../../components/ui";
+import { consumePendingDeepLink } from "../../lib/linking/pending";
 
 export default function LoginScreen() {
   const { signInAs } = useAuth();
@@ -15,7 +16,8 @@ export default function LoginScreen() {
 
   const handleRole = async (role: Role) => {
     await signInAs(role);
-    router.replace(`/(app)/(${role})/dashboard` as any);
+    const pending = consumePendingDeepLink();
+    router.replace((pending ?? `/(app)/(${role})/dashboard`) as any);
   };
 
   return (

@@ -34,6 +34,7 @@
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/jwt": "^11.0.0",
     "@nestjs/mapped-types": "^2.1.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.3.0",
@@ -49,6 +50,7 @@
     "@sentry/nestjs": "^9.42.0",
     "@sentry/profiling-node": "^9.42.0",
     "@types/nodemailer": "^8.0.0",
+    "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
@@ -59,6 +61,7 @@
     "nestjs-cls": "^5.4.2",
     "nestjs-pino": "^4.4.0",
     "nodemailer": "^8.0.5",
+    "pdfkit": "^0.15.1",
     "pg": "^8.11.5",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
@@ -75,7 +78,9 @@
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.10.7",
     "@types/express": "^5.0.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/jest": "^29.5.14",
+    "@types/pdfkit": "^0.13.9",
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
@@ -107,7 +112,11 @@
     },
     "moduleNameMapper": {
       "^@core/(.*)$": "<rootDir>/../../../core/$1",
-      "^@pkgs/(.*)$": "<rootDir>/../../../pkgs/$1"
+      "^@pkgs/(.*)$": "<rootDir>/../../../pkgs/$1",
+      "^@raising-atlantic/clinical$": "<rootDir>/../../../pkgs/clinical/src/index.ts",
+      "^@raising-atlantic/clinical/(.*)$": "<rootDir>/../../../pkgs/clinical/src/$1",
+      "^@raising-atlantic/types$": "<rootDir>/../../../pkgs/types/src/index.ts",
+      "^@raising-atlantic/types/(.*)$": "<rootDir>/../../../pkgs/types/src/$1"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"

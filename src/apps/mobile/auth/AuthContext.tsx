@@ -7,7 +7,12 @@ import React, {
 } from "react";
 import { setAuthBridge, setAuthToken } from "../lib/api/auth-header";
 import { signFixtureToken } from "../lib/api/fixture-jwt";
-import { fixtureUsers } from "./fixtures";
+import { setSignOutHandler } from "../lib/api/sign-out-bridge";
+import {
+  deregisterDevice,
+  registerDeviceForRole,
+} from "../lib/push/usePushRegistration";
+import { getActiveAuthProvider } from "./provider";
 import { clearUser, loadUser, saveUser } from "./storage";
 import { Role, User } from "./types";
 
@@ -46,23 +51,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInAs = useCallback(async (role: Role) => {
-    const next = fixtureUsers[role];
+    const next = await getActiveAuthProvider().signIn(role);
     await saveUser(next);
     setUser(next);
     setAuthBridge(next);
     publishFixtureToken(next);
-    // TODO(phase-8): after a successful sign-in, request notification
-    // permissions, capture the Expo push token, and POST it to
-    // /v1/users/me/push-tokens. The API-side wrapper (src/core/notifications)
-    // is ready; this hook + the endpoint are what's left — see DEV.md §8.3.
+    registerDeviceForRole(next.role).catch(() => undefined);
   }, []);
 
   const signOut = useCallback(async () => {
+    await deregisterDevice().catch(() => undefined);
+    await getActiveAuthProvider().signOut().catch(() => undefined);
     await clearUser();
     setUser(null);
     setAuthBridge(null);
     setAuthToken(null);
   }, []);
+
+  useEffect(() => {
+    setSignOutHandler(signOut);
+    return () => setSignOutHandler(null);
+  }, [signOut]);
 
   const value = useMemo<AuthContextValue>(
     () => ({ user, isHydrating, signInAs, signOut }),

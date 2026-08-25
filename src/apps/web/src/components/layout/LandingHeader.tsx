@@ -12,6 +12,7 @@ import type { NavLinkItem } from '@/lib/constants';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
 import { SiteLogo } from './SiteLogo';
+import { useFooterLinks } from './footer-links';
 
 function AuthButton({ link }: { link: NavLinkItem }) {
     const { t } = useTranslation();
@@ -29,6 +30,8 @@ function AuthButton({ link }: { link: NavLinkItem }) {
 
 export function LandingHeader() {
   const { t } = useTranslation();
+  const { companyLinks, resourceLinks, legalLinks, socialLinks } = useFooterLinks();
+  const currentYear = new Date().getFullYear();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -79,7 +82,7 @@ export function LandingHeader() {
                 <span className="sr-only">Toggle Menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+            <SheetContent side="right" className="w-[300px] sm:w-[400px] flex flex-col overflow-y-auto">
               <nav className="flex flex-col space-y-4 mt-8">
                 {LANDING_NAV_LINKS.map((link: NavLinkItem) => {
                   if (link.isAuthLink) {
@@ -97,6 +100,62 @@ export function LandingHeader() {
                   );
                 })}
               </nav>
+
+              {/* Footer links — surfaced here on mobile since the page footer is hidden below md. */}
+              <div className="mt-auto border-t pt-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-xs font-semibold text-foreground tracking-wider uppercase mb-3">Company</h3>
+                    <ul className="space-y-2">
+                      {companyLinks.map((link) => (
+                        <li key={link.label}>
+                          <Link href={link.href} className="text-sm text-muted-foreground hover-gradient-text transition-all">
+                            {link.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold text-foreground tracking-wider uppercase mb-3">Resources</h3>
+                    <ul className="space-y-2">
+                      {resourceLinks.map((link) => (
+                        <li key={link.label}>
+                          <Link href={link.href} className="text-sm text-muted-foreground hover-gradient-text transition-all">
+                            {link.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold text-foreground tracking-wider uppercase mb-3">Legal</h3>
+                    <ul className="space-y-2">
+                      {legalLinks.map((link) => (
+                        <li key={link.label}>
+                          <Link href={link.href} className="text-sm text-muted-foreground hover-gradient-text transition-all">
+                            {link.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="flex space-x-4 mt-6">
+                  {socialLinks.map((social) => (
+                    <Link key={social.label} href={social.href} target="_blank" rel="noopener noreferrer"
+                          className="text-muted-foreground hover-gradient-text transition-all"
+                          aria-label={social.label}>
+                      <social.icon className="h-5 w-5" />
+                    </Link>
+                  ))}
+                </div>
+
+                <p className="mt-6 text-xs text-muted-foreground">
+                  &copy; {currentYear} {SITE_NAME}. All rights reserved.
+                </p>
+              </div>
             </SheetContent>
           </Sheet>
         </div>

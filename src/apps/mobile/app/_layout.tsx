@@ -1,4 +1,5 @@
 import "../global.css";
+import { useReactQueryDevTools } from "@dev-plugins/react-query";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
@@ -8,12 +9,17 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Toaster } from "sonner-native";
 import { AuthProvider } from "../auth/AuthContext";
+import { ErrorBoundary } from "../components/ErrorBoundary";
+import { OfflineBanner } from "../components/OfflineBanner";
 import { queryClient } from "../lib/api";
-import { initSentry, Sentry } from "../lib/sentry";
+import { useDeepLinkGate } from "../lib/linking/useDeepLinkGate";
+import { configureNotificationHandler } from "../lib/push/handler";
+import { initSentry } from "../lib/sentry/init";
 import { ThemeProvider } from "../theme/ThemeProvider";
 import { useTheme } from "../theme/useTheme";
 
 initSentry();
+configureNotificationHandler();
 
 function StatusBarThemed() {
   const { resolvedScheme } = useTheme();
@@ -38,30 +44,43 @@ function ThemedToaster() {
   );
 }
 
-function RootLayout() {
+function DeepLinkGate() {
+  useDeepLinkGate();
+  return null;
+}
+
+// Streams React Query cache state to the Expo dev tools / React Native DevTools.
+// Rendered only under __DEV__ so the hook never runs in production builds.
+function ReactQueryDevTools() {
+  useReactQueryDevTools(queryClient);
+  return null;
+}
+
+export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <BottomSheetModalProvider>
-                <StatusBarThemed />
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="index" />
-                  <Stack.Screen name="(auth)" />
-                  <Stack.Screen name="(app)" />
-                </Stack>
-                <ThemedToaster />
-              </BottomSheetModalProvider>
-            </AuthProvider>
-          </QueryClientProvider>
+          <ErrorBoundary>
+            <QueryClientProvider client={queryClient}>
+              {__DEV__ ? <ReactQueryDevTools /> : null}
+              <AuthProvider>
+                <BottomSheetModalProvider>
+                  <StatusBarThemed />
+                  <DeepLinkGate />
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="index" />
+                    <Stack.Screen name="(auth)" />
+                    <Stack.Screen name="(app)" />
+                  </Stack>
+                  <OfflineBanner />
+                  <ThemedToaster />
+                </BottomSheetModalProvider>
+              </AuthProvider>
+            </QueryClientProvider>
+          </ErrorBoundary>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
-
-// Wrap with Sentry to attach the root-level ErrorBoundary + tracing
-// instrumentation. When DSN is unset, init is a no-op so the wrapper is inert.
-export default Sentry.wrap(RootLayout);

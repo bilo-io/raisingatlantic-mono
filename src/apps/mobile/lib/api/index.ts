@@ -2,6 +2,7 @@ export { api } from "./client";
 export { queryClient } from "./query-client";
 export { ApiError, toApiError } from "./errors";
 export { setAuthBridge, setAuthToken, getAuthHeaders } from "./auth-header";
+export { setSignOutHandler, triggerSignOut } from "./sign-out-bridge";
 export { useApi, withDataSource } from "./data-source";
 export { createResourceHooks } from "./createResourceHooks";
 export type {

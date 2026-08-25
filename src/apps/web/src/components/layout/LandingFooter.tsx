@@ -1,44 +1,19 @@
 
 "use client";
 
-import { Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SITE_NAME } from '@/lib/constants';
-import { useTranslation } from 'react-i18next';
 import { SiteLogo } from './SiteLogo';
+import { useFooterLinks } from './footer-links';
 
 export function LandingFooter() {
-  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
-
-  const companyLinks = [
-    { href: "/about", label: t('navAbout') }, 
-    { href: "/contact", label: t('navContact') }, 
-    { href: "/directory", label: t('navDirectory') },
-  ];
-
-  const legalLinks = [
-    { href: "/legal/privacy-policy", label: "Privacy Policy" },
-    { href: "/legal/terms-of-service", label: "Terms of Service" },
-    { href: "/legal/eula", label: "EULA" },
-  ];
-
-  const resourceLinks = [
-    { href: "/pricing", label: t('navPricing') },
-    { href: "/design-system/branding", label: "Design System" },
-    { href: "/blog", label: "Blog" },
-  ];
-
-  const socialLinks = [
-    { href: "https://facebook.com", label: "Facebook", icon: Facebook },
-    { href: "https://twitter.com", label: "Twitter", icon: Twitter },
-    { href: "https://linkedin.com", label: "LinkedIn", icon: Linkedin },
-    { href: "https://www.instagram.com/atlantic_childrens_practice/?igshid=YmMyMTA2M2Y%3D", label: "Instagram", icon: Instagram },
-  ];
+  const { companyLinks, resourceLinks, legalLinks, socialLinks } = useFooterLinks();
 
   return (
-    <footer className="border-t bg-background">
+    // Hidden on mobile — these links live at the bottom of the hamburger menu instead (see LandingHeader).
+    <footer className="hidden md:block border-t bg-background">
       <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
           {/* Left Column: Logo and Social */}

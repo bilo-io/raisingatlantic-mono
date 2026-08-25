@@ -5,8 +5,8 @@ import {
   ShieldCheck,
   Stethoscope,
 } from "lucide-react-native";
-import React from "react";
 import { CenterLogoTab } from "../../../components/CenterLogoTab";
+import { ErrorBoundary } from "../../../components/ErrorBoundary";
 import { TabBarIcon } from "../../../components/TabBarIcon";
 import { ActivePracticeProvider } from "../../../context/ActivePracticeContext";
 import { useTheme } from "../../../theme/useTheme";
@@ -14,9 +14,11 @@ import { useTheme } from "../../../theme/useTheme";
 export default function ClinicianTabsLayout() {
   const { tokens } = useTheme();
   return (
-    <ActivePracticeProvider>
-      <ClinicianTabs tokens={tokens} />
-    </ActivePracticeProvider>
+    <ErrorBoundary fallbackLabel="The clinician area ran into a problem">
+      <ActivePracticeProvider>
+        <ClinicianTabs tokens={tokens} />
+      </ActivePracticeProvider>
+    </ErrorBoundary>
   );
 }
 

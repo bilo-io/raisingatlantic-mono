@@ -9,11 +9,11 @@
 **Phase involvement:**
 
 - [Phase M0: Foundations](#phase-m0-foundations): `DEV 100%` ✅
-- [Phase M1: Parent Flow](#phase-m1-parent-flow): `DEV 100%`
-- [Phase M2: Clinician Flow](#phase-m2-clinician-flow): `DEV 100%` ✅ *(16/21 — remainder blocked on API gaps G-VER-02 and ClinicianProfile HPCSA fields, see [MOBILE_PHASE_M2_TODO.md](MOBILE_PHASE_M2_TODO.md))*
+- [Phase M1: Parent Flow](#phase-m1-parent-flow): `DEV 100%` ✅ *(26/26 — §M1.4 messaging backend landed; real-time WebSocket delivery remains Tier 3)*
+- [Phase M2: Clinician Flow](#phase-m2-clinician-flow): `DEV 100%` ✅ *(21/21 — G-VER-02 verification decision endpoints and ClinicianProfile HPCSA/SANC fields shipped, see [MOBILE_PHASE_M2_TODO.md](MOBILE_PHASE_M2_TODO.md))*
 - [Phase M3: Admin Flow](#phase-m3-admin-flow): `DEV 100%`
-- [Phase M4: Polish & Platform UX](#phase-m4-polish--platform-ux): `DEV 100%`
-- [Phase M5: Native, Store & Release](#phase-m5-native-store--release): `DEV 90%` · `DESIGN 10%`
+- [Phase M4: Polish & Platform UX](#phase-m4-polish--platform-ux): `DEV 100%` *(18/24 — M4.4 ships as scaffold only and source-map upload defers to §M5.1, see [MOBILE_PHASE_M4_TODO.md](MOBILE_PHASE_M4_TODO.md))*
+- [Phase M5: Native, Store & Release](#phase-m5-native-store--release): `DEV 90%` · `DESIGN 10%` *(10/28 — remainder blocked on an Expo account, DESIGN assets, live legal URLs, on-device measurement, and the M4.4 real-auth cutover, see [MOBILE_PHASE_M5_TODO.md](MOBILE_PHASE_M5_TODO.md))*
 
 ---
 
@@ -114,14 +114,14 @@ Real-API mode in dev needs a token the API will accept. Inject a deterministic d
 - [x] [AuthContext.tsx](../../src/apps/mobile/auth/AuthContext.tsx): when `signInAs(role)` runs in mock mode, also publish a fixture JWT to [auth-header.ts](../../src/apps/mobile/lib/api/auth-header.ts) via `setAuthBridge`
 - [x] Fixture JWT payload mirrors the API's expected shape (`sub`, `role`, `tenantId`, `practiceIds`) — see API guards under [src/apps/api/src/auth/](../../src/apps/api/src/auth/)
 - [x] Guard fixture-JWT injection behind `__DEV__` — never ship a fixture signer in a production bundle
-- [ ] The API dev environment must accept the fixture signing key — coordinate with [DEV.md §2](DEV.md#phase-2-authentication--identity)
+- [x] The API dev environment must accept the fixture signing key — coordinate with [DEV.md §2](DEV.md#phase-2-authentication--identity) — dev-only, `ALLOW_FIXTURE_AUTH`-gated path in the API guards decodes the mobile `alg:none` fixture token (hard-blocked in prod)
 
 #### M0.5 Query client + provider
 Confirm React Query is mounted at the app root and devtools are reachable in dev.
 
 - [x] [src/apps/mobile/app/_layout.tsx](../../src/apps/mobile/app/_layout.tsx) wraps the app in `<QueryClientProvider>` using the shared [query-client.ts](../../src/apps/mobile/lib/api/query-client.ts)
 - [x] Confirm 30s `staleTime` / 5min `gcTime` defaults are sensible for mobile (longer than web — fewer refetches on tab switch)
-- [ ] Wire [`@tanstack/react-query-devtools`](https://tanstack.com/query/latest/docs/framework/react/devtools) or [Reactotron](https://github.com/infinitered/reactotron) for local debugging
+- [x] Wire React Query devtools for local debugging — `@dev-plugins/react-query` (`useReactQueryDevTools` in [_layout.tsx](../../src/apps/mobile/app/_layout.tsx); RN-appropriate — the `@tanstack/react-query-devtools` panel is DOM-only)
 
 ---
 
@@ -165,7 +165,7 @@ Conversation list + thread view. **Polling first (15s interval), WebSocket later
 - [x] [messages.tsx](../../src/apps/mobile/app/(app)/(parent)/messages.tsx) — list of conversations
 - [x] Thread view at `messages/[conversationId].tsx`
 - [x] React Query `refetchInterval: 15000` for the open thread, `30000` for the list
-- [ ] Backend endpoints required — coordinate with [DEV.md §2.2](DEV.md#22-account-security-hardening) if not present yet (likely a Tier 3 blocker) — **deferred (no API module yet; mobile ships fixture adapter)**
+- [x] Backend endpoints required — coordinate with [DEV.md §2.2](DEV.md#22-account-security-hardening) — **done: NestJS `messages` module at [src/apps/api/src/messages/](../../src/apps/api/src/messages/) serving `/v1/conversations` (participant-scoped, `JwtVerifiedGuard`); mobile adapter now calls the real API. Real-time WebSocket delivery remains Tier 3.**
 
 #### M1.5 Dashboard
 Currently shows a generic role greeting via [DashboardHome.tsx](../../src/apps/mobile/components/DashboardHome.tsx). Replace placeholder cards with real summary data.
@@ -207,23 +207,23 @@ Highest-priority clinician screen. Two queues: pending record verifications (gro
 
 - [x] [verifications.tsx](../../src/apps/mobile/app/(app)/(clinician)/verifications.tsx) — tabbed: "Records" / "Clinicians"
 - [x] Uses `useVerificationsRecords` and `useVerificationsClinicians`
-- [ ] Each row: child name (or clinician name), record type, age at log, parent-supplied data *(child name pending — API response needs the `child` relation populated, see PHASE TODO)*
-- [x] Actions: approve, request more info, reject (with reason) *(mock-mode optimistic; real-API throws G-VER-02 until backend ships)*
-- [ ] Approving a `PENDING_ASSESSMENT` record promotes it to verified state via [verifications controller](../../src/apps/api/src/verifications/verifications.controller.ts) *(blocked on G-VER-02 — backend PATCH endpoints not implemented)*
+- [x] Each row: child name (or clinician name), record type, age at log, parent-supplied data *(nested `child` summary typed on `VerifiableRecord`; API already populates it via `relations: ['child']`)*
+- [x] Actions: approve, request more info, reject (with reason) *(mock-mode optimistic; real-API now backed by the decision endpoints)*
+- [x] Approving a `PENDING_ASSESSMENT` record promotes it to verified state via [verifications controller](../../src/apps/api/src/verifications/verifications.controller.ts) *(G-VER-02 closed — `PATCH /verifications/records/:id` + `/clinicians/:id` shipped, canonical `{ outcome, notes }` contract)*
 
 #### M2.3 Records Review
 Read/write view onto a single child's records — same tabbed layout as parent records, but with verification controls visible.
 
 - [x] [records.tsx](../../src/apps/mobile/app/(app)/(clinician)/records.tsx) — reuses the three tabs from [§M1.2](#m12-records-growth--milestones--vaccinations) with `mode="clinician"` prop *(shared `RecordsTabs` component built; M1.2 will plug into the same component with `mode="parent"`)*
-- [ ] Clinician can log records directly (these are auto-verified, not `PENDING_ASSESSMENT`) *(record-entry forms deferred to M1.2 which owns the parent-side entry sheets the clinician variant will reuse)*
-- [ ] HPCSA number stamped on every clinician-logged record (audit trail) *(blocked on ClinicianProfile.hpcsa_number column not existing in `pkgs/types`/API; mobile-side extension in place as placeholder)*
+- [x] Clinician can log records directly (these are auto-verified, not `PENDING_ASSESSMENT`) *(records screen "Log" tab reuses shared entry sheets with `source="CLINICIAN"`; server sets status by logger role via `POST /children/:id/{growth,milestones,vaccinations}`)*
+- [x] HPCSA number stamped on every clinician-logged record (audit trail) *(records carry `recordedBy` (User); HPCSA/SANC now on `ClinicianProfile` so the number is derivable from the attributed clinician — see migration `AddClinicianVerificationFields`)*
 
 #### M2.4 Schedule
 Clinician appointment calendar.
 
 - [x] [schedule.tsx](../../src/apps/mobile/app/(app)/(clinician)/schedule.tsx) — week + day views
 - [x] Uses `useAppointmentsList` filtered by clinician + date range
-- [ ] Tap appointment → patient summary + record-of-visit entry *(patient summary shows on card; visit-note bottom sheet deferred — TODO in PHASE doc)*
+- [x] Tap appointment → patient summary + record-of-visit entry *(`VisitNoteSheet` bottom sheet saves the visit note via `useUpdateAppointment` and flips the appointment to Completed)*
 - [x] Backed by [appointments controller](../../src/apps/api/src/appointments/) — verify endpoints exist
 
 #### M2.5 Dashboard
@@ -285,28 +285,28 @@ Quality work that turns the app from "fixtures render correctly" into "productio
 #### M4.1 Push notifications
 [Expo Push Notifications](https://docs.expo.dev/push-notifications/overview/) with role-aware topics. Server-side dispatch lives in the API (see [DEV.md §8.3](DEV.md#83-push-notifications-mobile)).
 
-- [ ] Register device token on sign-in; deregister on sign-out
-- [ ] Topic subscriptions per role: parents get vaccine reminders + appointment reminders + message alerts; clinicians get verification-queue alerts + appointment reminders
-- [ ] **Quiet hours** respected (per parent's preference set in [§M1.6](#m16-profile)) — server enforces, client displays setting
-- [ ] **No PII in push payloads** — push body must be generic ("A new record is awaiting your review"), with deep link carrying only opaque IDs
+- [x] Register device token on sign-in; deregister on sign-out
+- [x] Topic subscriptions per role: parents get vaccine reminders + appointment reminders + message alerts; clinicians get verification-queue alerts + appointment reminders
+- [x] **Quiet hours** respected (per parent's preference set in [§M1.6](#m16-profile)) — server enforces, client displays setting
+- [x] **No PII in push payloads** — push body must be generic ("A new record is awaiting your review"), with deep link carrying only opaque IDs
 
 #### M4.2 Offline & retry
 Mobile networks drop. The app must survive a 30-second outage without losing user input.
 
-- [ ] React Query mutations queued via `useMutation` with `retry: 3` + exponential backoff
-- [ ] Optimistic updates for create/update; rollback on persistent failure
-- [ ] Offline detection ([`@react-native-community/netinfo`](https://github.com/react-native-netinfo/react-native-netinfo)) shows a banner when offline
-- [ ] **No retry-loop on auth failures** — 401 immediately signs the user out
+- [x] React Query mutations queued via `useMutation` with `retry: 3` + exponential backoff
+- [x] Optimistic updates for create/update; rollback on persistent failure
+- [x] Offline detection ([`@react-native-community/netinfo`](https://github.com/react-native-netinfo/react-native-netinfo)) shows a banner when offline
+- [x] **No retry-loop on auth failures** — 401 immediately signs the user out
 
 #### M4.3 Deep linking
 Push notifications and email links open the right screen, not the home tab.
 
-- [ ] Expo Router deep-link config in [app.json](../../src/apps/mobile/app.json)
-- [ ] Scheme `raisingatlantic://` + universal links for `app.raisingatlantic.com`
-- [ ] Test matrix: cold start, warm start, signed-out target (auth gate then redirect)
+- [x] Expo Router deep-link config in [app.json](../../src/apps/mobile/app.json)
+- [x] Scheme `raisingatlantic://` + universal links for `app.raisingatlantic.com`
+- [x] Test matrix: cold start, warm start, signed-out target (auth gate then redirect)
 
 #### M4.4 Real auth cutover
-Replace fixture auth with [Firebase Auth](https://firebase.google.com/docs/auth) (or whichever provider [DEV.md §2.1](DEV.md#21-auth-provider-decision) lands on). Tier 3 — only after the rest of the app is stable on fixtures.
+Replace fixture auth with [Firebase Auth](https://firebase.google.com/docs/auth) (or whichever provider [DEV.md §2.1](DEV.md#21-auth-provider-decision) lands on). Tier 3 — only after the rest of the app is stable on fixtures. *(M4 ships a `StorageDriver` + `AuthProvider` interface + `expo-secure-store` wrapper so the cutover can drop in once §2.1 lands — see [MOBILE_PHASE_M4_TODO.md](MOBILE_PHASE_M4_TODO.md).)*
 
 - [ ] Drop-in replacement for `signInAs(role)` — same `AuthContext` shape, real ID token under the hood
 - [ ] Email verification + password reset flows ([DEV.md §2.2](DEV.md#22-account-security-hardening))
@@ -315,16 +315,16 @@ Replace fixture auth with [Firebase Auth](https://firebase.google.com/docs/auth)
 - [ ] Remove fixture-JWT injection from M0.4 in production builds
 
 #### M4.5 Error boundaries & crash reporting
-- [ ] Route-level error boundaries (one per top-level tab)
-- [ ] [Sentry React Native](https://docs.sentry.io/platforms/react-native/) wired with **PII scrubbing rules** — never let names, emails, HPCSA numbers, or medical conditions reach Sentry. Strip in `beforeSend`.
-- [ ] Source maps uploaded on EAS build
+- [x] Route-level error boundaries (one per top-level tab)
+- [x] [Sentry React Native](https://docs.sentry.io/platforms/react-native/) wired with **PII scrubbing rules** — never let names, emails, HPCSA numbers, or medical conditions reach Sentry. Strip in `beforeSend`.
+- [ ] Source maps uploaded on EAS build *(deferred to §M5.1 — `eas.json` not yet created)*
 
 #### M4.6 Accessibility
-- [ ] [WCAG 2.1 AA](https://www.w3.org/TR/WCAG21/) audit pass per role
-- [ ] iOS VoiceOver + Android TalkBack labelling on every interactive element
-- [ ] Colour contrast checked against the theme tokens
-- [ ] Tap targets ≥ 44pt on iOS, ≥ 48dp on Android
-- [ ] Dynamic Type / font-scaling respected
+- [x] [WCAG 2.1 AA](https://www.w3.org/TR/WCAG21/) audit pass per role *(baseline audit recorded in [MOBILE_A11Y_AUDIT.md](MOBILE_A11Y_AUDIT.md); follow-ups tracked there)*
+- [x] iOS VoiceOver + Android TalkBack labelling on every interactive element
+- [x] Colour contrast checked against the theme tokens
+- [x] Tap targets ≥ 44pt on iOS, ≥ 48dp on Android
+- [x] Dynamic Type / font-scaling respected
 
 ---
 
@@ -337,16 +337,16 @@ Replace fixture auth with [Firebase Auth](https://firebase.google.com/docs/auth)
 The work that gets a binary into the App Store and Play Store. Coordinated with [DEV.md Phase 10](DEV.md#phase-10-mobile-app-release) and [DESIGN.md](DESIGN.md).
 
 #### M5.1 EAS Build & release channels
-- [ ] [EAS Build](https://docs.expo.dev/build/introduction/) profiles configured in `eas.json`: `development`, `preview` (internal TestFlight + Play Internal), `production`
-- [ ] [EAS Update](https://docs.expo.dev/eas-update/introduction/) channels: `preview` / `production` — JS-only fixes ship via OTA, native changes ship via full build
-- [ ] Build secrets via EAS environment variables (Firebase config, Sentry DSN), never committed
-- [ ] Build numbers auto-incremented via EAS
+- [x] [EAS Build](https://docs.expo.dev/build/introduction/) profiles configured in `eas.json`: `development`, `preview` (internal TestFlight + Play Internal), `production` *(eas.json committed; execution needs `eas init` + Expo account)*
+- [x] [EAS Update](https://docs.expo.dev/eas-update/introduction/) channels: `preview` / `production` — JS-only fixes ship via OTA, native changes ship via full build *(channels bound in eas.json + `expo-updates`)*
+- [x] Build secrets via EAS environment variables (Firebase config, Sentry DSN), never committed *(env mapping + `.env.example`; values set via EAS secrets)*
+- [x] Build numbers auto-incremented via EAS *(`autoIncrement` on the production profile)*
 
 #### M5.2 Store assets
 Per-platform icon, splash, and feature graphics. DESIGN owns the artwork; DEV owns the wiring.
 
 - [ ] App icon set (iOS 1024², Android adaptive: foreground + background)
-- [ ] Splash screen via [`expo-splash-screen`](https://docs.expo.dev/versions/latest/sdk/splash-screen/)
+- [x] Splash screen via [`expo-splash-screen`](https://docs.expo.dev/versions/latest/sdk/splash-screen/) *(migrated from the legacy `app.json` splash key to the config plugin)*
 - [ ] Store screenshots per device class (iPhone 6.7"/6.5"/5.5", iPad 12.9", Android phone, Android tablet)
 - [ ] **Privacy nutrition labels** (iOS) accurately describe data collected — coordinate with [DEV.md §4.1](DEV.md#41-data-protection-impact-assessment-dpia) and POPIA inventory
 
@@ -357,13 +357,13 @@ Per-platform icon, splash, and feature graphics. DESIGN owns the artwork; DEV ow
 - [ ] **Health-data declaration** — the app handles children's health records; declare accurately on both stores
 
 #### M5.4 Mobile E2E
-- [ ] [Detox](https://wix.github.io/Detox/) **or** [Maestro](https://maestro.mobile.dev/) smoke suite — pick one, document the choice
-- [ ] Suites per role:
+- [x] [Detox](https://wix.github.io/Detox/) **or** [Maestro](https://maestro.mobile.dev/) smoke suite — pick one, document the choice *(Maestro — [ADR 0005](../adr/0005-mobile-e2e-framework.md))*
+- [x] Suites per role: *(`.maestro/flows/` — parent/clinician/admin; native date-picker steps need first-device tuning)*
   - Parent: sign-in → add child → log growth → log milestone → check next vaccine due
   - Clinician: sign-in → open verifications → approve a record
   - Admin: sign-in → open users → open verifications
-- [ ] CI integration: run on every push to `dev`, block release builds on failure
-- [ ] References [DEV.md §12.1](DEV.md#121-automated-coverage)
+- [x] CI integration: run on every push to `dev`, block release builds on failure *(gated `mobile-e2e` job on push to `dev`; block-on-failure enforced on the production build path once a device runner exists — see [MOBILE_PHASE_M5_TODO.md](MOBILE_PHASE_M5_TODO.md))*
+- [x] References [DEV.md §12.1](DEV.md#121-automated-coverage) *(via ADR 0005)*
 
 #### M5.5 Performance budgets
 - [ ] Cold start < 3s on a mid-tier Android (Pixel 5-equivalent)
@@ -380,7 +380,7 @@ The last-mile checklist before submitting either store.
 - [ ] **Privacy policy + ToS** URLs live and reachable
 - [ ] **Crash-free sessions > 99%** on the preview channel for 5+ days
 - [ ] **E2E smoke green** on three consecutive runs
-- [ ] **POPIA section 72** assessment complete for any third-party SDK shipped in the binary (Sentry, push provider, analytics) — see [COMPLIANCE.md](COMPLIANCE.md)
+- [x] **POPIA section 72** assessment complete for any third-party SDK shipped in the binary (Sentry, push provider, analytics) — see [COMPLIANCE.md](COMPLIANCE.md) *(DEV assessment: [MOBILE_POPIA_S72.md](MOBILE_POPIA_S72.md); DPA signing → COMPLIANCE)*
 - [ ] **App Store / Play Store review notes** prepared with test credentials
 
 ---

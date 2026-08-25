@@ -1,39 +1,35 @@
 import type { Metadata } from 'next';
-import { Fraunces, DM_Sans, Nunito } from 'next/font/google';
+import { fontVariables } from '@/lib/fonts';
 import './globals.css';
+import { PlausibleAnalytics } from '@/components/plausible-analytics';
+import { JsonLd } from '@/components/json-ld';
+import { siteUrl } from '@/lib/site';
 
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-fraunces',
-  weight: ['300', '400', '500', '600'],
-  style: ['normal', 'italic'],
-  display: 'swap',
-});
+// Applies fonts saved on /settings before first paint (no flash of default
+// fonts). Static script authored here — no user-supplied content is injected;
+// stored values are validated against a strict charset before being applied
+// as CSS custom properties.
+const FONT_SETTINGS_SCRIPT = `(function(){try{var s=JSON.parse(localStorage.getItem('pedicheck-font-settings')||'null');if(!s)return;var ok=/^[\\w\\s,'"()-]+$/;['headline','wordmark','body'].forEach(function(k){var v=s[k]&&s[k].stack;if(typeof v==='string'&&ok.test(v)){document.documentElement.style.setProperty('--'+k+'-font',v);}});}catch(e){}})();`;
 
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  variable: '--font-dm-sans',
-  weight: ['400', '500', '600', '700'],
-  style: ['normal', 'italic'],
-  display: 'swap',
-});
+const SITE_URL = siteUrl;
 
-const nunito = Nunito({
-  subsets: ['latin'],
-  variable: '--font-nunito',
-  weight: ['600', '700', '800', '900'],
-  display: 'swap',
-});
+// Page-level SEO — browser tab + search snippet.
+const PAGE_TITLE = "PediCheck — When you don't know if it's serious";
+const PAGE_DESCRIPTION =
+  'Paediatrician-built guidance for every fever, bump and 2am worry. Calm, clear answers in under two minutes. Launching soon — join the waitlist.';
 
-const SITE_URL = 'https://pedicheck.co.za';
+// Social share card — OpenGraph + Twitter.
 const OG_TITLE = "PediCheck: When you don't know if it's serious";
 const OG_DESCRIPTION =
-  'Paediatrician-built guidance for every fever, bump and 2am worry. Calm, clear answers in under two minutes. Launching soon — join the waitlist.';
+  'A calm second opinion for the 2am worries. Built by paediatricians.';
+const OG_IMAGE = '/brand/og-image.png';
+const OG_IMAGE_ALT =
+  "PediCheck — when you don't know if it's serious. A calm, paediatrician-built second opinion for the 2am worries.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: OG_TITLE,
-  description: OG_DESCRIPTION,
+  title: PAGE_TITLE,
+  description: PAGE_DESCRIPTION,
   applicationName: 'PediCheck',
   keywords: [
     'paediatrician',
@@ -47,6 +43,9 @@ export const metadata: Metadata = {
     'Atlantic Children’s Practice',
   ],
   authors: [{ name: 'Atlantic Children’s Practice', url: SITE_URL }],
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
   icons: {
     icon: '/brand/icon-32.png',
     apple: '/brand/icon-180.png',
@@ -60,10 +59,10 @@ export const metadata: Metadata = {
     locale: 'en_ZA',
     images: [
       {
-        url: '/brand/og-image.png',
+        url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: 'PediCheck — calm, paediatrician-built guidance for 2am worries.',
+        alt: OG_IMAGE_ALT,
         type: 'image/png',
       },
     ],
@@ -72,7 +71,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: OG_TITLE,
     description: OG_DESCRIPTION,
-    images: ['/brand/og-image.png'],
+    images: [OG_IMAGE],
   },
 };
 
@@ -80,11 +79,15 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={`${fraunces.variable} ${dmSans.variable} ${nunito.variable}`}
-    >
-      <body>{children}</body>
+    <html lang="en" className={fontVariables} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: FONT_SETTINGS_SCRIPT }} />
+      </head>
+      <body>
+        <JsonLd />
+        <PlausibleAnalytics />
+        {children}
+      </body>
     </html>
   );
 }

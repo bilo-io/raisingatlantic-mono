@@ -144,3 +144,33 @@ variable "slack_alerts_webhook_url" {
   sensitive   = true
   default     = ""
 }
+
+variable "enable_slos" {
+  description = "Provision Cloud Monitoring SLO objects + error-budget burn-rate alerts (requires live GCP project; burn-rate alerts also require enable_alert_policies)."
+  type        = bool
+  default     = false
+}
+
+variable "enable_metrics_scheduler" {
+  description = "Provision the Cloud Scheduler job that refreshes business-metric gauges (ra_vaccinations_due)."
+  type        = bool
+  default     = false
+}
+
+variable "enable_pagerduty" {
+  description = "Provision PagerDuty on-call schedule + escalation policy + service. Requires a live PagerDuty account and a second on-call before the schedule is meaningful."
+  type        = bool
+  default     = false
+}
+
+variable "metrics_scheduler_sa_email" {
+  description = "Service account email the metrics-refresh Cloud Scheduler job uses for its OIDC token."
+  type        = string
+  default     = ""
+}
+
+variable "pagerduty_oncall_user_id" {
+  description = "PagerDuty user ID for the solo on-call rotation layer."
+  type        = string
+  default     = ""
+}

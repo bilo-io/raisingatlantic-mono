@@ -86,6 +86,12 @@ variable "enable_betterstack" {
   default = false
 }
 
+variable "enable_slos" {
+  description = "Provision Cloud Monitoring SLO objects for the staging API service."
+  type        = bool
+  default     = false
+}
+
 variable "api_public_url" {
   type    = string
   default = "https://ra-api-staging.example.com"

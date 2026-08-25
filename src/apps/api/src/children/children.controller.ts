@@ -9,19 +9,36 @@ import {
   HttpCode,
   HttpStatus,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
-import { ChildrenService } from './children.service';
+import type { Request } from 'express';
+import { ChildrenService, type RecordActor } from './children.service';
 import { CreateChildDto } from './dto/create-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
 import { CreateAllergyDto } from './dto/create-allergy.dto';
 import { CreateMedicalConditionDto } from './dto/create-medical-condition.dto';
 import { CreateCompletedVaccinationDto } from './dto/create-completed-vaccination.dto';
+import { CreateGrowthRecordDto } from './dto/create-growth-record.dto';
+import { CreateCompletedMilestoneDto } from './dto/create-completed-milestone.dto';
 import { Child } from './children.model';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import {
+  JwtAuthGuard,
+  type AuthTokenPayload,
+} from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../users/constants';
+
+interface AuthedRequest extends Request {
+  user?: AuthTokenPayload;
+}
+
+function actorFrom(req: AuthedRequest): RecordActor | undefined {
+  return req.user
+    ? { userId: req.user.sub, role: req.user.role as UserRole }
+    : undefined;
+}
 
 @Controller('children')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -67,13 +84,38 @@ export class ChildrenController {
     return this.childrenService.addMedicalCondition(id, dto);
   }
 
+  @Post(':id/growth')
+  @Roles(UserRole.ADMIN, UserRole.CLINICIAN, UserRole.PARENT)
+  async addGrowthRecord(
+    @Param('id') id: string,
+    @Body() dto: CreateGrowthRecordDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.childrenService.addGrowthRecord(id, dto, actorFrom(req));
+  }
+
+  @Post(':id/milestones')
+  @Roles(UserRole.ADMIN, UserRole.CLINICIAN, UserRole.PARENT)
+  async addCompletedMilestone(
+    @Param('id') id: string,
+    @Body() dto: CreateCompletedMilestoneDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.childrenService.addCompletedMilestone(id, dto, actorFrom(req));
+  }
+
   @Post(':id/vaccinations')
   @Roles(UserRole.ADMIN, UserRole.CLINICIAN, UserRole.PARENT)
   async addCompletedVaccination(
     @Param('id') id: string,
     @Body() dto: CreateCompletedVaccinationDto,
+    @Req() req: AuthedRequest,
   ) {
-    return this.childrenService.addCompletedVaccination(id, dto);
+    return this.childrenService.addCompletedVaccination(
+      id,
+      dto,
+      actorFrom(req),
+    );
   }
 
   @Patch(':id')

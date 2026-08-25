@@ -4,6 +4,9 @@ import { PT_Sans } from 'next/font/google';
 
 import './globals.css';
 import { Providers } from './providers';
+import { PlausibleAnalytics } from '@/components/analytics/plausible-analytics';
+import { JsonLd } from '@/components/seo/json-ld';
+import { siteUrl } from '@/lib/seo/site';
 
 // next/font must be called at module scope (not inside a function)
 const ptSans = PT_Sans({
@@ -15,15 +18,19 @@ const ptSans = PT_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: 'Raising Atlantic | The Digital Road to Health Platform',
     template: 'RaisingAtlantic | %s',
   },
   description: 'Empowering parents and clinicians with a secure, collaborative SaaS application to seamlessly track early childhood development, growth velocity, and EPI vaccination schedules.',
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
   openGraph: {
     title: 'Raising Atlantic | The Digital Road to Health Platform',
     description: 'Empowering parents and clinicians with a secure, collaborative SaaS application to seamlessly track early childhood development, growth velocity, and EPI vaccination schedules.',
-    url: 'https://raisingatlantic.com',
+    url: siteUrl,
     siteName: 'Raising Atlantic',
     images: [
       {
@@ -52,8 +59,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={ptSans.variable}>
-      <head />
+      <head>
+        <JsonLd />
+      </head>
       <body suppressHydrationWarning className="font-body antialiased min-h-screen flex flex-col">
+        <PlausibleAnalytics />
         <Providers>
           {children}
           {/* Global SVG Definitions */}
