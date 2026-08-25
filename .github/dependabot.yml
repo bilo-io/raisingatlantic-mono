@@ -1,9 +1,15 @@
 version: 2
 
+# Every entry below sets `target-branch: dev`. The promotion path is
+# dev -> test -> main and only hotfixes go straight to main, so a dependency
+# bump opened against the default branch would bypass the pipeline entirely.
+# Keep target-branch on any new ecosystem added here.
+
 updates:
   # ── Application code: npm workspaces ────────────────────────────────────────
   - package-ecosystem: npm
     directory: /src/apps/api
+    target-branch: dev
     schedule:
       interval: weekly
       day: monday
@@ -17,6 +23,7 @@ updates:
 
   - package-ecosystem: npm
     directory: /src/apps/web
+    target-branch: dev
     schedule:
       interval: weekly
       day: monday
@@ -30,6 +37,7 @@ updates:
 
   - package-ecosystem: npm
     directory: /src/apps/mobile
+    target-branch: dev
     schedule:
       interval: weekly
       day: monday
@@ -43,6 +51,7 @@ updates:
 
   - package-ecosystem: npm
     directory: /src/pkgs/ui
+    target-branch: dev
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
@@ -53,6 +62,7 @@ updates:
 
   - package-ecosystem: npm
     directory: /src/pkgs/types
+    target-branch: dev
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
@@ -63,6 +73,7 @@ updates:
 
   - package-ecosystem: npm
     directory: /
+    target-branch: dev
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
@@ -71,6 +82,7 @@ updates:
   # ── CI / Actions ────────────────────────────────────────────────────────────
   - package-ecosystem: github-actions
     directory: /
+    target-branch: dev
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
@@ -79,6 +91,7 @@ updates:
   # ── Infrastructure as Code ──────────────────────────────────────────────────
   - package-ecosystem: terraform
     directory: /infra
+    target-branch: dev
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
@@ -87,6 +100,7 @@ updates:
   # ── Container images ────────────────────────────────────────────────────────
   - package-ecosystem: docker
     directory: /src/apps/api
+    target-branch: dev
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
@@ -94,6 +108,7 @@ updates:
 
   - package-ecosystem: docker
     directory: /src/apps/web
+    target-branch: dev
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
