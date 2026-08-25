@@ -317,7 +317,7 @@ Replace fixture auth with the provider [DEV.md §2.1](DEV.md#21-auth-provider-de
 #### M4.5 Error boundaries & crash reporting
 - [x] Route-level error boundaries (one per top-level tab)
 - [x] [Sentry React Native](https://docs.sentry.io/platforms/react-native/) wired with **PII scrubbing rules** — never let names, emails, HPCSA numbers, or medical conditions reach Sentry. Strip in `beforeSend`.
-- [ ] Source maps uploaded on EAS build *(deferred to §M5.1 — `eas.json` not yet created)*
+- [ ] Source maps uploaded on EAS build *(plugin wired — `@sentry/react-native/expo` in app.json + `SENTRY_AUTH_TOKEN`/`EXPO_PUBLIC_SENTRY_DSN` documented in `.env.example`; blocked on Expo/EAS account + Sentry org/token provisioning and one verified `eas build` run — see [MOBILE_PHASE_M4_TODO.md](MOBILE_PHASE_M4_TODO.md))*
 
 #### M4.6 Accessibility
 - [x] [WCAG 2.1 AA](https://www.w3.org/TR/WCAG21/) audit pass per role *(baseline audit recorded in [MOBILE_A11Y_AUDIT.md](MOBILE_A11Y_AUDIT.md); follow-ups tracked there)*

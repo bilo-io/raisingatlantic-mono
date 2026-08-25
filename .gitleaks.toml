@@ -13,6 +13,8 @@ paths = [
   '''.*\.env\.example$''',
   '''docs/.*''',
   '''src/test/postman/environments/.*''',
+  '''src/apps/api/\.npm-cache/.*''',
+  '''src/apps/api/README\.md$''',
 ]
 
 regexes = [
