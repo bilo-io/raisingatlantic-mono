@@ -15,6 +15,10 @@
  * the PENDING/APPROVED/REJECTED dropdown to the Features status column, and
  * generates the shared token (printed to the execution log — copy it into the
  * pedicheck env as APPS_SCRIPT_TOKEN). See docs/PEDICHECK_APPS_SCRIPT_SETUP.md.
+ *
+ * Every new Leads row also triggers a best-effort notification email to
+ * dev@raisingatlantic.com via MailApp (see notifyLead()) — free, no extra
+ * setup beyond the script's own "Execute as: Me" authorization.
  */
 
 var LEADS_TAB = 'Leads';
@@ -102,8 +106,9 @@ function doGet() {
 
 function createLead(p) {
   if (!p.email) throw new Error('email_required');
+  var id = Utilities.getUuid();
   getSheet(LEADS_TAB).appendRow([
-    Utilities.getUuid(),
+    id,
     new Date().toISOString(),
     p.type || 'contact',
     p.name || '',
@@ -114,6 +119,7 @@ function createLead(p) {
     p.consent === true ? 'true' : 'false',
     p.ip || '',
   ]);
+  notifyLead(id, p);
   return {};
 }
 
@@ -195,6 +201,31 @@ function isFirstRowEmpty(sheet) {
 
 function getToken() {
   return PropertiesService.getScriptProperties().getProperty('SHARED_TOKEN');
+}
+
+/** Best-effort lead notification email. Never throws — a failure here must not affect createLead(). */
+function notifyLead(id, p) {
+  try {
+    var subject = '[PediCheck] New ' + (p.type || 'contact') + ' lead: ' + (p.name || p.email);
+    var body = [
+      'New lead submitted on the PediCheck landing page.',
+      '',
+      'Type: ' + (p.type || 'contact'),
+      'Name: ' + (p.name || '(none)'),
+      'Email: ' + p.email,
+      'Phone: ' + (p.phone || '(none)'),
+      'Subject: ' + (p.subject || '(none)'),
+      'Message: ' + (p.message || '(none)'),
+      'Consent: ' + (p.consent === true ? 'true' : 'false'),
+      'IP: ' + (p.ip || '(none)'),
+      '',
+      'Row id: ' + id,
+      'Sheet: ' + SpreadsheetApp.getActiveSpreadsheet().getUrl(),
+    ].join('\n');
+    MailApp.sendEmail('dev@raisingatlantic.com', subject, body);
+  } catch (err) {
+    Logger.log('notifyLead failed: ' + (err && err.message ? err.message : err));
+  }
 }
 
 function jsonOut(obj) {

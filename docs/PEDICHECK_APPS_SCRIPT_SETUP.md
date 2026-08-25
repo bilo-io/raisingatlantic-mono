@@ -77,7 +77,8 @@ they are server-only). Redeploy for them to take effect.
 moon run pedicheck:dev-web   # http://localhost:9003
 ```
 
-1. **Lead:** submit the waitlist form on `/` → new row in **Leads** (`type=waitlist`).
+1. **Lead:** submit the waitlist form on `/` → new row in **Leads** (`type=waitlist`)
+   and an email to `dev@raisingatlantic.com` (check spam on first send).
 2. **Feature (pending):** submit on `/features` → new **Features** row, status
    `PENDING`; it does **not** appear on the board.
 3. **Approve:** set that row's status (col G) to `APPROVED` → reload `/features`
