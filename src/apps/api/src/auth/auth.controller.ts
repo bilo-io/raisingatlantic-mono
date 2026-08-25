@@ -79,7 +79,7 @@ export class AuthController {
   @Post('verify-email/request')
   @HttpCode(HttpStatus.OK)
   @Throttle({ short: { limit: 5, ttl: 60_000 } })
-  async requestEmailVerification(
+  requestEmailVerification(
     @Body() dto: RequestEmailVerificationDto,
     @Req() req: Request,
   ) {
@@ -102,7 +102,7 @@ export class AuthController {
   @Post('password-reset/request')
   @HttpCode(HttpStatus.OK)
   @Throttle({ short: { limit: 5, ttl: 60_000 } })
-  async requestPasswordReset(
+  requestPasswordReset(
     @Body() dto: RequestPasswordResetDto,
     @Req() req: Request,
   ) {

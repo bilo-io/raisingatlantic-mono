@@ -21,6 +21,11 @@ regexes = [
   '''password123''',
   '''postgres:postgres@localhost''',
   '''ci-test-secret''',
+  # RFC 6238 Appendix B TOTP test vector — the base32 encoding of the ASCII
+  # seed "12345678901234567890", published in the RFC and used in
+  # src/apps/api/src/auth/totp.spec.ts to prove our implementation matches
+  # the spec. A public constant, not a credential.
+  '''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''',
   # Synthetic UUIDs used as documentation examples
   '''eb8c8f5d-d922-4a0b-9c8a-788b77098e9b''',
 ]
